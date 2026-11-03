@@ -2,8 +2,8 @@ import type { AbilityDefinition } from '@bardurinho/domain';
 
 /**
  * Catálogo das habilidades (seção 4). Cada habilidade é composta apenas por operações
- * reutilizáveis. Investida (`warrior.charge`) e Ocultação (`rogue.hide`) exigem
- * mecânicas novas (deslocamento + ataque, visibilidade) e entram em etapa posterior.
+ * reutilizáveis. Investida (`warrior.charge`) exige uma mecânica nova
+ * (deslocamento + ataque) e entra em etapa posterior.
  */
 export const abilities: AbilityDefinition[] = [
   {
@@ -70,6 +70,23 @@ export const abilities: AbilityDefinition[] = [
     target: { kind: 'cell', minRange: 2, range: 7, requiresLineOfSight: true },
     effects: [{ op: 'damage', selector: 'targetCellOccupants', amount: 22, damageType: 'physical' }],
     presentation: { iconId: 'icon.precise_shot', animationId: 'shoot', vfxId: 'trail.arrow' },
+  },
+  {
+    kind: 'ability',
+    id: 'rogue.hide',
+    version: 1,
+    name: 'Ocultação',
+    classId: 'rogue',
+    tags: ['STEALTH', 'SELF', 'STATUS'],
+    cost: { ap: 1, focus: 2 },
+    maxUsesPerTurn: 1,
+    blockedOwnTurnsAfterUse: 2,
+    // Só fora da visão inimiga ou em área escura. O +4 no primeiro ataque e o fim do efeito
+    // (atacar, receber dano, ser revelado) são regras do estado Oculto no core.
+    condition: 'canHide',
+    target: { kind: 'self' },
+    effects: [{ op: 'applyStatus', selector: 'self', statusId: 'hidden' }],
+    presentation: { iconId: 'icon.hide', animationId: 'cast_self', vfxId: 'stealth.transition' },
   },
   {
     kind: 'ability',

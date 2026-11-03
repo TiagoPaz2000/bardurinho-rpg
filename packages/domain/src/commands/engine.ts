@@ -21,6 +21,9 @@ import { setSurfaceDirect } from '../effects/surfaces.js';
 import { checkVictory, endTurn, finishMatch, startMatch } from '../turns/turns.js';
 import { resetDummy } from '../state/factory.js';
 import type { Command, CommandError, CommandErrorCode, CommandTarget, ExecutionOptions } from './types.js';
+import { VISIBILITY_TUNING, areEnemies, canDetectUnit, isHidden, isObserver, teamDetects } from '../visibility/visibility.js';
+import { removeStatus } from '../effects/statuses.js';
+import { livingUnits } from '../state/queries.js';
 import {
   DEFEND_SHIELD,
   INTERACT_COST,
@@ -69,6 +72,7 @@ export function applyCommand(
   });
   try {
     handle(ctx, command, options);
+    revealHiddenUnits(ctx);
     checkVictory(ctx);
     return { ok: true, state: candidate, events: ctx.events };
   } catch (err) {
@@ -142,13 +146,13 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
       const effects: EffectOp[] = [
         { op: 'damage', selector: 'targetCellOccupants', amount: weapon.damage, damageType: weapon.damageType },
       ];
-      executeEffects(ctx, effects, createScope(actor, target, weapon.id));
+      executeAttack(ctx, actor, effects, target, weapon.id);
       return;
     }
     case 'USE_ABILITY': {
       const ability = ctx.catalog.abilities[command.abilityId];
       if (!ability) return reject('UNKNOWN_DEFINITION', `Habilidade desconhecida: ${command.abilityId}`);
-      fail(checkAbility(ctx.catalog, actor, ability, options));
+      fail(checkAbility(ctx.state, ctx.catalog, actor, ability, options));
       const target = resolveTarget(ctx, actor, command.target, ability.target);
       spend(ctx, actor, ability.cost, options, ability.id);
       actor.usesThisTurn[ability.id] = (actor.usesThisTurn[ability.id] ?? 0) + 1;
@@ -162,7 +166,8 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
         });
       }
       emit(ctx, 'ABILITY_USED', { actorId: actor.id, abilityId: ability.id, version: ability.version, target: target.cell });
-      executeEffects(ctx, ability.effects, createScope(actor, target, ability.id));
+      if (ability.effects.some((e) => e.op === 'damage')) executeAttack(ctx, actor, ability.effects, target, ability.id);
+      else executeEffects(ctx, ability.effects, createScope(actor, target, ability.id));
       return;
     }
     case 'USE_ITEM': {
@@ -231,7 +236,34 @@ function resolveTarget(ctx: ResolutionContext, actor: Unit, target: CommandTarge
   if (rule.requiresLineOfSight && !hasLineOfSight(ctx.state, ctx.catalog, actor.pos, resolved.cell)) {
     reject('NO_LINE_OF_SIGHT', 'Sem linha de visão');
   }
+  // Não é possível mirar diretamente uma unidade inimiga não detectada (pode-se mirar a célula).
+  const unitTarget = resolved.entity?.entity === 'unit' ? resolved.entity : undefined;
+  if (unitTarget && unitTarget.team !== actor.team && !unitTarget.flags.isDummy && !teamDetects(ctx.state, ctx.catalog, actor.team, unitTarget)) {
+    reject('TARGET_NOT_VISIBLE', 'Alvo não visível');
+  }
   return resolved;
+}
+
+/**
+ * Ataque (arma ou habilidade com dano). Se o atacante estava Oculto, o primeiro ataque
+ * recebe +4 de dano bruto e encerra a Ocultação (seção 4).
+ */
+function executeAttack(ctx: ResolutionContext, actor: Unit, effects: EffectOp[], target: EffectTarget, definitionId: string): void {
+  const scope = createScope(actor, target, definitionId);
+  const fromHiding = isHidden(actor);
+  if (fromHiding) scope.rawDamageBonus = VISIBILITY_TUNING.hiddenAttackBonus;
+  executeEffects(ctx, effects, scope);
+  if (fromHiding) removeStatus(ctx, actor, VISIBILITY_TUNING.hiddenStatusId, 'attacked');
+}
+
+/** Após cada comando: unidades Ocultas detectadas por um inimigo são reveladas. */
+function revealHiddenUnits(ctx: ResolutionContext): void {
+  const units = livingUnits(ctx.state);
+  for (const u of units) {
+    if (!isHidden(u)) continue;
+    const by = units.find((o) => isObserver(o) && areEnemies(o, u) && canDetectUnit(ctx.state, ctx.catalog, o, u));
+    if (by) removeStatus(ctx, u, VISIBILITY_TUNING.hiddenStatusId, `revealed_by_${by.id}`);
+  }
 }
 
 function handleMove(ctx: ResolutionContext, actor: Unit, to: Coord): void {

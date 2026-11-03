@@ -22,6 +22,7 @@ export const defaultScenario: ScenarioInitial = {
   units: [
     { id: 'mage-01', classId: 'mage', team: 'A', pos: { x: 1, y: 7 }, consumables: ['consumable.oil_flask', 'consumable.health_potion'] },
     { id: 'warrior-01', classId: 'warrior', team: 'B', pos: { x: 10, y: 7 } },
+    { id: 'rogue-01', classId: 'rogue', team: 'A', pos: { x: 5, y: 3 } },
     { id: 'dummy-01', type: 'debug.test-dummy', preset: 'dummy.default', pos: { x: 4, y: 8 } },
     { id: 'dummy-02', type: 'debug.test-dummy', preset: 'dummy.armored', pos: { x: 6, y: 8 } },
     { id: 'dummy-03', type: 'debug.test-dummy', preset: 'dummy.fire_resistant', pos: { x: 8, y: 8 } },
@@ -37,6 +38,6 @@ export const defaultScenario: ScenarioInitial = {
     { cells: [{ x: 2, y: 1 }, { x: 2, y: 2 }, { x: 2, y: 3 }], surface: 'oil' },
     { cells: [{ x: 9, y: 2 }, { x: 10, y: 2 }, { x: 10, y: 3 }], surface: 'oil' },
   ],
-  order: ['mage-01', 'warrior-01', 'dummy-01', 'dummy-02', 'dummy-03'],
+  order: ['mage-01', 'warrior-01', 'rogue-01', 'dummy-01', 'dummy-02', 'dummy-03'],
   autoStart: false,
 };

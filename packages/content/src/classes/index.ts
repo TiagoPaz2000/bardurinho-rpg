@@ -17,7 +17,7 @@ export const classes: ClassDefinition[] = [
     loadout: {
       weapons: ['weapon.dagger', 'weapon.short_bow'],
       armor: 'armor.leather',
-      abilities: ['rogue.precise_shot'],
+      abilities: ['rogue.precise_shot', 'rogue.hide'],
     },
   },
   {

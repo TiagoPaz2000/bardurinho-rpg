@@ -56,19 +56,20 @@ No laboratório:
 | Turnos | ✅ | Turnos, rodadas, ordem, limite de 20 rodadas. Cronômetro de 45 s fica no servidor (Fase 3) |
 | Sistema de dano | ✅ | Armadura/resistência → barreira → PV; imortalidade de boneco |
 | Recursos | ✅ | PV, PA, PM, Foco (+2/turno), custos, recargas, usos por turno |
-| Estados | 🟡 | Queimando, Lentidão, Enraizado completos. Oculto: só a definição (depende de visibilidade) |
+| Estados | ✅ | Queimando, Lentidão, Enraizado e Oculto |
 | Superfícies | ✅ | Óleo, fogo, espinhos; custo de entrada; dano 1×/turno global; exposição na criação; expiração em R + N |
 | Reações ambientais | ✅ | Calor+óleo (mancha conectada), calor+espinhos, calor+madeira, fogo+barril, frio/água apagam fogo e Queimando, óleo sobre fogo |
 | Objetos ambientais | ✅ | Porta, portão+alavanca, barril (cadeia de explosões), caixa, baú, cisterna, altar |
 | Movimento | ✅ | 4 direções, Dijkstra, escadas com custo 2, deslocamento forçado |
-| Linha de visão | 🟡 | Mesmo andar completo. Entre andares: aproximação provisória. Visão de 8 células e áreas escuras ainda não aplicadas |
+| Linha de visão | 🟡 | Mesmo andar completo; entre andares, aproximação provisória |
+| Visibilidade | ✅ | Visão de 8 células, áreas escuras (2 células), luz do fogo (2 células), visão por equipe e projeção do estado (`projectStateForTeam`); no lab, botões Visão: Servidor / Equipe A / Equipe B |
 | Visualizador 2D | ✅ | Canvas; não calcula regras |
 | Editor de cenário | 🟡 | Terreno, área escura, superfícies, personagens, bonecos, objetos. Falta: escadas, andares e pontos de início pela UI |
 | Inspector | ✅ | Célula, unidade, objeto (gatilhos, tags, usos) |
 | Timeline de eventos | ✅ | Log global com causa, definição, payload e State Diff |
 | Modo STEP | 🟡 | Por comando. Falta snapshot por evento individual |
 | Replay de comandos | ✅ | Reexecuta do zero e confirma determinismo |
-| Testes automatizados | ✅ | 36 testes, incluindo 5 cenários JSON |
+| Testes automatizados | ✅ | 50 testes, incluindo 5 cenários JSON |
 | Geração de screenshots | ⬜ | Pendente (renderizar canvas em Node ou via navegador headless) |
 | Exportação de cenário | ✅ | Exportar e importar `initial.json` |
 | Criar teste a partir de cenário | ✅ | GERAR TESTE; coberto por `tests/unit/lab-session.test.ts` |
@@ -79,7 +80,8 @@ No laboratório:
 
 ### Também pendente nesta fase
 
-- **Investida** (`warrior.charge`) e **Ocultação** (`rogue.hide`): exigem mecânicas novas (deslocamento + ataque; visibilidade). Por isso ainda não estão no catálogo, que tem 8 das 10 habilidades.
+- **Investida** (`warrior.charge`): exige deslocamento + ataque. O catálogo tem 9 das 10 habilidades.
+- **Filtragem de eventos por equipe**: a projeção já remove unidades não detectadas do estado; filtrar os eventos entra com o servidor (Fase 3).
 - Modos **AI** e **NETWORK** do laboratório: estrutura prevista, implementação junto das Fases 3 e 4.
 
 ## Hipóteses assumidas (não definidas no plano)
@@ -96,3 +98,8 @@ Valores marcados para revisão de balanceamento:
 | Unidades bloqueiam linha de visão? | Não |
 | Bonecos de teste | Têm turno na ordem (para Queimando ticar), encerrado automaticamente; não contam para vitória |
 | Escudo igual ao atual | Substitui (renova a duração) |
+| Detecção de Oculto | Só a até 1 célula (adjacente) ou quando iluminado |
+| Fontes de luz | Fogo no chão, objetos em combustão e personagens Queimando |
+| Revelação | Verificada após cada comando: um inimigo que detecta o Oculto encerra o efeito |
+| Alvo não detectado | Não pode ser mirado diretamente (`TARGET_NOT_VISIBLE`), mas a célula pode — ataque "às cegas" |
+| Superfícies e objetos na projeção | Conhecidos por todas as equipes no MVP (sem memória de neblina) |

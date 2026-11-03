@@ -85,6 +85,8 @@ export type CommandErrorCode =
   | 'CELL_OCCUPIED'
   | 'MISSING_WEAPON'
   | 'NO_VALID_TARGET'
+  | 'HIDE_NOT_ALLOWED'
+  | 'TARGET_NOT_VISIBLE'
   | 'DEBUG_DISABLED';
 
 export interface CommandError {

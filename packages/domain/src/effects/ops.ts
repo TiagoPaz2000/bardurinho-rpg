@@ -26,6 +26,8 @@ export interface EffectScope {
   target: EffectTarget;
   /** Unidades atingidas por dano nesta mesma execução. */
   hitUnits: Set<EntityId>;
+  /** Bônus de dano bruto aplicado a cada operação de dano (ex.: ataque saindo de Oculto). */
+  rawDamageBonus?: number;
 }
 
 export function createScope(
@@ -78,7 +80,7 @@ export function executeOp(ctx: ResolutionContext, op: EffectOp, scope: EffectSco
   switch (op.op) {
     case 'damage': {
       for (const e of selectEntities(ctx, scope, op.selector)) {
-        const r = damageEntity(ctx, e, op.amount, op.damageType, {
+        const r = damageEntity(ctx, e, op.amount + (scope.rawDamageBonus ?? 0), op.damageType, {
           ignoreArmor: op.ignoreArmor ?? false,
           via: scope.definitionId ?? undefined,
         });

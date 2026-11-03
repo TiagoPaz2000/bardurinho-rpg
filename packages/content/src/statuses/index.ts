@@ -25,7 +25,8 @@ export const statuses: StatusDefinition[] = [
   },
   {
     kind: 'status', id: 'hidden', version: 1, name: 'Oculto', tags: ['STEALTH'],
-    duration: { kind: 'manual' },
+    // Termina ao final do próximo turno próprio (também ao atacar, receber dano ou ser revelado).
+    duration: { kind: 'targetTurns', count: 1 },
     flags: ['hidden'],
     stacking: 'refresh',
     presentation: { iconId: 'icon.status.hidden', vfxId: 'stealth.transition' },

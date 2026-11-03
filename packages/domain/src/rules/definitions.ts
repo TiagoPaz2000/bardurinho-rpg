@@ -92,6 +92,8 @@ export interface AbilityDefinition extends DefinitionBase {
   target: TargetingRule;
   /** Exige arma equipada com esta tag (ex.: `bow`). */
   requiresWeaponTag?: string;
+  /** Condição especial de ativação (ex.: Ocultação: fora da visão inimiga ou em área escura). */
+  condition?: 'canHide';
   effects: EffectOp[];
   presentation?: Presentation;
 }

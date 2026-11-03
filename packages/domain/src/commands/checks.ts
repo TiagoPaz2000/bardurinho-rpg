@@ -12,6 +12,7 @@ import type {
   WeaponDefinition,
 } from '../rules/definitions.js';
 import { hasStatusFlag, unitAt } from '../state/queries.js';
+import { canHide } from '../visibility/visibility.js';
 import type { GameState, MapObject, Unit } from '../state/types.js';
 import type { CommandError, CommandErrorCode, ExecutionOptions } from './types.js';
 
@@ -52,7 +53,7 @@ export function checkWeapon(actor: Unit, weapon: WeaponDefinition): Check {
 }
 
 /** Equipamento, arma exigida, usos por turno e recarga. O custo é verificado à parte. */
-export function checkAbility(catalog: Catalog, actor: Unit, ability: AbilityDefinition, options: ExecutionOptions = {}): Check {
+export function checkAbility(state: GameState, catalog: Catalog, actor: Unit, ability: AbilityDefinition, options: ExecutionOptions = {}): Check {
   if (!actor.abilities.includes(ability.id) && !options.ignoreCooldown) return err('NOT_EQUIPPED', `${actor.id} não possui ${ability.id}`);
   if (ability.requiresWeaponTag && !actor.weapons.some((w) => catalog.items[w]?.tags.includes(ability.requiresWeaponTag!))) {
     return err('MISSING_WEAPON', `${ability.id} exige arma com tag ${ability.requiresWeaponTag}`);
@@ -63,6 +64,9 @@ export function checkAbility(catalog: Catalog, actor: Unit, ability: AbilityDefi
     if (actor.ownTurnsStarted < availableFrom) {
       return err('ON_COOLDOWN', `Em recarga: disponível no turno próprio ${availableFrom} (atual ${actor.ownTurnsStarted})`);
     }
+  }
+  if (ability.condition === 'canHide' && !canHide(state, catalog, actor)) {
+    return err('HIDE_NOT_ALLOWED', 'Só é possível se ocultar fora da visão inimiga ou em área escura');
   }
   return null;
 }

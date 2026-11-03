@@ -14,6 +14,9 @@ import {
   lineOfSight,
   listActionsOnTarget,
   listUnitActions,
+  isHidden,
+  projectStateForTeam,
+  teamDetects,
   type ActionInfo,
   unitAt,
   type Command,
@@ -73,6 +76,7 @@ const ui = {
   selectedCell: null as Coord | null,
   lastClickedCell: null as Coord | null,
   bottomTab: 'actions' as 'actions' | 'timeline' | 'legend',
+  visionTeam: null as string | null,
   selectedUnitId: 'mage-01' as string | null,
   hoverCell: null as Coord | null,
   search: '',
@@ -307,6 +311,10 @@ function renderToolbar(): void {
       ? h('span', { class: 'group' }, 'Andar:', ...Array.from({ length: s.map.floors }, (_, f) =>
           h('button', { class: ui.floor === f ? 'on' : '', onclick: () => { ui.floor = f; refresh(); } }, String(f))))
       : null,
+    h('span', { class: 'group' }, 'Visão:',
+      ...[null, ...teamsInMatch()].map((t) =>
+        h('button', { class: ui.visionTeam === t ? 'on' : '', title: t ? `Mostra apenas o que a equipe ${t} vê` : 'Estado oficial completo',
+          onclick: () => { ui.visionTeam = t; refresh(); } }, t ? `Equipe ${t}` : 'Servidor (tudo)'))),
     h('span', { class: 'group' }, 'Layers:', layer('coordinates', 'Coord.'), layer('movementCost', 'Custo PM'), layer('reachable', 'Alcance mov.'),
       layer('lineOfSight', 'Linha de visão'), layer('attackRange', 'Alcance ataque'), layer('surface', 'Superfícies'), layer('objects', 'Objetos')),
   ].filter((el): el is HTMLElement => !!el));
@@ -521,6 +529,7 @@ function renderUnitInspector(u: Unit): HTMLElement[] {
   const out: HTMLElement[] = [
     h('h3', {}, `${u.flags.isDummy ? 'TEST DUMMY' : catalog.classes[u.classId ?? '']?.name ?? ''} — ${u.id}`),
     kv('Equipe', u.team), kv('Posição', fmtCoord(u.pos)), kv('Vivo', u.alive),
+    kv('Visto por', seenBy(u)), kv('Oculto', isHidden(u) ? 'sim' : 'não'),
     kv('PV', `${u.hp} / ${u.maxHp}`), kv('PA', `${u.ap} / ${u.maxAp}`), kv('PM', `${u.mp} / ${u.maxMp}`), kv('Foco', `${u.focus} / ${u.maxFocus}`),
     kv('Armadura', u.armor), kv('Resistências', u.resistances), kv('Barreira', u.shield ? `${u.shield.amount} (expira no turno próprio ${u.shield.expiresAtOwnTurn})` : 0),
     kv('Turnos próprios', u.ownTurnsStarted),
@@ -890,10 +899,29 @@ function rangePreview(): { min: number; max: number } | null {
 }
 
 function drawGrid(): void {
+  // Visão de equipe: desenha a projeção que aquele lado receberia do servidor.
+  const projection = ui.visionTeam ? projectStateForTeam(state(), catalog, ui.visionTeam) : null;
   render(g, {
-    state: state(), catalog, floor: ui.floor, layers: ui.layers,
+    state: projection?.state ?? state(), catalog, floor: ui.floor, layers: ui.layers,
     selectedCell: ui.selectedCell, selectedUnitId: ui.selectedUnitId, hoverCell: ui.hoverCell, rangePreview: rangePreview(),
   });
+  if (projection) {
+    const { width, height } = state().map;
+    g.fillStyle = 'rgba(5, 6, 10, 0.62)';
+    for (let y = 0; y < height; y++) for (let x = 0; x < width; x++) {
+      if (!projection.vision.visibleCells.has(coordKey({ x, y, floor: ui.floor }))) g.fillRect(x * CELL, y * CELL, CELL, CELL);
+    }
+  }
+}
+
+function teamsInMatch(): string[] {
+  return [...new Set(Object.values(state().units).filter((u) => !u.flags.isDummy).map((u) => u.team))].sort();
+}
+
+/** Equipes inimigas que detectam a unidade agora. */
+function seenBy(u: Unit): string {
+  const teams = teamsInMatch().filter((t) => t !== u.team && teamDetects(state(), catalog, t, u));
+  return teams.length ? teams.join(', ') : 'nenhuma equipe inimiga';
 }
 
 function refresh(): void {

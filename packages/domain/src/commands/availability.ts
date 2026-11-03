@@ -106,7 +106,7 @@ export function listUnitActions(state: GameState, catalog: Catalog, unitId: Enti
   for (const abilityId of actor.abilities) {
     const ab = catalog.abilities[abilityId];
     if (!ab) continue;
-    let reason = first(() => base, () => checkAbility(catalog, actor, ab, options), () => checkCost(actor, ab.cost, options));
+    let reason = first(() => base, () => checkAbility(state, catalog, actor, ab, options), () => checkCost(actor, ab.cost, options));
     const self = ab.target.kind === 'self';
     const build = (target: CommandTarget): Command => ({ type: 'USE_ABILITY', actorId: actor.id, abilityId: ab.id, target });
     const validTargets = reason || self ? undefined : countValidTargets(state, catalog, actor, ab.target, build, options);

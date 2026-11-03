@@ -2,6 +2,7 @@ import type { DamageType, EntityId } from '../core/types.js';
 import { emit, type ResolutionContext } from '../state/context.js';
 import type { Entity, MapObject, Unit } from '../state/types.js';
 import { destroyObject } from '../effects/reactions.js';
+import { removeStatus } from '../effects/statuses.js';
 
 export interface DamageOptions {
   ignoreArmor?: boolean;
@@ -93,6 +94,8 @@ export function damageUnit(
   };
   emit(ctx, 'DAMAGE_APPLIED', { ...breakdown, via: options.via ?? null });
   if (breakdown.defeated) defeatUnit(ctx, unit);
+  // Ocultação termina ao receber dano (seção 4).
+  else if (r.afterMitigation > 0) removeStatus(ctx, unit, 'hidden', 'damaged');
   return breakdown;
 }
 
