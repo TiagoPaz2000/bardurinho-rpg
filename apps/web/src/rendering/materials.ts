@@ -2,7 +2,7 @@
  * Paleta provisória (placeholder neutro) e cache de materiais.
  * Cores por `defId` de objeto e por equipe ficam aqui para serem trocadas sem mexer na cena.
  */
-import { Color3, StandardMaterial, type Scene } from '@babylonjs/core';
+import { Color3, Constants, StandardMaterial, type Scene } from '@babylonjs/core';
 
 export const PALETTE = {
   ground: '#8f8a7c',
@@ -26,6 +26,19 @@ export const PALETTE = {
   surface: { oil: '#2b2412', fire: '#ff7a1a', thorns: '#4f7d2a' } as Record<string, string>,
   team: { A: '#3d7bff', B: '#ff4a4a' } as Record<string, string>,
   teamFallback: '#d0d0d0',
+  /** Destaques de células (seção 14.8: verde = válida, azul = caminho, vermelho = inválida). */
+  highlight: {
+    rangeNear: '#5ee08a',
+    rangeFar: '#1f8f4e',
+    path: '#3d9bff',
+    hover: '#ffffff',
+    invalid: '#ff4040',
+    selected: '#ffd43b',
+    /** Modo de habilidade: alvo válido, inválido no alcance e área afetada (amarelo). */
+    targetValid: '#40d26a',
+    targetInvalid: '#c43a3a',
+    area: '#ffd43b',
+  },
 } as const;
 
 export class Materials {
@@ -44,6 +57,28 @@ export class Materials {
       m.specularColor = new Color3(1, 1, 1).scale(opts.specular ?? 0.05);
       if (opts.emissive) m.emissiveColor = c.scale(opts.emissive);
       if (opts.alpha !== undefined && opts.alpha < 1) m.alpha = opts.alpha;
+      this.cache.set(key, m);
+    }
+    return m;
+  }
+
+  /**
+   * Material sem iluminação (efeitos): a cor final é exatamente `hex` — os GLBs de VFX
+   * trazem PBR com emissão × 1,6 somada à luz, o que estourava as cores para amarelo/branco.
+   * `additive` soma ao fundo (brilhos); o padrão é mistura alfa comum (cor saturada).
+   */
+  unlit(hex: string, opts: { alpha?: number; additive?: boolean; key?: string } = {}): StandardMaterial {
+    const key = opts.key ?? `unlit|${hex}|${opts.alpha ?? 1}|${opts.additive ? 'add' : 'blend'}`;
+    let m = this.cache.get(key);
+    if (!m) {
+      m = new StandardMaterial(`mat:${key}`, this.scene);
+      m.disableLighting = true;
+      m.diffuseColor = Color3.Black();
+      m.specularColor = Color3.Black();
+      m.emissiveColor = Color3.FromHexString(hex);
+      m.backFaceCulling = false;
+      m.alpha = opts.alpha ?? 1;
+      if (opts.additive) m.alphaMode = Constants.ALPHA_ADD;
       this.cache.set(key, m);
     }
     return m;

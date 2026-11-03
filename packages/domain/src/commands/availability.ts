@@ -4,11 +4,12 @@
  * (`checks.ts`) e, para alvos, sonda o próprio `applyCommand` — nenhuma regra é duplicada.
  * Serve à interface (Debug Lab, cliente 3D) e, futuramente, ao bot.
  */
-import { distance } from '../core/coords.js';
+import { crossArea, distance } from '../core/coords.js';
 import type { Coord, EntityId } from '../core/types.js';
-import { allCoords } from '../map/grid.js';
+import { allCoords, getCell } from '../map/grid.js';
 import { reachableCells } from '../map/pathfinding.js';
-import type { Catalog, Cost, TargetingRule } from '../rules/definitions.js';
+import type { Catalog, Cost, EffectOp, TargetingRule } from '../rules/definitions.js';
+import { entitiesAt, unitAt } from '../state/queries.js';
 import type { GameState, Unit } from '../state/types.js';
 import { applyCommand } from './engine.js';
 import {
@@ -205,4 +206,136 @@ function interactLabel(kind: string, state: string): string {
     case 'emitWater': return 'Usar cisterna';
     default: return 'Interagir';
   }
+}
+
+// ---------------------------------------------------------------------------
+// Mira (cliente 3D, seção 14.8): células-alvo, área afetada e chance de acerto.
+// Tudo é prévia: o motor recalcula e valida o comando na confirmação.
+// ---------------------------------------------------------------------------
+
+/** Ação com alvo escolhido pelo jogador (arma, habilidade ou consumível). */
+export interface TargetedAction {
+  kind: 'attack' | 'ability' | 'item';
+  id: string;
+}
+
+/** Célula candidata dentro do alcance, válida ou não (com o motivo do motor). */
+export interface TargetCellInfo {
+  cell: Coord;
+  valid: boolean;
+  reason: CommandError | null;
+}
+
+/** Comando da ação sobre um alvo (célula ou entidade). */
+export function targetedCommand(actorId: EntityId, action: TargetedAction, target: CommandTarget): Command {
+  switch (action.kind) {
+    case 'attack': return { type: 'BASIC_ATTACK', actorId, weaponId: action.id, target };
+    case 'ability': return { type: 'USE_ABILITY', actorId, abilityId: action.id, target };
+    case 'item': return { type: 'USE_ITEM', actorId, itemId: action.id, target };
+  }
+}
+
+/** Regra de alvo e efeitos da definição (null se o id não corresponde ao tipo). */
+function targetedDefinition(catalog: Catalog, action: TargetedAction): { target: TargetingRule; effects: EffectOp[]; attackRoll: boolean } | null {
+  if (action.kind === 'ability') {
+    const ab = catalog.abilities[action.id];
+    return ab ? { target: ab.target, effects: ab.effects, attackRoll: !!ab.attackRoll } : null;
+  }
+  const item = catalog.items[action.id];
+  if (action.kind === 'attack' && item?.kind === 'weapon') {
+    return { target: item.target, effects: [{ op: 'damage', selector: 'targetCellOccupants', amount: item.damage, damageType: item.damageType }], attackRoll: true };
+  }
+  if (action.kind === 'item' && item?.kind === 'consumable') return { target: item.target, effects: item.effects, attackRoll: false };
+  return null;
+}
+
+/**
+ * Células de chão dentro do alcance da ação (exceto a do executor), cada uma marcada como
+ * válida ou não. A validade vem de sondar `applyCommand` com alvo de célula (como `countValidTargets`).
+ */
+export function listTargetCells(
+  state: GameState,
+  catalog: Catalog,
+  actorId: EntityId,
+  action: TargetedAction,
+  options: ExecutionOptions = {},
+): TargetCellInfo[] {
+  const actor = state.units[actorId];
+  const def = targetedDefinition(catalog, action);
+  if (!actor || !def || def.target.kind === 'self') return [];
+  return candidateCells(state, actor.pos, def.target)
+    // A célula do próprio personagem fica de fora (o motor aceita, mas atingiria o executor).
+    .filter((c) => getCell(state.map, c)?.terrain === 'ground' && distance(c, actor.pos) > 0)
+    .map((cell) => {
+      const r = applyCommand(state, catalog, targetedCommand(actorId, action, { kind: 'cell', ...cell }), options);
+      return { cell, valid: r.ok, reason: r.ok ? null : r.error };
+    });
+}
+
+/** Só as células-alvo válidas agora. */
+export function listValidTargets(
+  state: GameState,
+  catalog: Catalog,
+  actorId: EntityId,
+  action: TargetedAction,
+  options: ExecutionOptions = {},
+): Coord[] {
+  return listTargetCells(state, catalog, actorId, action, options).filter((t) => t.valid).map((t) => t.cell);
+}
+
+/**
+ * Células afetadas se a ação mirar `targetCell`: a cruz (centro + 4 vizinhas) quando algum
+ * efeito usa os seletores `crossArea`/`crossAreaOccupants` (Espinhos, Frasco de óleo), senão
+ * só a célula alvo. Vem dos seletores da definição — o mesmo dado que o executor usa.
+ */
+export function previewArea(state: GameState, catalog: Catalog, _actorId: EntityId, action: TargetedAction, targetCell: Coord): Coord[] {
+  const def = targetedDefinition(catalog, action);
+  if (!def) return [];
+  const cross = def.effects.some((e) => 'selector' in e && (e.selector === 'crossArea' || e.selector === 'crossAreaOccupants'));
+  return (cross ? crossArea(targetCell) : [targetCell]).filter((c) => getCell(state.map, c)?.terrain === 'ground');
+}
+
+/** Probabilidade (0–1) de acertar: d20 + bônus ≥ Defesa; 1 natural erra, 20 natural acerta. */
+export function attackHitChance(attackBonus: number, defense: number): number {
+  let hits = 0;
+  for (let natural = 1; natural <= 20; natural++) if (natural === 20 || (natural !== 1 && natural + attackBonus >= defense)) hits++;
+  return hits / 20;
+}
+
+export interface TargetPreview {
+  entityId: EntityId;
+  entity: 'unit' | 'object';
+  /** `true`: há jogada de ataque contra este alvo; `false`: atingido automaticamente. */
+  attackRoll: boolean;
+  /** Chance de acerto (1 quando automático). */
+  hitChance: number;
+  defense: number | null;
+  attackBonus: number;
+}
+
+/**
+ * Entidades na área da ação mirando `targetCell` e a chance de acerto de cada uma. Só o
+ * personagem na célula alvo sofre jogada de ataque (como em `executeAttack`); objetos e os
+ * demais ocupantes da área são atingidos automaticamente.
+ */
+export function previewTargets(state: GameState, catalog: Catalog, actorId: EntityId, action: TargetedAction, targetCell: Coord): TargetPreview[] {
+  const actor = state.units[actorId];
+  const def = targetedDefinition(catalog, action);
+  if (!actor || !def) return [];
+  const victim = unitAt(state, targetCell);
+  return previewArea(state, catalog, actorId, action, targetCell).flatMap((c) =>
+    entitiesAt(state, c)
+      .filter((e) => e.id !== actor.id && (e.entity !== 'object' || e.state !== 'destroyed'))
+      .map((e): TargetPreview => {
+        const rolls = def.attackRoll && e.entity === 'unit' && e.id === victim?.id;
+        return {
+          entityId: e.id,
+          entity: e.entity,
+          attackRoll: rolls,
+          hitChance: rolls ? attackHitChance(actor.attackBonus, (e as Unit).defense) : 1,
+          defense: e.entity === 'unit' ? e.defense : null,
+          attackBonus: actor.attackBonus,
+        };
+      }),
+  );
 }

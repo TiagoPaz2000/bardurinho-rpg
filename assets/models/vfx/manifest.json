@@ -1,0 +1,112 @@
+{
+  "projectile.fire": {
+    "path": "models/vfx/projectile.fire.glb",
+    "shape": "bolt",
+    "color": "#ff721c"
+  },
+  "projectile.frost": {
+    "path": "models/vfx/projectile.frost.glb",
+    "shape": "crystal",
+    "color": "#79eaff"
+  },
+  "projectile.arcane": {
+    "path": "models/vfx/projectile.arcane.glb",
+    "shape": "bolt",
+    "color": "#b784ff"
+  },
+  "projectile.nature": {
+    "path": "models/vfx/projectile.nature.glb",
+    "shape": "bolt",
+    "color": "#9cfa65"
+  },
+  "trail.arrow": {
+    "path": "models/vfx/trail.arrow.glb",
+    "shape": "arrow",
+    "color": "#ffe4a1"
+  },
+  "impact.physical": {
+    "path": "models/vfx/impact.physical.glb",
+    "shape": "slash",
+    "color": "#fff1b9"
+  },
+  "impact.wave": {
+    "path": "models/vfx/impact.wave.glb",
+    "shape": "rings",
+    "color": "#ffd295"
+  },
+  "charge.dust": {
+    "path": "models/vfx/charge.dust.glb",
+    "shape": "dust",
+    "color": "#c3a886"
+  },
+  "barrier.arcane": {
+    "path": "models/vfx/barrier.arcane.glb",
+    "shape": "shield",
+    "color": "#b491ff"
+  },
+  "stealth.transition": {
+    "path": "models/vfx/stealth.transition.glb",
+    "shape": "dust",
+    "color": "#8063be"
+  },
+  "surface.thorns": {
+    "path": "models/vfx/surface.thorns.glb",
+    "shape": "thorns",
+    "color": "#86bd41"
+  },
+  "status.roots": {
+    "path": "models/vfx/status.roots.glb",
+    "shape": "roots",
+    "color": "#b6d75c"
+  },
+  "heal.nature": {
+    "path": "models/vfx/heal.nature.glb",
+    "shape": "heal",
+    "color": "#91ffad"
+  },
+  "item.health": {
+    "path": "models/vfx/item.health.glb",
+    "shape": "heal",
+    "color": "#ff729a"
+  },
+  "item.focus": {
+    "path": "models/vfx/item.focus.glb",
+    "shape": "heal",
+    "color": "#65bdff"
+  },
+  "item.oil": {
+    "path": "models/vfx/item.oil.glb",
+    "shape": "splash",
+    "color": "#a58c54"
+  },
+  "damage.physical": {
+    "path": "models/vfx/damage.physical.glb",
+    "shape": "burst",
+    "color": "#ff6653"
+  },
+  "damage.fire": {
+    "path": "models/vfx/damage.fire.glb",
+    "shape": "burst",
+    "color": "#ff901e"
+  },
+  "damage.cold": {
+    "path": "models/vfx/damage.cold.glb",
+    "shape": "crystal",
+    "color": "#a3f5ff"
+  },
+  "damage.arcane": {
+    "path": "models/vfx/damage.arcane.glb",
+    "shape": "burst",
+    "color": "#c38aff"
+  },
+  "damage.nature": {
+    "path": "models/vfx/damage.nature.glb",
+    "shape": "burst",
+    "color": "#aeeb61"
+  },
+  "explosion.fire": {
+    "path": "models/vfx/explosion.fire.glb",
+    "shape": "burst",
+    "color": "#ffac35"
+  }
+}

@@ -23,6 +23,16 @@ export interface TerrainBuild {
   receivers: Mesh[];
 }
 
+/**
+ * Metadados das malhas de terreno para o picking (rendering/picking.ts): que parte do
+ * terreno é e a que andar pertence. As malhas são mescladas por andar, então o andar não
+ * sai da altura do ponto atingido (o topo de uma parede do térreo fica perto do andar 1).
+ */
+export interface TerrainPickInfo {
+  terrain: 'tiles' | 'walls' | 'rails' | 'stairs';
+  floor: number;
+}
+
 const isGround = (map: GameMap, c: Coord) => getCell(map, c)?.terrain === 'ground';
 
 /** Pequena variação de tom por placa (determinística) para o piso não parecer chapado. */
@@ -91,6 +101,7 @@ export function buildTerrain(scene: Scene, map: GameMap, mats: Materials): Terra
 
     const tileMesh = merge(tiles, `tiles:floor${floor}`);
     if (tileMesh) {
+      tileMesh.metadata = { terrain: 'tiles', floor } satisfies TerrainPickInfo;
       tileMesh.material = mats.vertexColored('tiles');
       tileMesh.receiveShadows = true;
       tileMesh.parent = root;
@@ -99,6 +110,7 @@ export function buildTerrain(scene: Scene, map: GameMap, mats: Materials): Terra
     }
     const wallMesh = merge(walls, `walls:floor${floor}`);
     if (wallMesh) {
+      wallMesh.metadata = { terrain: 'walls', floor } satisfies TerrainPickInfo;
       wallMesh.material = mats.solid(PALETTE.wall);
       wallMesh.receiveShadows = true;
       wallMesh.parent = root;
@@ -107,6 +119,7 @@ export function buildTerrain(scene: Scene, map: GameMap, mats: Materials): Terra
     }
     const railMesh = merge(rails, `rails:floor${floor}`);
     if (railMesh) {
+      railMesh.metadata = { terrain: 'rails', floor } satisfies TerrainPickInfo;
       railMesh.material = mats.solid(PALETTE.rail);
       railMesh.parent = root;
       out.casters.push(railMesh);
@@ -120,6 +133,7 @@ export function buildTerrain(scene: Scene, map: GameMap, mats: Materials): Terra
   for (const conn of map.connections) steps.push(...buildStairs(scene, conn.a, conn.b));
   const stairMesh = merge(steps, 'stairs');
   if (stairMesh) {
+    stairMesh.metadata = { terrain: 'stairs', floor: 0 } satisfies TerrainPickInfo;
     stairMesh.material = mats.solid(PALETTE.stairs);
     stairMesh.receiveShadows = true;
     stairMesh.parent = stairsRoot;
@@ -185,6 +199,23 @@ function buildPillars(scene: Scene, map: GameMap, floor: number): Mesh[] {
     out.push(p);
   }
   return out;
+}
+
+/**
+ * Ponto onde um personagem fica de pé na célula: a face do piso, ou — na célula de baixo de
+ * uma escada (os degraus ocupam a célula inteira) — o topo do degrau sob o centro da célula,
+ * para o modelo não afundar nos degraus.
+ */
+export function standingPoint(map: GameMap, c: Coord): { x: number; y: number; z: number } {
+  const w = cellToWorld(c);
+  for (const k of map.connections) {
+    const [low, high] = k.a.floor <= k.b.floor ? [k.a, k.b] : [k.b, k.a];
+    if (low.x !== c.x || low.y !== c.y || low.floor !== c.floor || high.floor === low.floor) continue;
+    const rise = floorToWorldY(high.floor) - floorToWorldY(low.floor);
+    // Centro da célula = divisa entre os degraus STEPS/2 e STEPS/2 + 1: apoia no mais alto.
+    return { ...w, y: w.y + (rise * (STAIR_STEPS / 2 + 1)) / STAIR_STEPS };
+  }
+  return w;
 }
 
 /** Degraus na célula de baixo, subindo em direção à célula de cima. */

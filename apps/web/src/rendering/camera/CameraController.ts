@@ -25,6 +25,12 @@ export class CameraController {
   private desiredRadius: number;
   /** Passo de rotação acumulado (pode passar de 3 para a animação seguir o caminho curto). */
   private yawStep = 0;
+  /** Foco amortecido sem o tremor (o tremor é somado só na câmera Babylon). */
+  private smoothTarget: Vector3;
+  private shakeLeft = 0;
+  private shakeTotal = 0;
+  private shakeAmp = 0;
+  private shakeTime = 0;
 
   constructor(
     scene: Scene,
@@ -34,6 +40,7 @@ export class CameraController {
   ) {
     this.desiredTarget = initialTarget.clone();
     this.desiredRadius = bounds.clampRadius(initialRadius);
+    this.smoothTarget = initialTarget.clone();
     this.camera = new ArcRotateCamera('tacticalCamera', BASE_ALPHA, BETA, this.desiredRadius, initialTarget.clone(), scene);
     this.camera.fov = 0.8;
     this.camera.minZ = 0.5;
@@ -99,20 +106,40 @@ export class CameraController {
 
   /** Salta direto para o estado desejado (ex.: reconexão, seção 14.14). */
   snap(): void {
+    this.smoothTarget.copyFrom(this.desiredTarget);
     this.camera.target.copyFrom(this.desiredTarget);
     this.camera.alpha = this.desiredAlpha;
     this.camera.radius = this.desiredRadius;
   }
 
+  /** Tremor leve da câmera (explosões). Não altera o foco desejado. */
+  shake(amplitude: number, seconds: number): void {
+    const current = this.shakeTotal > 0 ? this.shakeAmp * (this.shakeLeft / this.shakeTotal) : 0;
+    if (current > amplitude) return;
+    this.shakeAmp = amplitude;
+    this.shakeLeft = this.shakeTotal = Math.max(0.05, seconds);
+    this.shakeTime = 0;
+  }
+
   /** Avança as transições; chamar uma vez por quadro. */
   update(dt: number): void {
     const cam = this.camera;
-    const t = cam.target;
-    cam.target = new Vector3(
+    const t = this.smoothTarget;
+    t.set(
       damp(t.x, this.desiredTarget.x, TRANSITION_RATES.target, dt),
       damp(t.y, this.desiredTarget.y, TRANSITION_RATES.target, dt),
       damp(t.z, this.desiredTarget.z, TRANSITION_RATES.target, dt),
     );
+    const target = t.clone();
+    if (this.shakeLeft > 0) {
+      // Tremor curto (explosões): ruído de senos decaindo, só na apresentação.
+      this.shakeLeft = Math.max(0, this.shakeLeft - dt);
+      this.shakeTime += dt;
+      const k = this.shakeAmp * (this.shakeLeft / this.shakeTotal);
+      const w = this.shakeTime * 47;
+      target.addInPlaceFromFloats(Math.sin(w) * k, Math.sin(w * 1.3 + 1) * k * 0.6, Math.sin(w * 0.9 + 2) * k);
+    }
+    cam.target = target;
     cam.alpha = damp(cam.alpha, this.desiredAlpha, TRANSITION_RATES.rotation, dt);
     cam.radius = damp(cam.radius, this.desiredRadius, TRANSITION_RATES.zoom, dt);
   }
