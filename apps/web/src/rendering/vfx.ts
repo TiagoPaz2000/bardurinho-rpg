@@ -14,6 +14,10 @@
  *
  * Ordem de uma ação (com `eventPlayback.ts`): animação do executor → projétil → selo do d20
  * → impacto/número → reações (explosão, superfícies). Ver `docs/vfx.md`.
+ *
+ * Erro no d20 (etapa 5): a reprodução olha adiante o `ATTACK_ROLLED` da ação e passa
+ * `{ miss: true }` — o projétil desvia para o lado do alvo, passa direto e some; golpes
+ * corpo a corpo não mostram o corte no alvo; o alvo se esquiva (`dodge`).
  */
 import { Color3, MeshBuilder, TransformNode, Vector3, type AbstractMesh, type Mesh, type Scene } from '@babylonjs/core';
 import { catalog } from '@bardurinho/content';
@@ -44,6 +48,14 @@ const ITEM_EFFECTS: Record<string, { vfx: string; anim: UnitAnimationId }> = {
 const CAST_PROJECTILE: Record<string, string> = { 'surface.thorns': 'projectile.nature', 'status.roots': 'projectile.nature' };
 
 const DAMAGE_TYPES = ['physical', 'fire', 'cold', 'arcane', 'nature'];
+
+/** O que a reprodução já sabe sobre o resultado de uma ação (olhando os eventos seguintes). */
+export interface ActionHint {
+  /** Todas as jogadas de ataque da ação erraram. */
+  miss?: boolean;
+  /** Alvo da primeira jogada de ataque (quem se esquiva). */
+  targetId?: string;
+}
 
 export interface ActionPresentation {
   vfxId?: string;
@@ -80,6 +92,23 @@ const point = (c: Coord, lift = 0): Vector3 => {
 /** Compatibilidade com o teste de assets: tween que resolve também no descarte da cena. */
 export function animateVfx(scene: Scene, seconds: number, update: (t: number) => void): Promise<void> {
   return tween(scene, seconds, update, { unpaced: true });
+}
+
+/**
+ * Ponto final de um projétil que errou: passa ao lado do alvo (lado determinístico pelo id)
+ * e continua ~4 m além, um pouco mais baixo.
+ */
+export function missPoint(from: Vector3, to: Vector3, seed: string): Vector3 {
+  const dir = to.subtract(from);
+  dir.y = 0;
+  const len = dir.length();
+  if (len < 1e-3) return to.add(new Vector3(1.2, 0, 0));
+  dir.scaleInPlace(1 / len);
+  let h = 0;
+  for (let i = 0; i < seed.length; i++) h = (h * 31 + seed.charCodeAt(i)) | 0;
+  const side = (h & 1) === 0 ? 1 : -1;
+  const lateral = new Vector3(-dir.z * side, 0, dir.x * side);
+  return to.add(lateral.scale(1.5)).add(dir.scale(4)).add(new Vector3(0, -0.35, 0));
 }
 
 export class CombatVfx {
@@ -160,9 +189,10 @@ export class CombatVfx {
     };
   }
 
+  /** Opacidade de andar de um efeito na altura `y` (fantasma = mesma dos personagens). */
   private ghostFactor(y: number): number {
     const floor = Math.max(0, Math.round((y - 0.8) / 4));
-    return this.arena.floorView.isGhost(floor) ? 0.12 : 1;
+    return this.arena.floorView.entityFactor(floor);
   }
 
   /** Efeito pontual: cresce, gira um pouco e desaparece. */
@@ -182,13 +212,16 @@ export class CombatVfx {
     }
   }
 
-  /** Projétil de `from` até `to` (0,3–0,55 s conforme a distância), com halo e rastro. */
-  async projectile(id: string, from: Vector3, to: Vector3): Promise<void> {
+  /**
+   * Projétil de `from` até `to` (0,3–0,55 s conforme a distância), com halo e rastro.
+   * `fadeOut`: some no último terço (projétil que errou e passou direto).
+   */
+  async projectile(id: string, from: Vector3, to: Vector3, fadeOut = false): Promise<void> {
     const fx = await this.spawn(id);
     if (!fx) return;
     const color = this.color(id);
     const dist = Vector3.Distance(from, to);
-    const seconds = Math.min(0.55, Math.max(0.3, dist / 18));
+    const seconds = Math.min(fadeOut ? 0.7 : 0.55, Math.max(0.3, dist / 18));
     const arc = id === 'item.oil' ? Math.min(2.5, 0.6 + dist * 0.18) : id === 'trail.arrow' ? Math.min(0.8, dist * 0.04) : 0;
     const halo = MeshBuilder.CreateSphere(`vfx:${id}:halo`, { diameter: id === 'trail.arrow' ? 0.3 : 0.7, segments: 8 }, this.scene);
     // Halo em mistura comum (aditivo estourava para branco sobre o piso claro).
@@ -214,9 +247,10 @@ export class CombatVfx {
         }
         if (id === 'item.oil') fx.root.rotation.z = t * 9;
         trailAt.copyFrom(fx.root.position);
-        const g = this.ghostFactor(fx.root.position.y);
+        const g = this.ghostFactor(fx.root.position.y) * (fadeOut && t > 0.65 ? Math.max(0, (1 - t) / 0.35) : 1);
         for (const mesh of fx.meshes) mesh.visibility = g;
         halo.visibility = g * (0.85 + 0.15 * Math.sin(t * 30));
+        trail.setOpacity(Math.max(0.05, g));
       });
     } finally {
       trail.stop();
@@ -319,14 +353,14 @@ export class CombatVfx {
     this.lastBlast = null;
   }
 
-  async event(event: GameEvent, after?: GameState): Promise<void> {
+  async event(event: GameEvent, after?: GameState, hint: ActionHint = {}): Promise<void> {
     const p = event.payload;
     const fx = this.arena.stateFx;
     switch (event.type) {
       case 'ATTACK_PERFORMED':
       case 'ABILITY_USED':
       case 'ITEM_USED':
-        return this.action(event);
+        return this.action(event, hint);
       case 'DAMAGE_APPLIED': {
         const id = String(p.targetId);
         const view = this.arena.unitView(id);
@@ -469,7 +503,7 @@ export class CombatVfx {
   }
 
   /** Uso de arma/habilidade/item: animação do executor, projétil e efeito no alvo. */
-  private async action(event: GameEvent): Promise<void> {
+  private async action(event: GameEvent, hint: ActionHint = {}): Promise<void> {
     const p = event.payload;
     const { vfxId, animationId } = actionPresentation(event);
     const actor = this.arena.unitView(String(p.actorId));
@@ -484,14 +518,32 @@ export class CombatVfx {
     if (!vfxId) return void (await anim.done);
 
     const projectileId = vfxId.startsWith('projectile.') || vfxId === 'trail.arrow' || vfxId === 'item.oil' ? vfxId : CAST_PROJECTILE[vfxId];
+    const dodger = hint.miss && hint.targetId ? this.arena.unitView(hint.targetId) : undefined;
     if (projectileId && !self) {
       // Sai das mãos (frente do personagem), chega no peito do alvo / no chão da célula.
       const f = actor.facing();
       const from = origin.add(new Vector3(f.x * 0.55, 0, f.z * 0.55));
       const to = vfxId === 'item.oil' || vfxId === 'surface.thorns' ? point(target!, 0.25) : at;
+      if (hint.miss) {
+        // Errou: desvia ~1,5 m para o lado do alvo e segue ~4 m além dele, sumindo.
+        await Promise.all([
+          this.projectile(projectileId, from, missPoint(from, to, hint.targetId ?? ''), true),
+          dodger ? this.arena.animator.play(dodger, 'dodge', { toward: from }).done : Promise.resolve(),
+        ]);
+        await anim.done;
+        return;
+      }
       await this.projectile(projectileId, from, to);
       if (vfxId === 'surface.thorns' || vfxId === 'status.roots') this.arena.particles.burst('sparks', to, this.color('projectile.nature'), 16);
       await anim.done;
+      return;
+    }
+    if (hint.miss && !self) {
+      // Golpe que errou: sem corte/onda no alvo; ele se esquiva e levanta poeira.
+      if (dodger) {
+        this.arena.particles.burst('dust', dodger.root.position.add(new Vector3(0, 0.1, 0)), new Color3(0.45, 0.4, 0.33), 8);
+        await Promise.all([this.arena.animator.play(dodger, 'dodge', { toward: origin }).done, anim.done]);
+      } else await anim.done;
       return;
     }
     switch (vfxId) {

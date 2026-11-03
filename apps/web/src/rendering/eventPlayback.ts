@@ -18,15 +18,22 @@
  *   (vfx.ts). Ordem de uma ação: animação do executor → projétil → d20 → impacto/número →
  *   reações (explosão, superfícies). Ataque típico ≈ 1,5–2 s; "rápido" (tecla T) divide por 2
  *   todas as durações e pausas (`anim.pace`).
+ * - Erro no d20: antes de animar a ação, olha adiante o `ATTACK_ROLLED` dela; se todas as
+ *   jogadas erraram, o projétil desvia e passa direto e o alvo se esquiva (`ActionHint`).
+ * - Etapa 5: `spotlight` recebe as entidades/células envolvidas (a oclusão da câmera as
+ *   mantém à vista); `onFloorChange` avisa quando um personagem troca de andar na escada
+ *   (o andar visualizado acompanha o personagem da vez); a explosão abre o enquadramento e
+ *   o retorno ao executor devolve o zoom de antes.
  * Ao terminar, quem chamou sincroniza a cena com o estado final (`ArenaView.sync`).
  */
 import { Vector3 } from '@babylonjs/core';
 import { sameCoord, type Catalog, type Coord, type GameEvent, type GameState } from '@bardurinho/domain';
 import { tween, wait } from './anim.js';
 import type { ArenaView } from './ArenaView.js';
-import type { CameraEventQueue } from './camera/CameraEventQueue.js';
+import { RETURN_CONTROL, type CameraEventQueue } from './camera/CameraEventQueue.js';
 import { standingPoint } from './terrain.js';
 import type { UnitStatusBars } from './unitBars.js';
+import type { ActionHint } from './vfx.js';
 import type { WorldLabels } from './worldLabels.js';
 
 /** Duração de um passo (s). */
@@ -59,6 +66,35 @@ export interface PlaybackContext {
   after?: GameState;
   /** Iniciativa rolada no início da partida. */
   onInitiative?: (rolls: InitiativeRoll[], order: string[]) => void;
+  /** Envolvidos na reprodução atual (limpo no início; lido pela oclusão da câmera). */
+  spotlight?: Spotlight;
+  /** Um personagem trocou de andar (meio do passo de escada). */
+  onFloorChange?: (unitId: string, floor: number) => void;
+}
+
+export interface Spotlight {
+  entities: Set<string>;
+  cells: Coord[];
+}
+
+const ACTION_EVENTS = new Set(['ATTACK_PERFORMED', 'ABILITY_USED', 'ITEM_USED']);
+
+/** Resultado da ação no índice `i`, lido dos eventos seguintes até a próxima ação. */
+export function actionHint(events: readonly GameEvent[], i: number): ActionHint {
+  const rolls: Array<{ targetId: string; hit: boolean }> = [];
+  for (let j = i + 1; j < events.length; j++) {
+    const e = events[j]!;
+    if (ACTION_EVENTS.has(e.type)) break;
+    if (e.type === 'ATTACK_ROLLED') rolls.push(e.payload as { targetId: string; hit: boolean });
+  }
+  if (rolls.length === 0) return {};
+  return { miss: rolls.every((r) => !r.hit), targetId: rolls[0]!.targetId };
+}
+
+/** Raio do enquadramento de uma explosão: cobre as células atingidas. */
+function blastRadius(center: Coord, cells: readonly Coord[]): number {
+  const spread = cells.reduce((m, c) => Math.max(m, Math.abs(c.x - center.x), Math.abs(c.y - center.y)), 1);
+  return Math.min(40, Math.max(26, 20 + spread * 4));
 }
 
 async function playStep(ctx: PlaybackContext, unitId: string, from: Coord, to: Coord): Promise<void> {
@@ -80,6 +116,7 @@ async function playStep(ctx: PlaybackContext, unitId: string, from: Coord, to: C
     if (stairs && !floorSwapped && t >= 0.5) {
       floorSwapped = true;
       ctx.arena.floorView.move(view.root, to.floor);
+      ctx.onFloorChange?.(unitId, to.floor);
     }
   });
 }
@@ -115,15 +152,26 @@ const PURPOSE_CLASS: Record<string, string> = { damage: 'dice-damage', heal: 'di
 export async function playEvents(ctx: PlaybackContext, events: readonly GameEvent[]): Promise<void> {
   ctx.camera?.begin();
   ctx.arena.vfx.begin();
+  const spot = ctx.spotlight;
+  if (spot) {
+    spot.entities.clear();
+    spot.cells.length = 0;
+  }
+  const involve = (id: unknown) => {
+    if (spot && id) spot.entities.add(String(id));
+  };
   let moved = false;
   /** Executor de um ataque/habilidade cuja câmera foi para o alvo: volta a ele no fim. */
   let returnTo: string | null = null;
-  for (const ev of events) {
+  for (let i = 0; i < events.length; i++) {
+    const ev = events[i]!;
     const p = ev.payload;
+    let hint: ActionHint | undefined;
     switch (ev.type) {
       case 'UNIT_MOVED':
       case 'FORCED_MOVE': {
         const m = p as { unitId: string; from: Coord; to: Coord };
+        involve(m.unitId);
         await playStep(ctx, m.unitId, m.from, m.to);
         moved = true;
         break;
@@ -134,6 +182,10 @@ export async function playEvents(ctx: PlaybackContext, events: readonly GameEven
         const actorId = String(p.actorId);
         const target = p.target as Coord | undefined;
         const actor = ctx.after?.units[actorId];
+        hint = actionHint(events, i);
+        involve(actorId);
+        involve(hint.targetId);
+        if (target && spot) spot.cells.push(target);
         if (target && actor && !sameCoord(target, actor.pos)) {
           // Alvo perto (≤ 8 células): enquadra o ponto médio, para ver o executor, o projétil
           // e o impacto; longe: foca o alvo.
@@ -146,6 +198,7 @@ export async function playEvents(ctx: PlaybackContext, events: readonly GameEven
       }
       case 'ATTACK_ROLLED': {
         const r = p as { targetId: string; natural: number; bonus: number; total: number; defense: number; hit: boolean; critical: boolean };
+        involve(r.targetId);
         const at = anchor(ctx, r.targetId, 1.25);
         if (at) {
           const verdict = r.critical ? 'CRÍTICO!' : r.hit ? 'ACERTO' : r.natural === 1 ? 'ERRO (1 natural)' : 'ERRO';
@@ -172,6 +225,7 @@ export async function playEvents(ctx: PlaybackContext, events: readonly GameEven
       }
       case 'DAMAGE_APPLIED': {
         const id = String(p.targetId);
+        involve(id);
         const hp = Number(p.hpDamage ?? 0);
         const shield = Number(p.shieldAbsorbed ?? 0);
         const head = anchor(ctx, id, -0.35);
@@ -205,11 +259,17 @@ export async function playEvents(ctx: PlaybackContext, events: readonly GameEven
         if (at) ctx.labels.float(`${name} destruído`, at, 'destroyed', 1800);
         break;
       }
-      case 'EXPLOSION':
-        ctx.camera?.enqueue({ eventType: ev.type, priority: 2, targetCell: p.center as Coord, durationHint: 1, interruptible: true });
+      case 'EXPLOSION': {
+        // Evento grande: abre o enquadramento sobre as células atingidas e segura a câmera.
+        const center = p.center as Coord;
+        const cells = (p.cells as Coord[]) ?? [];
+        if (spot) spot.cells.push(center);
+        ctx.camera?.enqueue({ eventType: ev.type, priority: 2, targetCell: center, durationHint: 1.4, interruptible: true, radius: blastRadius(center, cells) });
         break;
+      }
       case 'HEALED': {
         const id = String(p.unitId);
+        involve(id);
         const head = anchor(ctx, id, -0.35);
         if (head) ctx.labels.float(`+${Number(p.effective)}`, head, 'heal', 1700);
         ctx.bars?.patch(id, { hp: Number(p.hpAfter) });
@@ -233,12 +293,12 @@ export async function playEvents(ctx: PlaybackContext, events: readonly GameEven
         ctx.onInitiative?.(p.rolls as InitiativeRoll[], p.order as string[]);
         break;
     }
-    await ctx.arena.vfx.event(ev, ctx.after);
+    await ctx.arena.vfx.event(ev, ctx.after, hint);
   }
   if (returnTo) {
     // Deixa o último número ser lido e devolve a câmera ao executor (seção 14.10).
     await wait(ctx.scene, 0.35);
     const pos = ctx.after?.units[returnTo]?.pos;
-    if (pos) ctx.camera?.enqueue({ eventType: 'return.control', priority: 1, targetEntity: returnTo, targetCell: pos, durationHint: 0.5, interruptible: true });
+    if (pos) ctx.camera?.enqueue({ eventType: RETURN_CONTROL, priority: 1, targetEntity: returnTo, targetCell: pos, durationHint: 0.5, interruptible: true, radius: 'restore' });
   }
 }

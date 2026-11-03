@@ -139,3 +139,6 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #141517; col
 .hud-help.collapsed table { display: none; }
 .hud-help .help-head { color: #868e96; font-size: 11px; }
 .hud-help:not(.collapsed) .help-head { margin-bottom: 4px; }
+
+/* Etapa 5: rótulos de algo num andar fantasma (mesma opacidade dos personagens fantasmas, GHOST_ENTITY_VISIBILITY) */
+.world-label.ghost { filter: opacity(0.35); }

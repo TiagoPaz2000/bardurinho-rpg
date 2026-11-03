@@ -34,6 +34,7 @@ Os 22 GLBs são pré-carregados junto com a cena (`CombatVfx.ready` entra no
 | Evento | Efeito |
 |---|---|
 | `ATTACK_PERFORMED` / `ABILITY_USED` / `ITEM_USED` | animação do executor pelo `presentation.animationId`; no instante de "soltar": projétil (`projectile.*`, `trail.arrow`, `item.oil` em arco; Espinheiro e Enraizar lançam `projectile.nature`), corte `impact.physical` (espada/adaga), `impact.wave` + poeira (Empurrão), `charge.dust` + poeira (Investida) |
+| `ATTACK_ROLLED` com `hit = false` (etapa 5) | a reprodução olha adiante e avisa a ação antes de animá-la: o projétil desvia ~1,5 m para o lado do alvo, segue ~4 m além e some; golpe corpo a corpo sem corte/onda no alvo (só poeira); o alvo faz `dodge` |
 | `DAMAGE_APPLIED` (PV) | `damage.<tipo>` (physical/fire/cold/arcane/nature) + faíscas na cor do tipo; alvo recua para longe da origem (atacante, objeto ou centro da explosão) com lampejo vermelho |
 | `DAMAGE_APPLIED` (barreira) | pulso da bolha + `barrier.arcane`; a bolha some quando `shieldAfter` = 0 |
 | `OBJECT_DAMAGED` | impacto do tipo no objeto |
@@ -68,6 +69,7 @@ giro, respiração) → `model` (direção, inclinação, escala).
 | `cast_forward` | inclina para trás juntando brilho nas mãos, empurra para a frente (0,55 s) |
 | `cast_self` | sobe e gira uma volta; anel de brilho nos pés (0,65 s) |
 | `hit` | recuo para longe da origem + lampejo vermelho (0,32 s) |
+| `dodge` | esquiva: passo lateral e inclinação, perpendicular à origem do ataque (0,42 s; etapa 5) |
 | `death` | tomba para trás, afunda e desaparece (0,95 s) |
 | `interact` | inclina e dá meio passo em direção ao objeto (0,45 s) |
 
@@ -87,7 +89,9 @@ sequência. Para capturas, `window.__pace.speed = 0.25` desacelera 4×.
 - Partículas: `ParticleSystem` de CPU, criados sob demanda e devolvidos a um pool por
   predefinição (nada é descartado durante a partida). Capacidades: fogo de superfície 42
   por célula (≈ 24/s), objeto em chamas 42 (≈ 19/s), personagem em chamas 22, lentidão 18,
-  oculto 16, rastro 40, faíscas 90, fumaça 30, cura 40. Andares fantasmas param de emitir.
+  oculto 16, rastro 40, faíscas 90, fumaça 30, cura 40. Em andar fantasma os sistemas
+  continuam emitindo, translúcidos (`ParticleHandle.setOpacity` escala o alfa dos gradientes
+  para `GHOST_ENTITY_VISIBILITY` = 0,35, a mesma do personagem, da barra e dos rótulos).
 - Texturas (brilho, faísca, fumaça, manchas das superfícies) são geradas uma vez em canvas;
   materiais são compartilhados por chave. Sem luzes dinâmicas (trocariam os shaders de todos
   os materiais); a "luz" do fogo é a brasa cintilando no chão.

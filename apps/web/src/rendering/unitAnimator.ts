@@ -11,6 +11,7 @@
  * | cast_forward  | inclina para trás juntando brilho nas mãos, empurra para a frente |
  * | cast_self     | sobe e gira uma volta, anel de brilho nos pés                     |
  * | hit           | recuo para longe da origem + lampejo vermelho                     |
+ * | dodge         | esquiva: passo lateral e inclinação (ataque que errou)            |
  * | death         | tomba para trás, afunda e desaparece                              |
  * | interact      | inclina e dá meio passo em direção ao objeto                      |
  *
@@ -22,7 +23,7 @@ import { bell, easeInOut, easeOut, hash, tween } from './anim.js';
 import type { Materials } from './materials.js';
 import type { UnitView } from './units.js';
 
-export type UnitAnimationId = 'idle' | 'walk' | 'run' | 'melee' | 'shoot' | 'cast_forward' | 'cast_self' | 'hit' | 'death' | 'interact';
+export type UnitAnimationId = 'idle' | 'walk' | 'run' | 'melee' | 'shoot' | 'cast_forward' | 'cast_self' | 'hit' | 'dodge' | 'death' | 'interact';
 
 export interface AnimationRequest {
   /** Ponto do mundo para onde a ação se dirige (alvo, objeto) ou de onde veio o golpe (hit). */
@@ -53,6 +54,7 @@ const DURATIONS: Record<string, number> = {
   cast_forward: 0.55,
   cast_self: 0.65,
   hit: 0.32,
+  dodge: 0.42,
   death: 0.95,
   interact: 0.45,
 };
@@ -120,7 +122,7 @@ export class UnitAnimator {
       const d = new Vector3(req.toward.x - p.x, 0, req.toward.z - p.z);
       if (d.lengthSquared() > 1e-4) {
         dir = d.normalize();
-        if (anim !== 'hit' && anim !== 'death') view.face(dir.x, dir.z);
+        if (anim !== 'hit' && anim !== 'death' && anim !== 'dodge') view.face(dir.x, dir.z);
       }
     }
     if (anim === 'hit') dir.scaleInPlace(-1);
@@ -173,6 +175,15 @@ export class UnitAnimator {
           s.lean = -0.28 * bell(t);
           break;
         }
+        case 'dodge': {
+          // Passo lateral (perpendicular à origem do ataque) e volta.
+          const side = (hash(view.root.name) & 1) === 0 ? 1 : -1;
+          const k = 0.45 * bell(t) * side;
+          s.offset.set(-dir.z * k, 0, dir.x * k);
+          s.tip = -0.22 * bell(t) * side;
+          s.lean = -0.08 * bell(t);
+          break;
+        }
         case 'death': {
           // Tomba para trás (inclinação negativa = para trás) e afunda; some no fim.
           s.lean = -1.45 * easeOut(Math.min(1, t / 0.6));
@@ -190,11 +201,11 @@ export class UnitAnimator {
       if (glow) {
         const g = anim === 'shoot' ? (t < 0.55 ? t / 0.55 : 1 - (t - 0.55) / 0.45) : t < 0.6 ? t / 0.6 : 1 - (t - 0.6) / 0.4;
         glow.scaling.setAll(0.15 + 0.85 * Math.max(0, g));
-        glow.visibility = Math.max(0, g);
+        glow.visibility = Math.max(0, g) * view.ghostFactor;
       }
       if (ring) {
         ring.scaling.setAll(0.4 + t * 1.3);
-        ring.visibility = 1 - t;
+        ring.visibility = (1 - t) * view.ghostFactor;
       }
     }).then(() => {
       fireRelease();

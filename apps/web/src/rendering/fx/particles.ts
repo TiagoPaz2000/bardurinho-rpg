@@ -245,6 +245,25 @@ export interface ParticleHandle {
   readonly system: ParticleSystem;
   /** Para de emitir; o sistema volta ao pool quando as partículas vivas terminam. */
   stop(): void;
+  /**
+   * Opacidade global (0–1) — ex.: fogo num andar fantasma continua emitindo, translúcido.
+   * Escala o alfa dos gradientes de cor; só recalcula quando o valor muda.
+   */
+  setOpacity(value: number): void;
+}
+
+/** Alfa original de cada gradiente (para `setOpacity` escalar sem acumular). */
+const baseAlpha = new WeakMap<object, number>();
+
+function scaleGradientAlpha(ps: ParticleSystem, k: number): void {
+  for (const g of ps.getColorGradients() ?? []) {
+    let a = baseAlpha.get(g);
+    if (a === undefined) {
+      a = g.color1.a;
+      baseAlpha.set(g, a);
+    }
+    g.color1.a = a * k;
+  }
 }
 
 export class ParticleFx {
@@ -296,8 +315,14 @@ export class ParticleFx {
     ps.emitRate *= rateScale;
     ps.start();
     let stopped = false;
+    let opacity = 1;
     return {
       system: ps,
+      setOpacity: (value: number) => {
+        if (stopped || Math.abs(value - opacity) < 1e-3) return;
+        opacity = value;
+        scaleGradientAlpha(ps, value);
+      },
       stop: () => {
         if (stopped) return;
         stopped = true;

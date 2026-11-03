@@ -26,7 +26,7 @@ import {
 } from '@babylonjs/core';
 import { allCoords, getCell, type Coord, type GameState, type SurfaceKind } from '@bardurinho/domain';
 import { easeOut, hash, rand, tween } from '../anim.js';
-import type { FloorView } from '../floorView.js';
+import { GHOST_ENTITY_VISIBILITY, type FloorView } from '../floorView.js';
 import { CELL_SIZE, cellToWorld } from '../grid.js';
 import type { ModelLibrary } from '../loaders.js';
 import type { Materials } from '../materials.js';
@@ -163,10 +163,11 @@ export class StateFx {
           }
           if (animate) void tween(scene, 0.35, (t) => holder.scaling.set(s, s * easeOut(t), s), { unpaced: false });
         }
-        this.d.floorView.register(root, c.floor);
+        this.d.floorView.register(root, c.floor, { ghostVisibility: GHOST_ENTITY_VISIBILITY });
       });
     }
-    this.d.floorView.register(root, c.floor);
+    // Superfícies são informação de jogo: no andar fantasma ficam translúcidas como os personagens.
+    this.d.floorView.register(root, c.floor, { ghostVisibility: GHOST_ENTITY_VISIBILITY });
     if (animate) {
       decal.scaling.setAll(0.2);
       void tween(scene, kind === 'oil' ? 0.3 : 0.22, (t) => decal.scaling.setAll(0.2 + 0.8 * easeOut(t)));
@@ -286,6 +287,7 @@ export class StateFx {
         for (const m of n.getChildMeshes(false)) {
           m.material = this.d.mats.solid('#7da53a', { emissive: 0.45, specular: 0.1, key: 'fx:roots' });
           m.isPickable = false;
+          m.metadata = { ownVisibility: true };
         }
       }
       if (animate) void tween(this.d.scene, 0.4, (t) => holder.scaling.set(1.15, 1.15 * easeOut(t), 1.15));
@@ -305,6 +307,8 @@ export class StateFx {
       mesh.scaling.set(1, 1.08, 1);
       mesh.isPickable = false;
       mesh.alphaIndex = 200;
+      // A opacidade (andar fantasma × pulso) é aplicada a cada quadro aqui, não pelo FloorView.
+      mesh.metadata = { ownVisibility: true };
       const sh = { mesh, pulse: 0, leaving: false };
       v.shield = sh;
       if (animate) void tween(this.d.scene, 0.35, (t) => mesh.scaling.set(easeOut(t), 1.08 * easeOut(t), easeOut(t))).then(() => (sh.pulse = 1));
@@ -378,23 +382,28 @@ export class StateFx {
     this.time += dt;
     const fv = this.d.floorView;
     for (const s of this.surfaces.values()) {
-      const ghost = fv.isGhost(s.floor);
       if (s.kind === 'fire') {
-        // Cintilação da brasa (barata: só a visibilidade da malha).
+        // Cintilação da brasa (barata: só a visibilidade da malha). No andar fantasma o fogo
+        // continua emitindo, só que translúcido (mesma opacidade dos personagens fantasmas).
+        const g = fv.entityFactor(s.floor);
         const f = 0.75 + 0.18 * Math.sin(this.time * 9 + s.phase) + 0.07 * Math.sin(this.time * 23 + s.phase * 3);
-        s.decal.visibility = (ghost ? 0.12 : 1) * f;
-        if (s.flames) s.flames.system.emitRate = ghost ? 0 : 24;
+        s.decal.visibility = g * f;
+        s.flames?.setOpacity(g);
       }
     }
     for (const [id, v] of this.units) {
       const view = this.d.unitView(id);
       if (!view) continue;
       const p = view.root.position;
-      const ghost = fv.isGhost(view.floor);
+      // Efeitos do personagem seguem a opacidade de andar dele (a mesma do corpo e da barra).
+      const g = view.ghostFactor;
       v.burnAt?.set(p.x, p.y + 0.15, p.z);
       v.slowAt?.set(p.x, p.y + 2.1, p.z);
       v.hideAt?.set(p.x, p.y + 1, p.z);
-      if (v.burning) v.burning.system.emitRate = ghost ? 0 : 16;
+      v.burning?.setOpacity(g);
+      v.slowed?.setOpacity(g);
+      v.hidden?.setOpacity(g);
+      if (v.roots) for (const m of v.roots.getChildMeshes(false)) m.visibility = g;
       if (v.hidden) view.setOpacity(0.3 + 0.08 * Math.sin(this.time * 5.5));
       if (v.shield && !v.shield.leaving) {
         const sh = v.shield;
@@ -402,11 +411,11 @@ export class StateFx {
         const breathe = 1 + 0.025 * Math.sin(this.time * 3);
         const pop = 1 + sh.pulse * 0.18;
         if (sh.mesh.scaling.x >= 0.99 || sh.pulse > 0) sh.mesh.scaling.set(breathe * pop, 1.08 * breathe * pop, breathe * pop);
-        sh.mesh.visibility = (ghost ? 0.12 : 1) * Math.min(1, 0.75 + sh.pulse * 0.6);
+        sh.mesh.visibility = g * Math.min(1, 0.75 + sh.pulse * 0.6);
         sh.mesh.rotation.y += dt * 0.4;
       }
     }
-    for (const f of this.objectFlames.values()) f.handle.system.emitRate = fv.isGhost(f.floor) ? 0 : 19;
+    for (const f of this.objectFlames.values()) f.handle.setOpacity(fv.entityFactor(f.floor));
   }
 }
 

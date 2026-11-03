@@ -7,6 +7,9 @@
  * Etapa 3: barra de ações (1–9), modo de habilidade (mira com área e chance de acerto),
  * dados na tela, barras sobre os personagens, iniciativa, câmera automática mínima
  * (CameraEventQueue) e tela de fim de partida.
+ * Etapa 5: oclusão da câmera (CameraOcclusion), andar visualizado que acompanha o
+ * personagem da vez, fantasmas consistentes (modelo, barra, rótulos, efeitos) e fila de
+ * câmera com prioridade/duração/enquadramento.
  */
 import { Color4, Engine, Matrix, Scene, Vector3 } from '@babylonjs/core';
 import { buildScenario, coordKey, reachableCells, type ActionInfo, type Catalog, type Coord, type GameState, type GameplayCommand } from '@bardurinho/domain';
@@ -16,7 +19,7 @@ import { TacticalInteraction } from '../game/TacticalInteraction.js';
 import { ArenaView } from '../rendering/ArenaView.js';
 import { CameraBounds, CameraController, CameraEventQueue, CameraFocus, CameraInput, CameraOcclusion, FOCUS_RADIUS } from '../rendering/camera/index.js';
 import { pace } from '../rendering/anim.js';
-import { playEvents } from '../rendering/eventPlayback.js';
+import { playEvents, type Spotlight } from '../rendering/eventPlayback.js';
 import { arenaBounds, cellToWorld, floorToWorldY } from '../rendering/grid.js';
 import { UnitStatusBars } from '../rendering/unitBars.js';
 import { WorldLabels } from '../rendering/worldLabels.js';
@@ -38,7 +41,11 @@ export interface ArenaScreen {
   tactical: TacticalInteraction;
   actionBar: ActionBar;
   hud: Hud;
+  occlusion: CameraOcclusion;
+  /** Escolha manual do andar visualizado (PgUp/PgDn). */
   setViewedFloor(floor: number): void;
+  /** Andar escolhido pelo jogador (o visualizado sobe acima dele quando o personagem da vez sobe). */
+  readonly preferredFloor: number;
   endTurn(): Promise<void>;
   /** Escolhe uma carta da barra de ações pela chave (ex.: `ability:mage.flame`). */
   chooseAction(key: string): void;
@@ -51,21 +58,30 @@ export interface ArenaScreen {
 
 /**
  * Depuração da apresentação: `?units=druid@7,10;warrior@8,12` troca a classe (e, se dada,
- * a posição) dos personagens do cenário de exemplo, na ordem. Só muda a montagem do
- * cenário; as regras são as mesmas. Sem o parâmetro, o cenário do mapa é usado como está.
+ * a posição `x,y[,andar]`) dos personagens do cenário de exemplo, na ordem; `+itens` dá
+ * consumíveis (`mage@8,12+health_potion,oil_flask` → `consumable.health_potion`, …). Só muda a
+ * montagem do cenário; as regras são as mesmas. Sem o parâmetro, o cenário do mapa é usado como está.
  */
 export function scenarioOverride(mapDef: MapDefinition, catalog: Catalog, search = location.search): MapDefinition['scenario'] {
   const raw = new URLSearchParams(search).get('units');
   if (!raw) return mapDef.scenario;
   const specs = raw.split(';').map((entry) => {
-    const [classId, at] = entry.trim().split('@');
+    // '+' vira espaço na query string sem codificação: aceita os dois.
+    const [main, items] = entry.trim().split(/[+\s]+/);
+    const [classId, at] = (main ?? '').split('@');
     const [x, y, floor] = (at ?? '').split(',').map(Number);
-    return { classId: classId?.trim() ?? '', pos: at ? { x: x!, y: y!, floor: floor || 0 } : null };
+    const consumables = (items ?? '')
+      .split(',')
+      .map((i) => i.trim())
+      .filter(Boolean)
+      .map((i) => (i.includes('.') ? i : `consumable.${i}`))
+      .filter((i) => catalog.items[i]?.kind === 'consumable');
+    return { classId: classId?.trim() ?? '', pos: at ? { x: x!, y: y!, floor: floor || 0 } : null, consumables };
   });
   const units = mapDef.scenario.units?.map((u, i) => {
     const spec = specs[i];
     if (!spec || !catalog.classes[spec.classId]) return u;
-    return { ...u, classId: spec.classId, id: `${spec.classId}-0${i + 1}`, ...(spec.pos ? { pos: spec.pos } : {}) };
+    return { ...u, classId: spec.classId, id: `${spec.classId}-0${i + 1}`, ...(spec.pos ? { pos: spec.pos } : {}), ...(spec.consumables.length ? { consumables: spec.consumables } : {}) };
   });
   // A ordem fixa do cenário cita os ids antigos.
   const renamed = new Map((mapDef.scenario.units ?? []).map((u, i) => [u.id, units?.[i]?.id ?? u.id]));
@@ -101,11 +117,32 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   const camera = new CameraController(scene, bounds, new Vector3((b.minX + b.maxX) / 2, 0, (b.minZ + b.maxZ) / 2), OVERVIEW_RADIUS);
   const focus = new CameraFocus(camera);
   const cameraEvents = new CameraEventQueue();
-  const occlusion = new CameraOcclusion();
+  const occlusion = new CameraOcclusion(camera.camera, arena.floorView);
+  arena.occluders.forEach((o, i) => occlusion.addStatic(`${o.kind}:${o.floor}:${i}`, o.meshes, o.floor));
+  occlusion.objectSource = function* () {
+    for (const v of arena.objectViews()) yield { id: v.id, root: v.root, floor: arena.floorView.floorOf(v.root) ?? 0 };
+  };
+  /** Envolvidos na reprodução em curso (preenchido pelo eventPlayback). */
+  const spotlight: Spotlight = { entities: new Set(), cells: [] };
 
   const setViewedFloor = (floor: number) => {
     arena.floorView.setViewedFloor(floor);
     camera.setFocusHeight(floorToWorldY(arena.floorView.viewedFloor));
+  };
+  /**
+   * Andar visualizado (seção 14.6): o jogador escolhe um andar (PgUp/PgDn, padrão = o mais
+   * alto, tudo sólido); o visualizado é max(escolhido, andar do personagem da vez) — ao subir
+   * a escada acima do escolhido, a visualização sobe junto; ao descer, volta ao escolhido.
+   * Reaplicado no início do turno, na troca de andar na escada e ao sair da mira.
+   */
+  let preferredFloor = map.floors - 1;
+  const chooseFloor = (floor: number) => {
+    preferredFloor = Math.max(0, Math.min(map.floors - 1, floor));
+    setViewedFloor(preferredFloor);
+  };
+  const followActive = () => {
+    const unit = match.activeUnit;
+    setViewedFloor(Math.max(preferredFloor, unit?.pos.floor ?? 0));
   };
   const focusCell = (c: Coord, radius?: number) => {
     // Alvo acima do andar visualizado ficaria fantasma: sobe a visualização.
@@ -117,9 +154,18 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
     if (unit) focusCell(unit.pos, Math.min(camera.radius, FOCUS_RADIUS));
   };
   // Câmera automática (seções 14.10–14.12): tomadas pedidas pela reprodução dos eventos.
+  // Zoom de antes da reprodução: o retorno ao executor ('restore') desfaz a abertura da explosão.
+  let radiusBeforePlayback = camera.radius;
+  cameraEvents.onBegin = () => (radiusBeforePlayback = camera.radius);
   cameraEvents.runner = (shot) => {
     const cell = shot.targetCell ?? (shot.targetEntity ? match.state.units[shot.targetEntity]?.pos : undefined);
-    if (cell) focusCell(cell);
+    const radius = shot.radius === 'restore' ? radiusBeforePlayback : shot.radius;
+    if (cell) focusCell(cell, radius);
+  };
+  // Entrada manual: interrompe a câmera automática e para a transição onde está (14.12).
+  const manualInput = () => {
+    if (match.busy && !cameraEvents.isInterrupted) camera.settle();
+    cameraEvents.interrupt();
   };
   // Tremor das explosões (desligado junto com a câmera automática).
   arena.vfx.shake = (amplitude, seconds) => {
@@ -129,7 +175,7 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
     pace.setFast(!pace.fast);
     hud.setFast(pace.fast);
   };
-  const input = new CameraInput(camera, canvas, { focusActive, onManualInput: () => cameraEvents.interrupt() });
+  const input = new CameraInput(camera, canvas, { focusActive, onManualInput: manualInput });
 
   const hud = new Hud(hudRoot, catalog, {
     endTurn: () => void endTurn(),
@@ -145,14 +191,79 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   });
   hud.setFast(pace.fast);
   const labels = new WorldLabels(scene, engine, hudRoot);
+  // Rótulo de algo num andar fantasma fica translúcido como o dono (barra, números, dados).
+  labels.ghostAt = (p) => {
+    for (const v of arena.unitViews()) {
+      const r = v.root.position;
+      if (Math.abs(p.x - r.x) < 0.9 && Math.abs(p.z - r.z) < 0.9 && p.y > r.y - 0.5 && p.y < r.y + 3.6) return v.isGhost;
+    }
+    // Sem dono: andar pela altura (rótulos de célula ficam ~0–0,5 m acima do piso).
+    return arena.floorView.isGhost(Math.max(0, Math.floor((p.y - 3.6) / 4) + 1));
+  };
   const bars = new UnitStatusBars(arena, labels, catalog);
-  const tactical = new TacticalInteraction({ scene, canvas, arena, match, catalog, labels, onManualInput: () => cameraEvents.interrupt() });
+  const tactical = new TacticalInteraction({
+    scene,
+    canvas,
+    arena,
+    match,
+    catalog,
+    labels,
+    onManualInput: manualInput,
+    onModeChange: () => {
+      // Mira com alvos válidos num andar acima do visualizado: sobe a visualização (os alvos
+      // ficariam fantasmas e sem picking); ao sair da mira, volta à regra normal.
+      const a = tactical.aiming;
+      if (!a) return followActive();
+      let top = arena.floorView.viewedFloor;
+      for (const t of a.cells.values()) if (t.valid) top = Math.max(top, t.cell.floor);
+      if (top > arena.floorView.viewedFloor) setViewedFloor(top);
+    },
+  });
+  // Oclusão (14.7): o que deve ficar à vista — personagens vivos (peito e cabeça), célula
+  // sob o cursor, células válidas da mira e, durante a reprodução, os envolvidos.
+  occlusion.targets = () => {
+    const pts: Array<{ x: number; y: number; z: number; entityId?: string }> = [];
+    const cell = (c: Coord, lift: number, entityId?: string) => {
+      const w = cellToWorld(c);
+      pts.push({ x: w.x, y: w.y + lift, z: w.z, entityId });
+    };
+    for (const v of arena.unitViews()) {
+      if (!v.root.isEnabled() || !v.alive || v.isGhost) continue;
+      const id = (v.root.metadata as { entityId: string }).entityId;
+      const p = v.root.position;
+      pts.push({ x: p.x, y: p.y + 1.0, z: p.z, entityId: id }, { x: p.x, y: p.y + 1.75, z: p.z, entityId: id });
+    }
+    if (tactical.hoverCell) cell(tactical.hoverCell, 0.4);
+    if (tactical.aiming) for (const t of tactical.aiming.cells.values()) if (t.valid) cell(t.cell, 0.5);
+    if (match.busy) {
+      for (const c of spotlight.cells) cell(c, 0.6);
+      for (const id of spotlight.entities) {
+        const o = arena.objectView(id);
+        if (o) pts.push({ x: o.root.position.x, y: o.root.position.y + 0.8, z: o.root.position.z, entityId: id });
+      }
+    }
+    return pts;
+  };
   const actionBar = new ActionBar(hudRoot, catalog, { choose: (x) => chooseAction(x) });
 
   match.presenter = {
     play: (evs, _before, after) =>
       playEvents(
-        { scene, arena, labels, catalog, bars, camera: cameraEvents, after, onInitiative: (rolls, order) => hud.showInitiative(after, rolls, order) },
+        {
+          scene,
+          arena,
+          labels,
+          catalog,
+          bars,
+          camera: cameraEvents,
+          after,
+          spotlight,
+          onInitiative: (rolls, order) => hud.showInitiative(after, rolls, order),
+          // O andar visualizado acompanha o personagem da vez na escada.
+          onFloorChange: (unitId, floor) => {
+            if (unitId === match.state.turn.activeUnitId) setViewedFloor(Math.max(preferredFloor, floor));
+          },
+        },
         evs,
       ),
     sync: (state) => {
@@ -164,6 +275,7 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   match.onChange(({ before, state }) => {
     // Novo turno: seleciona e enquadra o personagem da vez.
     if (state.turn.turnId !== before.turn.turnId) {
+      followActive();
       tactical.selectUnit(state.turn.activeUnitId);
       focusActive();
       // Início da partida (seção 14.14): câmera já posicionada no personagem ativo.
@@ -208,15 +320,15 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
     if (digit) {
       const x = actionBar.hotkey(Number(digit[1]));
       if (x) chooseAction(x);
-    } else if (e.code === 'PageUp') setViewedFloor(f + 1);
-    else if (e.code === 'PageDown') setViewedFloor(f - 1);
+    } else if (e.code === 'PageUp') chooseFloor(f + 1);
+    else if (e.code === 'PageDown') chooseFloor(f - 1);
     else if (e.code === 'KeyG') arena.toggleGrid();
     else if (e.code === 'KeyT') toggleSpeed();
     else if (e.code === 'KeyH') hud.toggleHelp();
     else if (e.code === 'Home') focus.focusOverview(map, OVERVIEW_RADIUS);
     else if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space') void endTurn();
     else if (e.code === 'Escape') {
-      cameraEvents.interrupt();
+      manualInput();
       if (tactical.aiming) tactical.cancelAiming();
       else tactical.clearSelection();
     } else return;
@@ -232,8 +344,9 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   scene.onBeforeRenderObservable.add(() => {
     const dt = Math.min(0.1, engine.getDeltaTime() / 1000);
     input.update(dt);
+    cameraEvents.update(dt * pace.speed);
     camera.update(dt);
-    occlusion.update();
+    occlusion.update(dt);
     const shown = match.displayedState;
     hud.update({
       mapName: mapDef.name,
@@ -269,7 +382,11 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
     tactical,
     actionBar,
     hud,
-    setViewedFloor,
+    occlusion,
+    setViewedFloor: chooseFloor,
+    get preferredFloor() {
+      return preferredFloor;
+    },
     endTurn,
     chooseAction: (key) => chooseAction(key),
     cellToScreen(c) {

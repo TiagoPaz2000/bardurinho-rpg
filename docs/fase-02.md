@@ -38,11 +38,12 @@ apps/web/src/
   rendering/terrain.ts       pisos, paredes, lajes, guarda-corpos, pilares, escadas
   rendering/objects.ts       objetos provisórios por defId, refletindo o estado (portas animadas, destroços)
   rendering/units.ts         personagens (GLB da classe) + anel da equipe; nós root → pose → model, tinta/lampejo/opacidade
-  rendering/floorView.ts     andar visualizado: estruturas acima ficam translúcidas
+  rendering/floorView.ts     andar visualizado: estruturas acima ficam translúcidas; personagens/efeitos/rótulos
+                             fantasmas com a mesma opacidade (GHOST_ENTITY_VISIBILITY)
   rendering/loaders.ts       configuração do meshopt + cache de modelos
   rendering/materials.ts     paleta provisória
   rendering/camera/          CameraController, CameraInput, CameraFocus, CameraBounds,
-                             CameraTransitions, CameraOcclusion (TODO), CameraEventQueue (mínimo)
+                             CameraTransitions, CameraOcclusion (+ occlusionMath), CameraEventQueue
 ```
 
 ## Convenção de coordenadas
@@ -110,7 +111,22 @@ Detalhes, tabela evento → efeito e custos em [vfx.md](vfx.md). Resumo:
 - **Estados:** barreira = bolha arcana enquanto houver barreira (pulsa ao absorver, abre ao acabar); enraizado = raízes nos pés; em chamas = chamas no corpo; lentidão = tinta azul + flocos; oculto = translúcido com tinta lilás e cintilação (sem névoa ainda: todos veem).
 - **Objetos:** destroços para barril/caixote/porta; objetos em chamas ganham fogo; porta, tampa do baú, alavanca e grade se movem.
 - **Ritmo:** tecla **T** ou botão "Normal ▸ / Rápido ▸▸" acima de "Encerrar turno" (metade das durações; guardado no navegador). A fila de câmera continua igual; ataques a até 8 células enquadram o ponto médio entre executor e alvo.
-- **Depuração:** `?units=druid@4,12;warrior@8,12` troca classe/posição dos personagens do cenário de exemplo (para ver Druida e Ladino); `window.__pace.speed = 0.25` desacelera as animações para capturas.
+- **Depuração:** `?units=druid@4,12;warrior@8,12` troca classe/posição dos personagens do cenário de exemplo (para ver Druida e Ladino); `window.__pace.speed = 0.25` desacelera as animações para capturas. Etapa 5: posição com andar (`warrior@1,6,1`) e consumíveis (`mage@8,12+health_potion,oil_flask`; na URL o `+` pode virar espaço, os dois valem).
+
+## Andares e oclusão da câmera (etapa 5)
+
+**Oclusão (14.7).** `CameraOcclusion` testa, a 15 Hz, raios da câmera até os pontos que devem ficar à vista contra a caixa de cada oclusor (`occlusionMath.findOccluders`, teste de slabs sem Babylon, coberto por `tests/unit/camera.test.ts`). Oclusores: o terreno agora é mesclado por componente conexo — cada segmento de muro, pilar, laje (com o guarda-corpo da mesma plataforma) e escada é uma malha (`TerrainBuild.occluders`) — e objetos com mais de 1,3 m (porta, portão, cisterna, altar; caixas relidas a cada teste porque abrem/quebram). Alvos: personagens vivos visíveis (peito e cabeça), a célula sob o cursor, as células válidas da mira e, durante a reprodução, as entidades e células envolvidas (`Spotlight` preenchido pelo `eventPlayback`: executor, alvo do d20, dano, cura, célula do alvo, centro da explosão). O oclusor atingido vai a 20 % de opacidade com fade amortecido (~0,3 s) e volta a 1 quando deixa de cobrir; esmaecido não é selecionável (o clique atravessa para o alvo). Compõe com o FloorView: visibilidade = min(fator do andar, fade), reaplicada quando o andar visualizado muda (`FloorView.version`). Um alvo dentro de uma estrutura (a porta mirada, o batente) não a esmaece; o fim do raio é encurtado 35 cm para o piso sob os pés não contar. Só cliente: colisão, linha de visão, cobertura e alcance continuam do core. Caso corrigido: com a câmera a 0°, o muro central escondia quem está logo ao norte dele — agora o segmento entre o portão e a porta fica translúcido (capturas 01–03). Custo: dezenas de oclusores × até ~90 pontos (mira) por teste, só aritmética.
+
+**Andares (14.6).**
+
+- Fantasma consistente: personagem acima do andar visualizado fica a 35 % (`GHOST_ENTITY_VISIBILITY`) no corpo, anel/disco, raízes, bolha da barreira, brilho das mãos, partículas de estado, barra de PV e rótulos flutuantes (classe `ghost` nos rótulos HTML, por `WorldLabels.ghostAt`: dono pelo ponto, senão o andar pela altura). Estruturas continuam a 12 %. Superfícies num andar fantasma também ficam a 35 %.
+- Os materiais glTF dos personagens são opacos (`transparencyMode = OPAQUE`) e o Babylon ignorava `visibility` neles — personagem "translúcido" (fantasma, oculto, derrota) saía opaco. Agora cada personagem clona seus materiais e passa para ALPHABLEND com pré-passo de profundidade enquanto a opacidade < 1.
+- Fogo/partículas num andar fantasma continuam emitindo, translúcidos (`ParticleHandle.setOpacity` escala o alfa dos gradientes), em vez de parar.
+- Andar visualizado = max(andar escolhido, andar do personagem da vez). O escolhido começa no mais alto (tudo sólido) e muda só com PgUp/PgDn (escolha manual respeitada: PgDn com o personagem no alto deixa-o fantasma de propósito). É reaplicado no início de cada turno, no meio do passo de escada do personagem da vez (sobe com ele acima do escolhido; ao descer, volta ao escolhido) e ao sair da mira. Ao entrar na mira com alvos válidos num andar acima, a visualização sobe (eles ficariam fantasmas e sem picking).
+
+**Fila de câmera (14.10–14.13).** `CameraEventQueue` agora tem relógio próprio (`update(dt)` no ritmo da reprodução): cada tomada segura a câmera por `durationHint`; tomadas de prioridade menor ficam adiadas (só a mais recente) e rodam quando a atual termina — a explosão (prioridade 2, 1,4 s, `radius` que abre o enquadramento sobre as células atingidas) não é cortada pelo retorno ao executor, que vem depois com `radius: 'restore'` (zoom de antes da reprodução). Preferências: `high` tudo; `reduced` só prioridade ≥ 2 (sem passos/projéteis/ataques simples) e o retorno só se a câmera saiu; `off` nada, exceto tomadas `essential`. Interrupção manual (WASD, Q/E, scroll, arrastar, clique, Esc): a câmera para onde está (`CameraController.settle`; a entrada agora chama a interrupção antes de se aplicar) e descarta adiadas/futuras interrompíveis até a próxima reprodução.
+
+**Erro no d20.** Antes de animar `ATTACK_PERFORMED` / `ABILITY_USED` / `ITEM_USED`, a reprodução olha os eventos seguintes até a próxima ação (`actionHint`); se todas as jogadas de ataque erraram, o projétil desvia ~1,5 m para o lado do alvo, segue ~4 m além e some (capturas 07–09); golpe corpo a corpo não mostra o corte no alvo; o alvo faz a animação `dodge` (passo lateral).
 
 **Fim de partida.** `MATCH_ENDED` → tela com vitória/empate, motivo, PV finais e "Nova partida" (recarrega com uma semente nova).
 
@@ -123,7 +139,7 @@ Detalhes, tabela evento → efeito e custos em [vfx.md](vfx.md). Resumo:
 | Scroll | Zoom (10–60 m) |
 | Botão do meio / direito + arrastar | Mover a câmera |
 | F | Focar o personagem ativo |
-| PageUp / PageDown | Andar visualizado (térreo / plataformas) — as teclas 1–9 agora são da barra de ações |
+| PageUp / PageDown | Andar escolhido (térreo / plataformas); o visualizado sobe junto quando o personagem da vez está acima — as teclas 1–9 são da barra de ações |
 | H | Mostrar/ocultar a tabela de controles |
 | T | Ritmo das animações: normal / rápido |
 | G | Grade de debug |
@@ -145,8 +161,8 @@ Detalhes, tabela evento → efeito e custos em [vfx.md](vfx.md). Resumo:
 - [x] Câmera tática: 45°, rotação em passos de 90°, zoom limitado, pan, limites da arena, foco no personagem ativo
 - [x] Andar visualizado: geometria acima fica translúcida, sem sombra e sem picking
 - [x] HUD mínimo
-- [ ] Oclusão da câmera (14.7) — stub em `CameraOcclusion`
-- [ ] Fila de eventos de câmera (14.10–14.13) — stub em `CameraEventQueue`
+- [x] Oclusão da câmera (14.7) — `CameraOcclusion` (etapa 5)
+- [x] Fila de eventos de câmera (14.10–14.13) — `CameraEventQueue` com prioridade, duração, enquadramento e preferência (etapa 5; a tela de opções para escolher a preferência é da etapa 6)
 
 ### Etapa 2 — Seleção, destaques, movimento e turnos
 
@@ -189,9 +205,26 @@ Detalhes, tabela evento → efeito e custos em [vfx.md](vfx.md). Resumo:
 - [x] `UnitAnimator`: idle, melee, shoot, cast_forward, cast_self, hit, death, interact (walk = pulinho existente)
 - [x] Ritmo: executor → projétil → d20 → impacto → reações; modo "rápido" (T / botão)
 - Capturas: [`screenshots/fase-02/passo-4/`](screenshots/fase-02/passo-4/)
-- Lacunas conhecidas: o projétil voa até o alvo mesmo quando o d20 erra (não desvia); ocultação é só translucidez para todos (a névoa/visão por equipe é de outra fase); personagens são estáticos, então as "animações" são deslocamentos/inclinações do modelo inteiro; partículas de fogo em andares fantasmas param de emitir em vez de ficarem translúcidas; mira em alvos atrás do muro central ainda depende da etapa 5 (oclusão).
+- Lacunas conhecidas (as marcadas ✔ foram resolvidas na etapa 5): ✔ o projétil voa até o alvo mesmo quando o d20 erra (não desvia); ocultação é só translucidez para todos (a névoa/visão por equipe é de outra fase); personagens são estáticos, então as "animações" são deslocamentos/inclinações do modelo inteiro; ✔ partículas de fogo em andares fantasmas param de emitir em vez de ficarem translúcidas; ✔ mira em alvos atrás do muro central ainda depende da etapa 5 (oclusão); ✔ (descoberto na etapa 5) personagens "translúcidos" (oculto, derrota) saíam opacos porque os materiais glTF são opacos.
+
+### Etapa 5 — Andares e oclusão da câmera
+
+- [x] Terreno mesclado por componente (segmentos de muro, pilares, lajes + guarda-corpo, escadas) com lista de oclusores; picking inalterado
+- [x] `CameraOcclusion`: raios câmera → alvos (personagens, cursor, células válidas da mira, envolvidos na reprodução) a 15 Hz; fade suave para 20 % e volta; sem picking quando esmaecido; compõe com o andar visualizado
+- [x] Caso do muro central a 0° corrigido (antes/depois nas capturas 01–02; mira na 03)
+- [x] Objetos altos (porta, portão, cisterna, altar) como oclusores dinâmicos; o próprio alvo nunca é esmaecido
+- [x] Fantasma consistente: corpo, anel/disco, raízes, barreira, brilho das mãos, partículas de estado, barra e rótulos com a mesma opacidade (35 %); superfícies no andar fantasma a 35 %
+- [x] Corpo do personagem respeita a opacidade (materiais glTF opacos → ALPHABLEND + pré-passo de profundidade enquanto < 1) — vale também para oculto e derrota
+- [x] Fogo/partículas em andar fantasma continuam emitindo, translúcidos
+- [x] Andar visualizado acompanha o personagem da vez (turno, escada, mira), respeitando o andar escolhido com PgUp/PgDn
+- [x] Projétil desvia e passa direto no erro do d20; golpe sem corte; alvo se esquiva (`dodge`)
+- [x] `CameraEventQueue`: duração/prioridade com tomada adiada, abertura do enquadramento na explosão, retorno com zoom restaurado, `reduced`/`off`/`essential`, interrupção que para a câmera onde está — testes em `tests/unit/camera.test.ts`
+- [x] `?units=` com andar e consumíveis (depuração das capturas de poção e frasco)
+- [x] Capturas: oclusão a 0° (antes/depois, mira), andar fantasma (personagem + fogo), escada, projétil errando, poção de vida, frasco de óleo em arco, porta abrindo — [`screenshots/fase-02/passo-5/`](screenshots/fase-02/passo-5/)
+- [ ] Tela de opções para a preferência de câmera automática (a fila já aceita `high`/`reduced`/`off`; etapa 6)
+- Lacunas conhecidas: a oclusão é translucidez (20 %), não recorte — a estrutura esmaecida ainda projeta sombra; passar o cursor logo acima do muro pode esmaecê-lo (o centro da célula sob o cursor está atrás dele); barris e caixotes (< 1,3 m) nunca esmaecem; o erro é decidido por ação (todas as jogadas erraram) — numa área com acertos e erros mistos o projétil vai ao alvo; o desvio do projétil não testa paredes (pode atravessar o muro ao passar direto); o fogo no andar fantasma da captura 05 foi criado só na cena (`stateFx.setSurface`, sem regra) para conferir a emissão; o foco no início da partida/turno não passa pela fila (é direto, por isso vale mesmo com `off`).
 
 ### Próximas etapas
 
-- [ ] Etapa 5 — Andares e oclusão da câmera (14.6–14.7): o muro central cobre alvos ao norte com a câmera a 0°; personagens/rótulos em andar fantasma
+- [x] Etapa 5 — Andares e oclusão da câmera (14.6–14.7): o muro central cobre alvos ao norte com a câmera a 0°; personagens/rótulos em andar fantasma
 - [ ] Etapa 6 — Partida completa controlando os dois lados (critério de aprovação), preferência de câmera automática, tela de opções

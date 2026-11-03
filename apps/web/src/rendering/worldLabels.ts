@@ -2,6 +2,10 @@
  * Rótulos HTML presos a pontos do mundo 3D: custo do caminho (PM), chance de acerto, barras
  * de PV sobre os personagens, números flutuantes de dano/cura e o resultado dos dados. A
  * posição é reprojetada a cada quadro (ou segue um nó, `follow`); nada aqui lê regras.
+ *
+ * Andar fantasma (seção 14.6): `ghostAt(ponto)` (ligado pela tela) diz se o ponto pertence
+ * a algo num andar acima do visualizado; o rótulo ganha a classe `ghost` (mesma opacidade
+ * dos personagens fantasmas), como o modelo, a barra e os efeitos do personagem.
  */
 import { Matrix, Vector3, type Engine, type Scene } from '@babylonjs/core';
 
@@ -20,6 +24,8 @@ export class WorldLabels {
   readonly root: HTMLDivElement;
   private readonly pinned = new Map<string, Label>();
   private floating: Label[] = [];
+  /** O ponto está num andar fantasma? (padrão: nunca). */
+  ghostAt: (world: Vector3) => boolean = () => false;
 
   constructor(
     private readonly scene: Scene,
@@ -99,6 +105,7 @@ export class WorldLabels {
     const p = Vector3.Project(l.world, Matrix.IdentityReadOnly, transform, viewport);
     const behind = p.z < 0 || p.z > 1;
     l.el.style.display = behind ? 'none' : '';
+    l.el.classList.toggle('ghost', !behind && this.ghostAt(l.world));
     l.el.style.transform = `translate(${(p.x * scaleX).toFixed(1)}px, ${(p.y * scaleY).toFixed(1)}px) translate(-50%, -50%)`;
   }
 

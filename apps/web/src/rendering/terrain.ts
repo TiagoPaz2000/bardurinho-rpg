@@ -21,6 +21,15 @@ export interface TerrainBuild {
   casters: Mesh[];
   /** Malhas que recebem sombra. */
   receivers: Mesh[];
+  /** Estruturas que podem ficar translúcidas entre a câmera e um alvo (CameraOcclusion). */
+  occluders: TerrainOccluder[];
+}
+
+/** Um bloco de geometria que a oclusão da câmera trata como unidade (segmento de muro, pilar, laje). */
+export interface TerrainOccluder {
+  kind: 'wall' | 'pillar' | 'slab' | 'stairs';
+  floor: number;
+  meshes: Mesh[];
 }
 
 /**
@@ -51,7 +60,7 @@ function merge(parts: Mesh[], name: string): Mesh | null {
 }
 
 export function buildTerrain(scene: Scene, map: GameMap, mats: Materials): TerrainBuild {
-  const out: TerrainBuild = { byFloor: [], casters: [], receivers: [] };
+  const out: TerrainBuild = { byFloor: [], casters: [], receivers: [], occluders: [] };
 
   // Chão de fundo ao redor da arena (moldura visual, fora do grid).
   const margin = 10;
@@ -68,9 +77,14 @@ export function buildTerrain(scene: Scene, map: GameMap, mats: Materials): Terra
 
   for (let floor = 0; floor < map.floors; floor++) {
     const root = new TransformNode(`terrain:floor${floor}`, scene);
-    const tiles: Mesh[] = [];
-    const walls: Mesh[] = [];
-    const rails: Mesh[] = [];
+    // Partes agrupadas por componente conexo (segmento de muro / plataforma): cada grupo vira
+    // uma malha mesclada, para a oclusão poder deixar só aquele trecho translúcido.
+    const tiles = new Map<number, Mesh[]>();
+    const walls = new Map<number, Mesh[]>();
+    const rails = new Map<number, Mesh[]>();
+    const wallGroup = components(map, floor, (c) => getCell(map, c)?.terrain === 'wall');
+    const tileGroup = components(map, floor, (c) => isGround(map, c));
+    const push = (m: Map<number, Mesh[]>, k: number, ...parts: Mesh[]) => m.set(k, [...(m.get(k) ?? []), ...parts]);
     const baseY = floorToWorldY(floor);
     const thickness = floor === 0 ? GROUND_THICKNESS : SLAB_THICKNESS;
 
@@ -85,64 +99,100 @@ export function buildTerrain(scene: Scene, map: GameMap, mats: Materials): Terra
           const col = jitter(hex, x, y, floor);
           const tile = MeshBuilder.CreateBox(`tile`, { width: CELL_SIZE, depth: CELL_SIZE, height: thickness, faceColors: Array(6).fill(col) }, scene);
           tile.position.set(w.x, baseY - thickness / 2, w.z);
-          tiles.push(tile);
-          if (floor > 0) rails.push(...buildRails(scene, map, c));
+          const g = floor === 0 ? 0 : tileGroup.get(`${x},${y}`)!;
+          push(tiles, g, tile);
+          if (floor > 0) push(rails, g, ...buildRails(scene, map, c));
         } else {
           // Parede: sob uma plataforma, sobe até a laje (serve de apoio).
           const above = getCell(map, { x, y, floor: floor + 1 });
           const height = above?.terrain === 'ground' ? FLOOR_HEIGHT - SLAB_THICKNESS : WALL_HEIGHT;
           const wall = MeshBuilder.CreateBox('wall', { width: CELL_SIZE, depth: CELL_SIZE, height }, scene);
           wall.position.set(w.x, baseY + height / 2, w.z);
-          walls.push(wall);
+          push(walls, wallGroup.get(`${x},${y}`) ?? -1, wall);
         }
       }
     }
-    if (floor > 0) walls.push(...buildPillars(scene, map, floor));
+    const pillars = floor > 0 ? buildPillars(scene, map, floor) : [];
 
-    const tileMesh = merge(tiles, `tiles:floor${floor}`);
-    if (tileMesh) {
+    for (const [g, parts] of tiles) {
+      const tileMesh = merge(parts, `tiles:floor${floor}:${g}`);
+      if (!tileMesh) continue;
       tileMesh.metadata = { terrain: 'tiles', floor } satisfies TerrainPickInfo;
       tileMesh.material = mats.vertexColored('tiles');
       tileMesh.receiveShadows = true;
       tileMesh.parent = root;
       out.receivers.push(tileMesh);
-      if (floor > 0) out.casters.push(tileMesh);
+      if (floor === 0) continue;
+      out.casters.push(tileMesh);
+      // Laje + guarda-corpo da mesma plataforma: um oclusor só.
+      const slab: TerrainOccluder = { kind: 'slab', floor, meshes: [tileMesh] };
+      const railMesh = merge(rails.get(g) ?? [], `rails:floor${floor}:${g}`);
+      if (railMesh) {
+        railMesh.metadata = { terrain: 'rails', floor } satisfies TerrainPickInfo;
+        railMesh.material = mats.solid(PALETTE.rail);
+        railMesh.parent = root;
+        out.casters.push(railMesh);
+        slab.meshes.push(railMesh);
+      }
+      out.occluders.push(slab);
     }
-    const wallMesh = merge(walls, `walls:floor${floor}`);
-    if (wallMesh) {
+    const wallGroups: Array<[string, Mesh[], TerrainOccluder['kind']]> = [...walls].map(([g, parts]) => [`${g}`, parts, 'wall']);
+    pillars.forEach((p, i) => wallGroups.push([`pillar${i}`, [p], 'pillar']));
+    for (const [g, parts, kind] of wallGroups) {
+      const wallMesh = merge(parts, `walls:floor${floor}:${g}`);
+      if (!wallMesh) continue;
       wallMesh.metadata = { terrain: 'walls', floor } satisfies TerrainPickInfo;
       wallMesh.material = mats.solid(PALETTE.wall);
       wallMesh.receiveShadows = true;
       wallMesh.parent = root;
       out.casters.push(wallMesh);
       out.receivers.push(wallMesh);
-    }
-    const railMesh = merge(rails, `rails:floor${floor}`);
-    if (railMesh) {
-      railMesh.metadata = { terrain: 'rails', floor } satisfies TerrainPickInfo;
-      railMesh.material = mats.solid(PALETTE.rail);
-      railMesh.parent = root;
-      out.casters.push(railMesh);
+      out.occluders.push({ kind, floor, meshes: [wallMesh] });
     }
     out.byFloor.push({ node: root, floor });
   }
 
   // Escadas: pertencem ao andar de baixo (continuam visíveis ao olhar o térreo).
   const stairsRoot = new TransformNode('terrain:stairs', scene);
-  const steps: Mesh[] = [];
-  for (const conn of map.connections) steps.push(...buildStairs(scene, conn.a, conn.b));
-  const stairMesh = merge(steps, 'stairs');
-  if (stairMesh) {
+  map.connections.forEach((conn, i) => {
+    const stairMesh = merge(buildStairs(scene, conn.a, conn.b), `stairs:${i}`);
+    if (!stairMesh) return;
     stairMesh.metadata = { terrain: 'stairs', floor: 0 } satisfies TerrainPickInfo;
     stairMesh.material = mats.solid(PALETTE.stairs);
     stairMesh.receiveShadows = true;
     stairMesh.parent = stairsRoot;
     out.casters.push(stairMesh);
     out.receivers.push(stairMesh);
-  }
+    out.occluders.push({ kind: 'stairs', floor: 0, meshes: [stairMesh] });
+  });
   out.byFloor.push({ node: stairsRoot, floor: 0 });
 
   for (const m of out.casters) m.metadata = { ...(m.metadata ?? {}), castsShadow: true };
+  return out;
+}
+
+/** Componentes conexos (vizinhança 4) das células do andar que satisfazem `pred`: "x,y" → id. */
+function components(map: GameMap, floor: number, pred: (c: Coord) => boolean): Map<string, number> {
+  const out = new Map<string, number>();
+  let next = 0;
+  for (let y = 0; y < map.height; y++)
+    for (let x = 0; x < map.width; x++) {
+      if (out.has(`${x},${y}`) || !pred({ x, y, floor })) continue;
+      const id = next++;
+      const stack = [[x, y] as const];
+      out.set(`${x},${y}`, id);
+      while (stack.length) {
+        const [cx, cy] = stack.pop()!;
+        for (const { dx, dy } of DIRS) {
+          const nx = cx + dx;
+          const ny = cy + dy;
+          const k = `${nx},${ny}`;
+          if (out.has(k) || nx < 0 || ny < 0 || nx >= map.width || ny >= map.height || !pred({ x: nx, y: ny, floor })) continue;
+          out.set(k, id);
+          stack.push([nx, ny]);
+        }
+      }
+    }
   return out;
 }
 

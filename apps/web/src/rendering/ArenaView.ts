@@ -16,14 +16,14 @@ import {
   type Scene,
 } from '@babylonjs/core';
 import { getCell, type GameState } from '@bardurinho/domain';
-import { FloorView } from './floorView.js';
+import { FloorView, GHOST_ENTITY_VISIBILITY } from './floorView.js';
 import { ParticleFx } from './fx/particles.js';
 import { StateFx } from './fx/stateFx.js';
 import { CELL_SIZE, cellToWorld } from './grid.js';
 import { ModelLibrary } from './loaders.js';
 import { Materials } from './materials.js';
 import { ObjectView } from './objects.js';
-import { buildTerrain } from './terrain.js';
+import { buildTerrain, type TerrainOccluder } from './terrain.js';
 import { UnitAnimator } from './unitAnimator.js';
 import { UnitView } from './units.js';
 import { CombatVfx } from './vfx.js';
@@ -40,6 +40,8 @@ export class ArenaView {
   readonly stateFx: StateFx;
   /** Animações procedurais dos personagens. */
   readonly animator: UnitAnimator;
+  /** Blocos do terreno tratados pela oclusão da câmera. */
+  readonly occluders: TerrainOccluder[];
   private readonly units = new Map<string, UnitView>();
   private readonly objects = new Map<string, ObjectView>();
   private gridOverlay: LinesMesh[] = [];
@@ -87,6 +89,7 @@ export class ArenaView {
     const terrain = buildTerrain(scene, map, this.mats);
     for (const m of terrain.casters) this.shadows.addShadowCaster(m, false);
     for (const { node, floor } of terrain.byFloor) this.floorView.register(node, floor);
+    this.occluders = terrain.occluders;
 
     this.sync(initial);
   }
@@ -107,6 +110,16 @@ export class ArenaView {
   /** Visão de um objeto (rótulos de dano). */
   objectView(id: string): ObjectView | undefined {
     return this.objects.get(id);
+  }
+
+  /** Visões dos objetos (oclusores dinâmicos da câmera). */
+  objectViews(): IterableIterator<ObjectView> {
+    return this.objects.values();
+  }
+
+  /** Visões dos personagens. */
+  unitViews(): IterableIterator<UnitView> {
+    return this.units.values();
   }
 
   /** Mapa do estado sincronizado (geometria; a topologia não muda durante a partida). */
@@ -141,10 +154,13 @@ export class ArenaView {
     for (const unit of Object.values(state.units)) {
       let view = this.units.get(unit.id);
       if (!view) {
-        view = new UnitView({ scene, map: state.map, mats, models, centerY: state.map.height / 2, onMesh: this.onMesh, isGhost: (f) => this.floorView.isGhost(f) }, unit);
+        view = new UnitView({ scene, map: state.map, mats, models, centerY: state.map.height / 2, onMesh: this.onMesh }, unit);
         this.units.set(unit.id, view);
         const v = view;
-        void v.ready.then(() => this.floorView.register(v.root, this.state.units[unit.id]?.pos.floor ?? 0));
+        // Registrado já (o andar vale para anel, disco e efeitos) e de novo quando o GLB carrega.
+        const reg = () => this.floorView.register(v.root, this.floorView.floorOf(v.root) ?? this.state.units[unit.id]?.pos.floor ?? 0, { ghostVisibility: GHOST_ENTITY_VISIBILITY, onApply: (g) => v.setGhost(g) });
+        reg();
+        void v.ready.then(reg);
       }
       view.update(unit, state.turn.activeUnitId === unit.id);
       this.floorView.move(view.root, unit.pos.floor);

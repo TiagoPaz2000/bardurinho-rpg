@@ -104,6 +104,15 @@ export class CameraController {
     this.desiredTarget = new Vector3(this.desiredTarget.x, y, this.desiredTarget.z);
   }
 
+  /**
+   * Para a transição em curso onde a câmera está agora (foco e zoom), sem salto: usado quando
+   * o jogador interrompe a câmera automática (seção 14.12).
+   */
+  settle(): void {
+    this.desiredTarget.copyFrom(this.smoothTarget);
+    this.desiredRadius = this.bounds.clampRadius(this.camera.radius);
+  }
+
   /** Salta direto para o estado desejado (ex.: reconexão, seção 14.14). */
   snap(): void {
     this.smoothTarget.copyFrom(this.desiredTarget);

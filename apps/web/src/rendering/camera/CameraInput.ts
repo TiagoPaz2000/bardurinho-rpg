@@ -75,13 +75,15 @@ export class CameraInput {
     }
     if (e.repeat) return;
     switch (e.code) {
+      // A interrupção vem antes da ação: a câmera automática para onde está e só então
+      // a entrada manual é aplicada (seção 14.12).
       case 'KeyQ':
-        this.controller.rotate(-1);
         this.actions.onManualInput?.();
+        this.controller.rotate(-1);
         break;
       case 'KeyE':
-        this.controller.rotate(1);
         this.actions.onManualInput?.();
+        this.controller.rotate(1);
         break;
       case 'KeyF':
         this.actions.focusActive?.();
@@ -92,8 +94,8 @@ export class CameraInput {
   private onWheel(e: WheelEvent): void {
     e.preventDefault();
     const notches = Math.max(-3, Math.min(3, e.deltaY / 100));
-    this.controller.zoom(Math.pow(WHEEL_ZOOM_STEP, notches));
     this.actions.onManualInput?.();
+    this.controller.zoom(Math.pow(WHEEL_ZOOM_STEP, notches));
   }
 
   private onPointerDown(e: PointerEvent): void {
@@ -112,8 +114,8 @@ export class CameraInput {
     // Metros por pixel na distância atual (aproximação suficiente para o pan "agarrar" o chão).
     const cam = this.controller.camera;
     const mpp = (2 * cam.radius * Math.tan(cam.fov / 2)) / Math.max(1, this.canvas.clientHeight);
-    this.controller.pan(-dx * mpp, dy * mpp * Math.SQRT2);
     this.actions.onManualInput?.();
+    this.controller.pan(-dx * mpp, dy * mpp * Math.SQRT2);
   }
 
   private onPointerUp(e: PointerEvent): void {
