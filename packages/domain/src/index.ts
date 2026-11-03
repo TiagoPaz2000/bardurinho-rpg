@@ -19,6 +19,7 @@ export * from './effects/statuses.js';
 export * from './effects/surfaces.js';
 export * from './effects/reactions.js';
 export * from './effects/movement.js';
+export * from './effects/dash.js';
 export * from './turns/turns.js';
 export * from './commands/types.js';
 export * from './commands/engine.js';

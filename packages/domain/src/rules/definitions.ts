@@ -49,6 +49,8 @@ export type EffectOp =
   | { op: 'grantShield'; selector: EntitySelector; amount: number; ownTurns: number }
   | { op: 'restoreResource'; selector: EntitySelector; resource: ResourceKind; amount: number }
   | { op: 'forceMove'; selector: EntitySelector; distance: number; direction: 'awayFromSource' }
+  /** Desloca o executor até uma célula adjacente ao alvo (Investida), sem gastar PM. */
+  | { op: 'dashToTarget'; maxCost: number }
   | { op: 'createSurface'; selector: CellSelector; surface: SurfaceKind; durationRounds: number | null }
   | { op: 'removeSurface'; selector: CellSelector; surface?: SurfaceKind }
   | { op: 'emitStimulus'; selector: CellSelector; stimulus: Stimulus }
@@ -58,7 +60,7 @@ export type EffectOpName = EffectOp['op'];
 
 export const EFFECT_OP_NAMES: readonly EffectOpName[] = [
   'damage', 'heal', 'applyStatus', 'removeStatus', 'grantShield', 'restoreResource',
-  'forceMove', 'createSurface', 'removeSurface', 'emitStimulus', 'changeObjectState',
+  'forceMove', 'dashToTarget', 'createSurface', 'removeSurface', 'emitStimulus', 'changeObjectState',
 ];
 
 // ---------------------------------------------------------------------------

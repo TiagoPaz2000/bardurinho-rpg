@@ -69,7 +69,7 @@ No laboratório:
 | Timeline de eventos | ✅ | Log global com causa, definição, payload e State Diff |
 | Modo STEP | 🟡 | Por comando. Falta snapshot por evento individual |
 | Replay de comandos | ✅ | Reexecuta do zero e confirma determinismo |
-| Testes automatizados | ✅ | 50 testes, incluindo 5 cenários JSON |
+| Testes automatizados | ✅ | 56 testes, incluindo 5 cenários JSON |
 | Geração de screenshots | ⬜ | Pendente (renderizar canvas em Node ou via navegador headless) |
 | Exportação de cenário | ✅ | Exportar e importar `initial.json` |
 | Criar teste a partir de cenário | ✅ | GERAR TESTE; coberto por `tests/unit/lab-session.test.ts` |
@@ -80,7 +80,8 @@ No laboratório:
 
 ### Também pendente nesta fase
 
-- **Investida** (`warrior.charge`): exige deslocamento + ataque. O catálogo tem 9 das 10 habilidades.
+- Catálogo completo: as 10 habilidades do plano estão implementadas.
+
 - **Filtragem de eventos por equipe**: a projeção já remove unidades não detectadas do estado; filtrar os eventos entra com o servidor (Fase 3).
 - Modos **AI** e **NETWORK** do laboratório: estrutura prevista, implementação junto das Fases 3 e 4.
 
@@ -98,6 +99,8 @@ Valores marcados para revisão de balanceamento:
 | Unidades bloqueiam linha de visão? | Não |
 | Bonecos de teste | Têm turno na ordem (para Queimando ticar), encerrado automaticamente; não contam para vitória |
 | Escudo igual ao atual | Substitui (renova a duração) |
+| Investida e destino | Vai para a célula adjacente ao alvo de menor custo (desempate: cima, direita, baixo, esquerda) |
+| Investida enraizado | Bloqueada, exceto se já estiver adjacente ao alvo |
 | Detecção de Oculto | Só a até 1 célula (adjacente) ou quando iluminado |
 | Fontes de luz | Fogo no chão, objetos em combustão e personagens Queimando |
 | Revelação | Verificada após cada comando: um inimigo que detecta o Oculto encerra o efeito |

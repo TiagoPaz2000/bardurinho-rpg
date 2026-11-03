@@ -26,7 +26,7 @@ export const classes: ClassDefinition[] = [
     loadout: {
       weapons: ['weapon.iron_sword'],
       armor: 'armor.reinforced_mail',
-      abilities: ['warrior.push'],
+      abilities: ['warrior.charge', 'warrior.push'],
     },
   },
   {

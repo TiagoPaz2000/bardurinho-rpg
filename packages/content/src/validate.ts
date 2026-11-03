@@ -22,7 +22,8 @@ export function validateCatalog(catalog: Catalog): ValidationIssue[] {
     effects.forEach((op, i) => {
       if (!EFFECT_OP_NAMES.includes(op.op)) issue(ownerId, `efeito #${i}: operação desconhecida '${op.op}'`);
       const validSelectors: readonly string[] = CELL_OPS.has(op.op) ? CELL_SELECTORS : ENTITY_SELECTORS;
-      if (!validSelectors.includes(op.selector)) issue(ownerId, `efeito #${i}: seletor '${op.selector}' inválido para ${op.op}`);
+      if ('selector' in op && !validSelectors.includes(op.selector)) issue(ownerId, `efeito #${i}: seletor '${op.selector}' inválido para ${op.op}`);
+      if (op.op === 'dashToTarget' && op.maxCost <= 0) issue(ownerId, `efeito #${i}: maxCost precisa ser > 0`);
       if ((op.op === 'applyStatus' || op.op === 'removeStatus') && !catalog.statuses[op.statusId]) {
         issue(ownerId, `efeito #${i}: estado inexistente '${op.statusId}'`);
       }

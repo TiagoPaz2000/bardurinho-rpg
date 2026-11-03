@@ -10,6 +10,7 @@ import { emit, withCause, type ResolutionContext } from '../state/context.js';
 import { entitiesAt } from '../state/queries.js';
 import type { Entity, MapObject, Unit } from '../state/types.js';
 import { forceMove } from './movement.js';
+import { executeDash, planDash } from './dash.js';
 import { emitStimulus } from './reactions.js';
 import { applyStatus, removeStatus } from './statuses.js';
 import { createSurface, removeSurface } from './surfaces.js';
@@ -28,6 +29,8 @@ export interface EffectScope {
   hitUnits: Set<EntityId>;
   /** Bônus de dano bruto aplicado a cada operação de dano (ex.: ataque saindo de Oculto). */
   rawDamageBonus?: number;
+  /** Interrompe as operações restantes (ex.: atacante morreu durante a Investida). */
+  aborted?: boolean;
 }
 
 export function createScope(
@@ -71,7 +74,10 @@ const objectsOf = (entities: Entity[]): MapObject[] => entities.filter((e): e is
 
 export function executeEffects(ctx: ResolutionContext, effects: EffectOp[], scope: EffectScope): void {
   withCause(ctx, { sourceId: scope.sourceId, definitionId: scope.definitionId }, () => {
-    for (const op of effects) executeOp(ctx, op, scope);
+    for (const op of effects) {
+      if (scope.aborted) break;
+      executeOp(ctx, op, scope);
+    }
   });
 }
 
@@ -109,6 +115,12 @@ export function executeOp(ctx: ResolutionContext, op: EffectOp, scope: EffectSco
     case 'restoreResource':
       for (const u of unitsOf(selectEntities(ctx, scope, op.selector))) restoreResource(ctx, u, op.resource, op.amount);
       return;
+    case 'dashToTarget': {
+      if (!scope.actor) return;
+      const r = planDash(ctx.state, ctx.catalog, scope.actor, scope.target.cell, op.maxCost);
+      if (!r.ok || !executeDash(ctx, scope.actor, r.plan, scope.definitionId)) scope.aborted = true;
+      return;
+    }
     case 'forceMove': {
       const origin = scope.actor?.pos ?? scope.target.cell;
       for (const u of unitsOf(selectEntities(ctx, scope, op.selector))) {

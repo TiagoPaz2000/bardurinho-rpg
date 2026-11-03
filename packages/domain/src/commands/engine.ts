@@ -18,6 +18,7 @@ import { createScope, executeEffects, restoreResource, type EffectTarget } from 
 import { walkPath } from '../effects/movement.js';
 import { emitStimulus } from '../effects/reactions.js';
 import { setSurfaceDirect } from '../effects/surfaces.js';
+import { planDash } from '../effects/dash.js';
 import { checkVictory, endTurn, finishMatch, startMatch } from '../turns/turns.js';
 import { resetDummy } from '../state/factory.js';
 import type { Command, CommandError, CommandErrorCode, CommandTarget, ExecutionOptions } from './types.js';
@@ -154,6 +155,11 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
       if (!ability) return reject('UNKNOWN_DEFINITION', `Habilidade desconhecida: ${command.abilityId}`);
       fail(checkAbility(ctx.state, ctx.catalog, actor, ability, options));
       const target = resolveTarget(ctx, actor, command.target, ability.target);
+      for (const op of ability.effects) {
+        if (op.op !== 'dashToTarget') continue;
+        const plan = planDash(ctx.state, ctx.catalog, actor, target.cell, op.maxCost);
+        if (!plan.ok) reject(plan.error.code, plan.error.message);
+      }
       spend(ctx, actor, ability.cost, options, ability.id);
       actor.usesThisTurn[ability.id] = (actor.usesThisTurn[ability.id] ?? 0) + 1;
       if (ability.blockedOwnTurnsAfterUse > 0) {

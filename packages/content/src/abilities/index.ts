@@ -2,8 +2,7 @@ import type { AbilityDefinition } from '@bardurinho/domain';
 
 /**
  * Catálogo das habilidades (seção 4). Cada habilidade é composta apenas por operações
- * reutilizáveis. Investida (`warrior.charge`) exige uma mecânica nova
- * (deslocamento + ataque) e entra em etapa posterior.
+ * reutilizáveis (a Investida usa a operação `dashToTarget`).
  */
 export const abilities: AbilityDefinition[] = [
   {
@@ -87,6 +86,24 @@ export const abilities: AbilityDefinition[] = [
     target: { kind: 'self' },
     effects: [{ op: 'applyStatus', selector: 'self', statusId: 'hidden' }],
     presentation: { iconId: 'icon.hide', animationId: 'cast_self', vfxId: 'stealth.transition' },
+  },
+  {
+    kind: 'ability',
+    id: 'warrior.charge',
+    version: 1,
+    name: 'Investida',
+    classId: 'warrior',
+    tags: ['PHYSICAL', 'MELEE', 'MOVEMENT', 'DAMAGE'],
+    cost: { ap: 1, focus: 2 },
+    maxUsesPerTurn: 1,
+    blockedOwnTurnsAfterUse: 1,
+    // Percurso de até 4 PM + a célula do alvo. O caminho real é validado pelo core.
+    target: { kind: 'unit', range: 5, sameFloor: true },
+    effects: [
+      { op: 'dashToTarget', maxCost: 4 },
+      { op: 'damage', selector: 'targetCellOccupants', amount: 16, damageType: 'physical' },
+    ],
+    presentation: { iconId: 'icon.charge', animationId: 'melee', vfxId: 'charge.dust' },
   },
   {
     kind: 'ability',
