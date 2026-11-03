@@ -9,29 +9,55 @@
   "characters": {
     "mage": {
       "file": "mage.glb",
-      "source": "wizard owl 3d model.glb",
-      "bytes": 3654488,
-      "heightMeters": 0.98,
-      "footprintMeters": { "x": 0.75, "z": 0.63 },
-      "triangles": 48760,
+      "sourceFile": "../source/characters/mage.glb",
+      "bytes": 398632,
+      "sha256": "008e3b0ea1cb0af8d33b2363b990641a117f0ecc7e594d2fa3a255c88158e7a5",
+      "triangles": 6303,
+      "vertices": 5460,
       "meshes": 22,
       "materials": 22,
       "textures": 22,
+      "textureFormat": "image/webp",
+      "source": {
+        "file": "assets/models/source/characters/mage.glb",
+        "originalName": "wizard owl 3d model.glb",
+        "bytes": 3654488,
+        "triangles": 48760,
+        "textureFormat": "image/jpeg"
+      },
+      "heightMeters": 0.98,
+      "footprintMeters": {
+        "x": 0.75,
+        "z": 0.63
+      },
       "hasSkeleton": false,
       "joints": 0,
       "animations": [],
-      "notes": "Coruja mago. Malha estática dividida em 22 partes (tripo_part_N), cada uma com material e textura JPEG próprios (64-2048 px). Sem esqueleto nem animações."
+      "notes": "Coruja mago. Malha estática dividida em 22 partes (tripo_part_N), cada uma com material e textura próprios (JPEG 64-2048 px no original; WebP até 1024 px no otimizado). Sem esqueleto nem animações."
     },
     "rogue": {
       "file": "rogue.glb",
-      "source": "fantasy cat 3d model.glb",
-      "bytes": 3845396,
-      "heightMeters": 0.98,
-      "footprintMeters": { "x": 0.69, "z": 0.59 },
-      "triangles": 47910,
+      "sourceFile": "../source/characters/rogue.glb",
+      "bytes": 455848,
+      "sha256": "104016e0153d93a0a2f6270fe98289dfb2172522cdfa7c9fca194e8c7b793fbc",
+      "triangles": 6269,
+      "vertices": 5135,
       "meshes": 17,
       "materials": 17,
       "textures": 17,
+      "textureFormat": "image/webp",
+      "source": {
+        "file": "assets/models/source/characters/rogue.glb",
+        "originalName": "fantasy cat 3d model.glb",
+        "bytes": 3845396,
+        "triangles": 47910,
+        "textureFormat": "image/jpeg"
+      },
+      "heightMeters": 0.98,
+      "footprintMeters": {
+        "x": 0.69,
+        "z": 0.59
+      },
       "hasSkeleton": false,
       "joints": 0,
       "animations": [],
@@ -39,14 +65,27 @@
     },
     "warrior": {
       "file": "warrior.glb",
-      "source": "dog knight 3d model.glb",
-      "bytes": 3887752,
-      "heightMeters": 0.98,
-      "footprintMeters": { "x": 0.78, "z": 0.56 },
-      "triangles": 49682,
+      "sourceFile": "../source/characters/warrior.glb",
+      "bytes": 420896,
+      "sha256": "8b4b3c53fdbca66e35e2f6adc1b01f397a6a29ad591628a80127fa55ce167c30",
+      "triangles": 6272,
+      "vertices": 5130,
       "meshes": 16,
       "materials": 16,
       "textures": 16,
+      "textureFormat": "image/webp",
+      "source": {
+        "file": "assets/models/source/characters/warrior.glb",
+        "originalName": "dog knight 3d model.glb",
+        "bytes": 3887752,
+        "triangles": 49682,
+        "textureFormat": "image/jpeg"
+      },
+      "heightMeters": 0.98,
+      "footprintMeters": {
+        "x": 0.78,
+        "z": 0.56
+      },
       "hasSkeleton": false,
       "joints": 0,
       "animations": [],
@@ -54,18 +93,41 @@
     },
     "druid": {
       "file": "druid.glb",
-      "source": "forest ranger mouse 3d model.glb",
-      "bytes": 3874080,
-      "heightMeters": 0.98,
-      "footprintMeters": { "x": 0.86, "z": 0.63 },
-      "triangles": 47816,
+      "sourceFile": "../source/characters/druid.glb",
+      "bytes": 585848,
+      "sha256": "ef21d1a3f9d44dde0d16f7b00736590177c91af0b32251f85a7156cb48efca6b",
+      "triangles": 6086,
+      "vertices": 5308,
       "meshes": 22,
       "materials": 22,
       "textures": 22,
+      "textureFormat": "image/webp",
+      "source": {
+        "file": "assets/models/source/characters/druid.glb",
+        "originalName": "forest ranger mouse 3d model.glb",
+        "bytes": 3874080,
+        "triangles": 47816,
+        "textureFormat": "image/jpeg"
+      },
+      "heightMeters": 0.98,
+      "footprintMeters": {
+        "x": 0.86,
+        "z": 0.63
+      },
       "hasSkeleton": false,
       "joints": 0,
       "animations": [],
       "notes": "Rato guardião da floresta. ESCOLHA (pode trocar com rogue): capa/capuz verde e texturas com folhas e casca de madeira, que batem com 'elementos de folha ou galho' do Druida. Não há cajado identificável na geometria."
     }
+  },
+  "optimization": {
+    "tool": "tools/models/optimize.ts (npm run optimize-models)",
+    "method": "glTF-Transform optimize: weld, meshoptimizer simplify (adaptive ratio/error, target <= 8000 tris), EXT_meshopt_compression + KHR_mesh_quantization, textures to WebP (EXT_texture_webp) <= 1024 px. Materials not merged.",
+    "extensionsRequired": [
+      "EXT_meshopt_compression",
+      "EXT_texture_webp",
+      "KHR_mesh_quantization"
+    ],
+    "report": "../optimization-report.json"
   }
 }

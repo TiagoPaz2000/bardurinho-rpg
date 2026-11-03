@@ -3,37 +3,75 @@
     {
       "id": "ornate_circular_base_plate",
       "file": "ornate_circular_base_plate.glb",
+      "sourceFile": "../source/environment/ornate_circular_base_plate.glb",
+      "triangles": 4800,
+      "vertices": 8806,
+      "meshes": 1,
+      "nodes": 1,
+      "attributes": [
+        "POSITION",
+        "NORMAL"
+      ],
+      "materials": [],
+      "textures": [],
+      "skins": 0,
+      "animations": 0,
+      "optimized": {
+        "tool": "tools/models/optimize.ts (npm run optimize-models -- plate)",
+        "method": "geometry-only: drop original NORMAL, weld by position, meshoptimizer simplify (Prune flag, target 4800 tris), recompute normals with 50 deg crease angle, then glTF-Transform optimize --simplify false (meshopt compression + quantization)",
+        "fileSizeBytes": 71608,
+        "sha256": "6321386ddee0ce90a9d24698646775fb57f0bc92f2e05bea42025b08539ce624",
+        "simplifyErrorRelative": 0.0046,
+        "extensionsRequired": [
+          "EXT_meshopt_compression",
+          "KHR_mesh_quantization"
+        ],
+        "bounds": {
+          "min": [
+            -1.9597,
+            0.0002,
+            -1.9578
+          ],
+          "max": [
+            1.957,
+            0.648,
+            1.9566
+          ]
+        }
+      },
       "source": {
         "originalFile": "Ornate French circular base plate.glb",
         "generator": "Tripo (glTF 2.0, asset.generator = \"Tripo\")",
         "sha256": "f01c41b264e32a3381e8c07087a8a5f2a75b88b6ff676745ffb0c6e9ffb44091",
         "fileSizeBytes": 48138672,
-        "modified": false
+        "modified": false,
+        "path": "assets/models/source/environment/ornate_circular_base_plate.glb",
+        "triangles": 1948544,
+        "vertices": 1031465,
+        "indexType": "uint32"
       },
       "dimensionsMeters": {
         "diameterX": 3.921,
         "diameterZ": 3.921,
-        "height": 0.650,
+        "height": 0.65,
         "plateauHeight": 0.5,
         "centralBossRadius": 0.43,
         "bounds": {
-          "min": [-1.9606, 0.0, -1.9607],
-          "max": [1.9606, 0.6497, 1.9607]
+          "min": [
+            -1.9606,
+            0,
+            -1.9607
+          ],
+          "max": [
+            1.9606,
+            0.6497,
+            1.9607
+          ]
         },
         "upAxis": "+Y",
         "pivot": "base center (y = 0, XZ centered; node translation ~0.0001 m)",
         "footprintCells": "2 x 2 at native scale (4 x 4 m); 1 x 1 at scale 0.5 (1.96 m)"
       },
-      "triangles": 1948544,
-      "vertices": 1031465,
-      "meshes": 1,
-      "nodes": 1,
-      "attributes": ["POSITION", "NORMAL"],
-      "indexType": "uint32",
-      "materials": [],
-      "textures": [],
-      "skins": 0,
-      "animations": 0,
       "suggestedUses": [
         {
           "use": "focus_altar base (pedestal under the Focus Altar)",
@@ -42,12 +80,15 @@
         },
         {
           "use": "decorative central dais / landmark (visual only)",
-          "scale": 1.0,
+          "scale": 1,
           "result": "3.92 m diameter x 0.65 m tall, covers a 2 x 2 cell block; not a walkable level (rules only know ground and 4 m platforms)"
         }
       ],
       "notes": [
-        "About 1300x over the 1.5k-triangle object budget in docs/fase-02-modelos-3d.md; needs a decimated derivative (e.g. 1.5k-5k tris) before use in a match. Keep this file as the source/high-poly reference.",
+        "`file` is the optimized derivative loaded by the game (4.8k triangles, ~72 KB). The 1.95M-triangle original lives in assets/models/source/environment/ and stays the high-poly reference. Regenerate with `npm run optimize-models -- plate`.",
+        "The glTF-Transform CLI simplify stalled at ~88k triangles because the original NORMAL attribute has seams that block edge collapses; dropping NORMAL before welding fixes it.",
+        "The optimized file uses EXT_meshopt_compression: Babylon.js needs the meshopt decoder (loaded from CDN by default; set MeshoptCompression.Configuration for offline use).",
+        "dimensionsMeters describes the original; the optimized bounds are within ~4 mm of it (base still at y = 0, top at 0.648 m).",
         "No material, no UVs and no textures: renders with the engine default material. Assign a stone material in the loader; texturing requires UV unwrapping in a derived file.",
         "Radially symmetric, so front (+Z) orientation is irrelevant.",
         "Scale and any offset should be applied in the loader (root transform), not by editing the GLB."

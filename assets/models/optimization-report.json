@@ -1,0 +1,99 @@
+{
+  "assets/models/characters/mage.glb": {
+    "source": "assets/models/source/characters/mage.glb",
+    "ratio": 0.10873,
+    "simplifyError": 0.02,
+    "before": {
+      "triangles": 48760,
+      "bytes": 3654488,
+      "materials": 22,
+      "textures": 22,
+      "meshes": 22
+    },
+    "after": {
+      "triangles": 6303,
+      "bytes": 398632,
+      "materials": 22,
+      "textures": 22,
+      "meshes": 22
+    }
+  },
+  "assets/models/characters/rogue.glb": {
+    "source": "assets/models/source/characters/rogue.glb",
+    "ratio": 0.10756,
+    "simplifyError": 0.02,
+    "before": {
+      "triangles": 47910,
+      "bytes": 3845396,
+      "materials": 17,
+      "textures": 17,
+      "meshes": 17
+    },
+    "after": {
+      "triangles": 6269,
+      "bytes": 455848,
+      "materials": 17,
+      "textures": 17,
+      "meshes": 17
+    }
+  },
+  "assets/models/characters/warrior.glb": {
+    "source": "assets/models/source/characters/warrior.glb",
+    "ratio": 0.10954,
+    "simplifyError": 0.02,
+    "before": {
+      "triangles": 49682,
+      "bytes": 3887752,
+      "materials": 16,
+      "textures": 16,
+      "meshes": 16
+    },
+    "after": {
+      "triangles": 6272,
+      "bytes": 420896,
+      "materials": 16,
+      "textures": 16,
+      "meshes": 16
+    }
+  },
+  "assets/models/characters/druid.glb": {
+    "source": "assets/models/source/characters/druid.glb",
+    "ratio": 0.10727,
+    "simplifyError": 0.02,
+    "before": {
+      "triangles": 47816,
+      "bytes": 3874080,
+      "materials": 22,
+      "textures": 22,
+      "meshes": 22
+    },
+    "after": {
+      "triangles": 6086,
+      "bytes": 585848,
+      "materials": 22,
+      "textures": 22,
+      "meshes": 22
+    }
+  },
+  "assets/models/environment/ornate_circular_base_plate.glb": {
+    "source": "assets/models/source/environment/ornate_circular_base_plate.glb",
+    "method": "geometry-only: drop NORMAL, weld, meshoptimizer simplify (Prune), crease normals, CLI optimize --simplify false",
+    "simplifyError": 0.00458,
+    "creaseAngleDeg": 50,
+    "before": {
+      "triangles": 1948544,
+      "bytes": 48138672,
+      "materials": 0,
+      "textures": 0,
+      "meshes": 1
+    },
+    "after": {
+      "triangles": 4800,
+      "bytes": 71608,
+      "materials": 0,
+      "textures": 0,
+      "meshes": 1,
+      "vertices": 8806
+    }
+  }
+}
