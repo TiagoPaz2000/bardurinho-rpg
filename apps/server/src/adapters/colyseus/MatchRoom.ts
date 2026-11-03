@@ -1,0 +1,238 @@
+/**
+ * Sala Colyseus de uma partida (adaptador; as regras ficam em MatchSession + domínio).
+ *
+ * - Entrada: `joinOrCreate('arena', { token })`. O token da sessão (POST /auth/login) é
+ *   conferido em `onAuth`; o assento fica preso à conta (A = primeira conta, B = segunda).
+ * - Com os dois assentos ocupados a sala vira privada (sai do matchmaking) e o servidor
+ *   envia START_MATCH. Quem tem assento pode voltar por `joinById(roomId, { token })`.
+ * - Queda: `allowReconnection(client, RECONNECT_SECONDS)` (reserva de vaga, seção 11.5); ao
+ *   voltar, o cliente recebe um snapshot novo. O cronômetro continua correndo.
+ * - Sem estado sincronizado do Colyseus: cada cliente recebe só mensagens com a visão da sua
+ *   equipe (`snapshot`, `update`), montadas no servidor.
+ */
+import { Room, type Client } from '@colyseus/core';
+import { MATCH_ROOM, type ServerMessages } from '@bardurinho/protocol';
+import type { Account } from '../../db/repositories.js';
+import { MatchSession } from '../../modules/matches/MatchSession.js';
+import type { ServerServices } from '../../services.js';
+
+interface JoinOptions {
+  token?: string;
+  /** Só com `dev`: semente dos dados e duração do turno escolhidas ao criar a sala. */
+  seed?: number;
+  turnSeconds?: number;
+}
+
+interface ClientAuth {
+  account: Account;
+}
+
+export class MatchRoom extends Room {
+  static services: ServerServices;
+  session!: MatchSession;
+  /** Conexão atual de cada assento. */
+  private readonly seatClients = new Map<number, Client>();
+  private abandonTimer: ReturnType<typeof setTimeout> | null = null;
+  private starting = false;
+
+  override maxClients = 4;
+
+  /**
+   * Limite de mensagens por conexão (proteção contra flood). Não usa `maxMessagesPerSecond` do
+   * Colyseus: ele conta pelo relógio da sala, que só anda com `setSimulationInterval` — sem
+   * simulação o contador nunca zera e a conexão cai depois de N mensagens no total.
+   */
+  private readonly rate = new Map<string, { windowStart: number; count: number }>();
+  static readonly MAX_MESSAGES_PER_SECOND = 120;
+
+  private allow(client: Client): boolean {
+    const now = Date.now();
+    const r = this.rate.get(client.sessionId) ?? { windowStart: now, count: 0 };
+    if (now - r.windowStart >= 1000) {
+      r.windowStart = now;
+      r.count = 0;
+    }
+    r.count++;
+    this.rate.set(client.sessionId, r);
+    if (r.count <= MatchRoom.MAX_MESSAGES_PER_SECOND) return true;
+    this.svc.log(`[sala ${this.roomId}] ${client.sessionId}: mensagens demais por segundo; desconectado`);
+    client.leave(4002);
+    return false;
+  }
+
+  private get svc(): ServerServices {
+    return MatchRoom.services;
+  }
+
+  override async onCreate(options: JoinOptions = {}) {
+    const svc = this.svc;
+    const dev = svc.config.dev;
+    const seed = dev && Number.isInteger(options.seed) && options.seed! > 0 ? options.seed! : 1 + Math.floor(Math.random() * (2 ** 31 - 2));
+    const turnSeconds = dev && typeof options.turnSeconds === 'number' && options.turnSeconds > 0 ? options.turnSeconds : svc.config.turnSeconds;
+    this.autoDispose = false;
+    this.session = new MatchSession({
+      roomId: this.roomId,
+      mapId: svc.map.id,
+      scenario: svc.map.scenario,
+      catalog: svc.catalog,
+      repo: svc.matches,
+      seed,
+      turnSeconds,
+      send: (seat, type, message) => this.sendToSeat(seat, type, message),
+      log: (m) => svc.log(m),
+    });
+    await this.session.ready;
+    svc.rooms.set(this.session.id, this);
+    await this.setMetadata({ matchId: this.session.id, seats: this.session.seatInfo(), status: this.session.state.status });
+    svc.log(`[sala ${this.roomId}] partida ${this.session.id} criada (semente ${seed}, turno ${turnSeconds} s)`);
+
+    this.onMessage('command', async (client, message) => {
+      const seat = this.seatOfClient(client);
+      if (seat === null || !this.allow(client)) return;
+      const result = await this.session.submit(seat, message);
+      client.send('result', result);
+    });
+    this.onMessage('ack', (client, message: { version?: unknown; hash?: unknown }) => {
+      const seat = this.seatOfClient(client);
+      if (seat !== null && this.allow(client)) this.session.ack(seat, message?.version, message?.hash);
+    });
+    this.onMessage('resync', (client) => {
+      const seat = this.seatOfClient(client);
+      if (seat !== null && this.allow(client)) client.send('snapshot', this.session.snapshot(seat, 'resync', this.roomId));
+    });
+  }
+
+  override async onAuth(_client: Client, options: JoinOptions = {}): Promise<ClientAuth> {
+    const account = await this.svc.accounts.bySession(options.token ?? '');
+    if (!account) throw new Error('Sessão inválida: faça login novamente');
+    const own = this.session.seatOf(account.id);
+    if (!own && this.session.full) throw new Error('Sala cheia');
+    return { account };
+  }
+
+  override async onJoin(client: Client, _options: JoinOptions, auth?: ClientAuth) {
+    const account = (auth ?? (client.auth as ClientAuth)).account;
+    const hadSeat = !!this.session.seatOf(account.id);
+    const seat = await this.session.claimSeat(account);
+    if (!seat) throw new Error('Sala cheia');
+    // Mesma conta de novo (ex.: recarregou a página sem o token de reconexão): a conexão nova assume.
+    const previous = this.seatClients.get(seat.seat);
+    if (previous && previous.sessionId !== client.sessionId) previous.leave(4001);
+    this.seatClients.set(seat.seat, client);
+    seat.connected = true;
+    client.userData = { seat: seat.seat };
+    this.cancelAbandon();
+    client.send('snapshot', this.session.snapshot(seat.seat, hadSeat ? 'reconnect' : 'join', this.roomId));
+    this.broadcastPresence();
+    this.svc.log(`[sala ${this.roomId}] ${account.username} no assento ${seat.seat} (equipe ${seat.team})`);
+    // Os dois assentos ocupados: inicia depois que a entrada terminar (o cliente já recebeu o snapshot).
+    if (this.session.full && this.session.state.status === 'setup' && !this.starting) {
+      this.starting = true;
+      this.clock.setTimeout(() => void this.startMatch(), 50);
+    }
+  }
+
+  private async startMatch() {
+    try {
+      await this.setPrivate(true);
+      const r = await this.session.start();
+      if (!r.ok) this.svc.log(`[sala ${this.roomId}] START_MATCH recusado: ${r.error.message}`);
+      await this.updateMeta();
+    } catch (err) {
+      this.svc.log(`[sala ${this.roomId}] falha ao iniciar: ${String(err)}`);
+    }
+  }
+
+  override async onDrop(client: Client) {
+    const seat = this.seatOfClient(client);
+    if (seat === null) return;
+    this.session.seats[seat]!.connected = false;
+    this.broadcastPresence();
+    this.svc.log(`[sala ${this.roomId}] assento ${seat} caiu; vaga reservada por ${this.svc.config.reconnectSeconds} s`);
+    if (this.session.state.status !== 'finished') {
+      this.allowReconnection(client, this.svc.config.reconnectSeconds).catch(() => undefined);
+    }
+    this.checkAbandon();
+  }
+
+  override onReconnect(client: Client) {
+    const seat = this.seatOfClient(client);
+    if (seat === null) return;
+    // Outra conexão da mesma conta assumiu enquanto esta estava fora.
+    if (this.seatClients.get(seat)?.sessionId !== client.sessionId) {
+      client.leave(4001);
+      return;
+    }
+    this.seatClients.set(seat, client);
+    this.session.seats[seat]!.connected = true;
+    this.cancelAbandon();
+    client.send('snapshot', this.session.snapshot(seat, 'reconnect', this.roomId));
+    this.broadcastPresence();
+    this.svc.log(`[sala ${this.roomId}] assento ${seat} reconectado`);
+  }
+
+  override onLeave(client: Client) {
+    const seat = this.seatOfClient(client);
+    if (seat === null) return;
+    if (this.seatClients.get(seat)?.sessionId === client.sessionId) {
+      this.seatClients.delete(seat);
+      this.session.seats[seat]!.connected = false;
+    }
+    this.broadcastPresence();
+    this.checkAbandon();
+  }
+
+  override onDispose() {
+    this.session?.dispose();
+    if (this.abandonTimer) clearTimeout(this.abandonTimer);
+    if (this.session) this.svc.rooms.delete(this.session.id);
+  }
+
+  private seatOfClient(client: Client): number | null {
+    const seat = (client.userData as { seat?: number } | undefined)?.seat;
+    return typeof seat === 'number' ? seat : null;
+  }
+
+  private sendToSeat<K extends keyof ServerMessages>(seat: number, type: K, message: ServerMessages[K]) {
+    const client = this.seatClients.get(seat);
+    // Desconectado: nada é enfileirado; ao voltar, o snapshot traz tudo.
+    if (client && this.session.seats[seat]?.connected) client.send(type, message);
+    if (type === 'update') void this.updateMeta();
+  }
+
+  private broadcastPresence() {
+    const seats = this.session.seatInfo();
+    for (const [seat, client] of this.seatClients) if (this.session.seats[seat]?.connected) client.send('presence', { seats });
+    void this.updateMeta();
+  }
+
+  private async updateMeta() {
+    try {
+      await this.setMetadata({ matchId: this.session.id, seats: this.session.seatInfo(), status: this.session.state.status, version: this.session.version });
+    } catch {
+      /* sala encerrando */
+    }
+    if (this.session.state.status === 'finished') this.autoDispose = true;
+  }
+
+  /** Nenhum jogador conectado por `abandonSeconds`: encerra a sala (a partida fica no banco). */
+  private checkAbandon() {
+    const anyone = this.session.seats.some((s) => s.connected);
+    if (anyone || this.abandonTimer) return;
+    if (this.session.state.status === 'finished') {
+      this.autoDispose = true;
+      return;
+    }
+    this.abandonTimer = setTimeout(() => {
+      this.svc.log(`[sala ${this.roomId}] sem jogadores por ${this.svc.config.abandonSeconds} s: encerrada`);
+      void this.disconnect();
+    }, this.svc.config.abandonSeconds * 1000);
+  }
+
+  private cancelAbandon() {
+    if (this.abandonTimer) clearTimeout(this.abandonTimer);
+    this.abandonTimer = null;
+  }
+}
+
+export { MATCH_ROOM };

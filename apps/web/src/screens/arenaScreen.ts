@@ -12,11 +12,16 @@
  * câmera com prioridade/duração/enquadramento.
  * Etapa 6: tela de opções (Esc / botão: câmera automática, ritmo, sensibilidade, inverter,
  * tremor; guardadas no navegador), resultado com resumo e reiniciar / jogar novamente.
+ * Fase 3: a partida vem de um `MatchDriver` — local (`MatchController`) ou em rede
+ * (`NetworkMatch`: o servidor decide, a tela só mostra a visão da equipe e só deixa dar
+ * ordens aos personagens dela; painel de rede com cronômetro, presença e sincronização).
  */
 import { Color4, Engine, Matrix, Scene, Vector3 } from '@babylonjs/core';
 import { buildScenario, coordKey, reachableCells, type ActionInfo, type Catalog, type Coord, type GameState, type GameplayCommand } from '@bardurinho/domain';
 import type { MapDefinition } from '@bardurinho/content';
-import { MatchController } from '../game/MatchController.js';
+import { MatchController, type MatchDriver } from '../game/MatchController.js';
+import type { NetworkMatch } from '../network/NetworkMatch.js';
+import { NetworkHud } from './networkHud.js';
 import { TacticalInteraction } from '../game/TacticalInteraction.js';
 import { ArenaView } from '../rendering/ArenaView.js';
 import { CameraBounds, CameraController, CameraEventQueue, CameraFocus, CameraInput, CameraOcclusion, FOCUS_RADIUS } from '../rendering/camera/index.js';
@@ -38,7 +43,9 @@ export interface ArenaScreen {
   scene: Scene;
   /** Estado oficial atual (somente leitura). */
   readonly state: GameState;
-  match: MatchController;
+  match: MatchDriver;
+  /** Modo em rede: a partida do servidor (senão `null`). */
+  network: NetworkMatch | null;
   arena: ArenaView;
   camera: CameraController;
   cameraEvents: CameraEventQueue;
@@ -104,7 +111,13 @@ function matchSeed(): number {
 }
 const newSeed = () => 1 + Math.floor(Math.random() * (2 ** 31 - 1));
 
-export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement, catalog: Catalog, mapDef: MapDefinition): ArenaScreen {
+export interface NetworkModeOptions {
+  match: NetworkMatch;
+  /** Sai da partida e volta ao lobby. */
+  leave(): void;
+}
+
+export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement, catalog: Catalog, mapDef: MapDefinition, net?: NetworkModeOptions): ArenaScreen {
   const engine = new Engine(canvas, true, { preserveDrawingBuffer: true, stencil: true });
   const scene = new Scene(engine);
   // Sistema destro, igual ao glTF: os GLBs entram sem espelhamento (ver rendering/grid.ts).
@@ -116,7 +129,7 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   // montado sem iniciar: o START_MATCH passa pelo MatchController para a iniciativa (d20)
   // chegar à tela como evento.
   const seed = matchSeed();
-  const match = new MatchController(catalog, buildScenario(catalog, { ...scenarioOverride(mapDef, catalog), dice: 'random', seed, autoStart: false }));
+  const match: MatchDriver = net?.match ?? new MatchController(catalog, buildScenario(catalog, { ...scenarioOverride(mapDef, catalog), dice: 'random', seed, autoStart: false }));
   const map = match.state.map;
   const arena = new ArenaView(scene, match.state);
 
@@ -199,6 +212,8 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   applySettings(settings);
   /** Recarrega a tela: mesma semente (reiniciar) ou semente nova (jogar novamente). */
   const reload = (sameSeed: boolean) => {
+    // Em rede, nova partida = voltar ao lobby (o servidor decide semente e reinício).
+    if (net) return net.leave();
     const params = new URLSearchParams(location.search);
     params.set('seed', String(sameSeed ? seed : newSeed()));
     location.search = params.toString();
@@ -332,14 +347,14 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
 
   async function endTurn(): Promise<void> {
     const unit = match.activeUnit;
-    if (!unit || match.busy) return;
+    if (!unit || match.busy || !match.canControl(unit.id)) return;
     await execute({ type: 'END_TURN', actorId: unit.id });
   }
 
   /** Carta da barra: sem alvo executa; com alvo entra no modo de habilidade; Mover volta ao tático. */
   function chooseAction(x: ActionInfo | string): void {
     const action = typeof x === 'string' ? actionBar.list.find((a) => a.key === x) : x;
-    if (!action || match.busy) return;
+    if (!action || match.busy || !match.canControl(match.state.turn.activeUnitId)) return;
     if (action.kind === 'move') {
       tactical.cancelAiming();
       // Volta a selecionar o personagem da vez (o jogador pode ter inspecionado outro).
@@ -391,7 +406,23 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   // Visão geral até o START_MATCH (a câmera vai para o primeiro personagem da iniciativa).
   focus.focusOverview(map, OVERVIEW_RADIUS);
   camera.snap();
-  void match.execute({ type: 'START_MATCH' });
+  const netHud = net ? new NetworkHud(hudRoot, net.match, { leave: () => net.leave() }) : null;
+  if (!net) void match.execute({ type: 'START_MATCH' });
+  else {
+    // Entrou numa partida já em andamento (reconexão, seção 14.14): câmera no personagem da vez.
+    const enterActive = () => {
+      if (match.state.status !== 'active') return;
+      followActive();
+      tactical.selectUnit(match.canControl(match.state.turn.activeUnitId) ? match.state.turn.activeUnitId : (Object.values(match.state.units).find((u) => match.canControl(u.id))?.id ?? null));
+      focusActive();
+      camera.snap();
+    };
+    enterActive();
+    net.match.onSnapshot = () => {
+      tactical.cancelAiming();
+      enterActive();
+    };
+  }
 
   scene.onBeforeRenderObservable.add(() => {
     const dt = Math.min(0.1, engine.getDeltaTime() / 1000);
@@ -400,6 +431,8 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
     camera.update(dt);
     occlusion.update(dt);
     const shown = match.displayedState;
+    const controllable = shown.status === 'active' && match.canControl(shown.turn.activeUnitId);
+    netHud?.update();
     hud.update({
       mapName: mapDef.name,
       state: shown,
@@ -412,13 +445,15 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
       inspected: tactical.inspected,
       busy: match.busy,
       aiming: tactical.aiming?.name ?? null,
+      controllable,
     });
-    actionBar.update({ state: shown, busy: match.busy, aimingKey: tactical.aiming?.key ?? null });
+    actionBar.update({ state: shown, busy: match.busy, aimingKey: tactical.aiming?.key ?? null, controllable });
   });
 
   engine.runRenderLoop(() => scene.render());
   window.addEventListener('resize', () => engine.resize());
-  console.info(`[arena] semente dos dados: ${seed} (use ?seed=${seed} para repetir)`);
+  if (net) console.info(`[arena] partida em rede ${net.match.matchId} — equipe ${net.match.team}`);
+  else console.info(`[arena] semente dos dados: ${seed} (use ?seed=${seed} para repetir)`);
 
   return {
     engine,
@@ -427,6 +462,7 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
       return match.state;
     },
     match,
+    network: net?.match ?? null,
     arena,
     camera,
     cameraEvents,

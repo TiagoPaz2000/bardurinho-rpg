@@ -18,7 +18,10 @@
     "lab": "npm run dev -w @bardurinho/combat-debug-lab",
     "web": "npm run dev -w @bardurinho/web",
     "optimize-models": "tsx tools/models/optimize.ts",
-    "e2e:partida": "node tools/e2e/partida-ui.mjs"
+    "e2e:partida": "node tools/e2e/partida-ui.mjs",
+    "server": "npm run dev -w @bardurinho/server",
+    "e2e:rede": "tsx tools/e2e/rede.ts",
+    "e2e:rede-ui": "tsx tools/e2e/rede-ui.ts"
   },
   "devDependencies": {
     "@gltf-transform/cli": "^4.5.1",

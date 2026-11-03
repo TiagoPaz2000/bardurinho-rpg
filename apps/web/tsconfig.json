@@ -7,5 +7,5 @@
     "types": ["vite/client"]
   },
   "include": ["src"],
-  "references": [{ "path": "../../packages/domain" }, { "path": "../../packages/content" }]
+  "references": [{ "path": "../../packages/domain" }, { "path": "../../packages/content" }, { "path": "../../packages/protocol" }]
 }

@@ -1,5 +1,5 @@
 /**
- * Controlador da partida local (Fase 2): guarda o `GameState` oficial e aplica comandos
+ * Controlador da partida local (Fase 2; na Fase 3 é um dos `MatchDriver`): guarda o `GameState` oficial e aplica comandos
  * pelo core (`applyCommand`, regras normais, sem opções de debug). O cliente nunca
  * altera o estado por conta própria — só envia intenções e apresenta o resultado.
  *
@@ -27,9 +27,33 @@ export interface MatchChange {
   state: GameState;
 }
 
-export type ExecuteResult = { ok: true; events: readonly GameEvent[] } | { ok: false; error: CommandError | { code: 'BUSY'; message: string } };
+export type ExecuteResult = { ok: true; events: readonly GameEvent[] } | { ok: false; error: CommandError | { code: string; message: string } };
 
-export class MatchController {
+/**
+ * Transporte da partida para a tela (Fase 3): a mesma interface serve à partida local
+ * (`MatchController`, o core roda no navegador) e à partida em rede
+ * (`network/NetworkMatch`, o servidor é a autoridade e o estado vem projetado para a equipe).
+ */
+export interface MatchDriver {
+  readonly catalog: Catalog;
+  /** Estado mais recente (local: oficial; rede: a visão da equipe enviada pelo servidor). */
+  readonly state: GameState;
+  readonly displayedState: GameState;
+  readonly lastEvents: readonly GameEvent[];
+  readonly history: readonly GameEvent[];
+  readonly busy: boolean;
+  readonly activeUnit: Unit | undefined;
+  /** Equipe controlada por este cliente; `null` = as duas (partida local). */
+  readonly team: string | null;
+  presenter: MatchPresenter | null;
+  /** O cliente pode dar ordens a este personagem (é da sua equipe). */
+  canControl(unitId: string | null | undefined): boolean;
+  onChange(fn: (change: MatchChange) => void): () => void;
+  execute(command: GameplayCommand): Promise<ExecuteResult>;
+}
+
+export class MatchController implements MatchDriver {
+  readonly team = null;
   private current: GameState;
   private shown: GameState;
   private events: readonly GameEvent[] = [];
@@ -77,6 +101,10 @@ export class MatchController {
   get activeUnit(): Unit | undefined {
     const id = this.current.turn.activeUnitId;
     return id ? this.current.units[id] : undefined;
+  }
+
+  canControl(unitId: string | null | undefined): boolean {
+    return !!unitId && !!this.current.units[unitId];
   }
 
   onChange(fn: (change: MatchChange) => void): () => void {

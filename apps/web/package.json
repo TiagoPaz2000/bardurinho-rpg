@@ -11,7 +11,9 @@
     "@babylonjs/core": "^9.33.2",
     "@babylonjs/loaders": "^9.33.2",
     "@bardurinho/content": "*",
-    "@bardurinho/domain": "*"
+    "@bardurinho/domain": "*",
+    "@colyseus/sdk": "^0.18.9",
+    "@bardurinho/protocol": "*"
   },
   "devDependencies": {
     "meshoptimizer": "^1.2.0"

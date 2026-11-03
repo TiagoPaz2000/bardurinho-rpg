@@ -1,0 +1,54 @@
+/**
+ * Configuração do servidor de jogo (variáveis de ambiente; padrões da seção 10.1).
+ */
+import { DEFAULT_SERVER_PORT } from '@bardurinho/protocol';
+
+export interface ServerConfig {
+  host: string;
+  port: number;
+  /** `postgres://…` usa um PostgreSQL externo (driver pg); vazio usa PGlite. */
+  databaseUrl: string | undefined;
+  /** Pasta do PGlite (`memory` = em memória). */
+  dataDir: string;
+  /** Duração do turno (s): ao esgotar, o servidor encerra o turno sozinho. */
+  turnSeconds: number;
+  /** Reserva da vaga após uma queda (s) — seção 11.5. */
+  reconnectSeconds: number;
+  /** Sala sem nenhum jogador conectado por este tempo (s) é encerrada (partida abandonada). */
+  abandonSeconds: number;
+  /**
+   * Rotas e opções de desenvolvimento: `/debug/*` (modo NETWORK do Combat Debug Lab), semente
+   * e duração de turno escolhidas pelo cliente ao criar a sala. Desligado em produção.
+   */
+  dev: boolean;
+  /** Contas de desenvolvimento criadas na inicialização (senha `dev`). */
+  devAccounts: Array<{ username: string; displayName: string; password: string }>;
+  /** Origens aceitas pelo CORS das rotas HTTP. */
+  corsOrigins: string[];
+  log: boolean;
+}
+
+const num = (v: string | undefined, d: number) => (v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : d);
+
+export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Partial<ServerConfig> = {}): ServerConfig {
+  const dev = env.NODE_ENV !== 'production' && env.GAME_DEV !== '0';
+  return {
+    host: env.HOST ?? '127.0.0.1',
+    port: num(env.PORT, DEFAULT_SERVER_PORT),
+    databaseUrl: env.DATABASE_URL || undefined,
+    dataDir: env.DATA_DIR ?? '.data/pg',
+    turnSeconds: num(env.TURN_SECONDS, 60),
+    reconnectSeconds: num(env.RECONNECT_SECONDS, 90),
+    abandonSeconds: num(env.ABANDON_SECONDS, 600),
+    dev,
+    devAccounts: dev
+      ? [
+          { username: 'jogador-a', displayName: 'Jogador A', password: 'dev' },
+          { username: 'jogador-b', displayName: 'Jogador B', password: 'dev' },
+        ]
+      : [],
+    corsOrigins: (env.CORS_ORIGINS ?? 'http://127.0.0.1:5173,http://localhost:5173,http://127.0.0.1:5174,http://localhost:5174').split(','),
+    log: env.GAME_LOG !== '0',
+    ...overrides,
+  };
+}

@@ -1,0 +1,24 @@
+{
+  "name": "@bardurinho/server",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx src/main.ts",
+    "start": "tsx src/main.ts"
+  },
+  "dependencies": {
+    "@bardurinho/content": "*",
+    "@bardurinho/domain": "*",
+    "@bardurinho/protocol": "*",
+    "@colyseus/core": "^0.18.26",
+    "@colyseus/ws-transport": "^0.18.4",
+    "@electric-sql/pglite": "^0.5.15",
+    "express": "^5.3.0",
+    "pg": "^8.23.1"
+  },
+  "devDependencies": {
+    "@types/express": "^5.0.6",
+    "@types/pg": "^8.23.1"
+  }
+}

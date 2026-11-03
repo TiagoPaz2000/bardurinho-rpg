@@ -174,3 +174,24 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #141517; col
 .end-table th:first-child, .end-table td:first-child { text-align: left; }
 .end-table tr.winner td:first-child::before { content: '★ '; color: #ffd43b; }
 .end-table .dead { color: #ff8787; }
+
+/* Fase 3 — modo em rede: lobby, painel de rede e aviso de vez */
+.hud-lobby { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.55); pointer-events: auto; z-index: 30; }
+.lobby-box { position: static; width: 420px; display: flex; flex-direction: column; gap: 8px; padding: 16px 18px; }
+.lobby-title { font-size: 18px; font-weight: 700; color: #ffd43b; }
+.lobby-sub, .lobby-box .sub { color: #868e96; font-size: 12px; }
+.lobby-accounts { display: flex; gap: 8px; }
+.lobby-accounts .hud-button { flex: 1; }
+.lobby-rooms { display: flex; flex-direction: column; gap: 4px; }
+.lobby-msg { color: #ffa94d; font-size: 12px; }
+.lobby-box code, .hud-net code { font: 11px ui-monospace, monospace; color: #ced4da; }
+button.link { background: none; border: 0; color: #74c0fc; cursor: pointer; font: 12px system-ui, sans-serif; padding: 0; text-align: left; }
+.hud-net { right: 10px; bottom: 178px; min-width: 250px; font-size: 12px; pointer-events: auto; }
+.hud-net .net-title { font-weight: 600; color: #ffd43b; margin-bottom: 4px; }
+.hud-net .row { display: flex; justify-content: space-between; gap: 12px; margin-top: 2px; }
+.hud-net .row > span:first-child { color: #868e96; }
+.hud-net .ok { color: #69db7c; }
+.hud-net .warn { color: #ffa94d; }
+.hud-net .bad { color: #ff6b6b; }
+.hud-net button.link { margin-top: 6px; }
+.hud-net-banner { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); background: rgba(20, 21, 23, 0.9); border: 1px solid #ff6b6b; color: #ffc9c9; border-radius: 6px; padding: 5px 14px; font-size: 13px; white-space: nowrap; }

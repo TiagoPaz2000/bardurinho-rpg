@@ -39,6 +39,8 @@ export interface HudView {
   busy: boolean;
   /** Modo de habilidade: nome da ação em mira. */
   aiming: string | null;
+  /** O personagem da vez é deste cliente (rede: da sua equipe; local: sempre). */
+  controllable?: boolean;
 }
 
 export interface HudActions {
@@ -259,7 +261,8 @@ export class Hud {
     const sum = this.actions.summary();
     const rows = sum.units
       .map((s) => {
-        const u = state.units[s.unitId]!;
+        const u = state.units[s.unitId];
+        if (!u) return '';
         const status = s.alive ? `${s.hp}/${s.maxHp} PV` : '<span class="dead">derrotado</span>';
         const winner = r.kind === 'victory' && s.team === r.winnerTeam ? ' class="winner"' : '';
         return `<tr${winner}><td>${this.unitName(u)} <span class="sub">(${esc(s.team)})</span></td><td>${status}</td><td>${s.damageDealt}</td><td>${s.damageTaken}</td><td>${s.attacks ? `${s.hits}/${s.attacks}` : '—'}</td><td>${s.healing || '—'}</td><td>${s.objectsDestroyed || '—'}</td></tr>`;
@@ -305,7 +308,8 @@ export class Hud {
     if (state.status === 'finished' && state.result) {
       status = state.result.kind === 'victory' ? `Vitória da equipe ${esc(state.result.winnerTeam)}` : 'Empate';
     }
-    const activeHtml = active ? `${this.unitName(active)} (equipe ${esc(active.team)})` : '—';
+    // Rede: o personagem da vez pode estar fora da visão da equipe (o estado projetado não o traz).
+    const activeHtml = active ? `${this.unitName(active)} (equipe ${esc(active.team)})` : state.status === 'active' && state.turn.activeUnitId ? 'adversário (fora da visão)' : '—';
     const html = `
       <div class="map">${esc(v.mapName)}</div>
       ${status ? `<div class="status">${status}</div>` : ''}
@@ -341,15 +345,15 @@ export class Hud {
       this.modeBanner.hidden = !mode;
     }
 
-    this.endTurnBtn.disabled = v.busy || state.status !== 'active' || !active;
+    this.endTurnBtn.disabled = v.busy || state.status !== 'active' || !active || v.controllable === false;
   }
 
   /** Ações do personagem da vez sobre o objeto/personagem inspecionado (botões). */
   private updateTargetActions(state: GameState, v: HudView): void {
     const i = v.inspected;
-    const actorId = state.status === 'active' ? state.turn.activeUnitId : null;
+    const actorId = state.status === 'active' && v.controllable !== false ? state.turn.activeUnitId : null;
     const targetId = i && i.kind !== 'cell' ? i.id : null;
-    const key = `${state.nextCommandSeq}|${state.turn.turnId}|${actorId}|${targetId}|${v.busy}`;
+    const key = `${state.nextCommandSeq}|${state.turn.turnId}|${actorId}|${targetId}|${v.busy}|${state.status}`;
     if (key === this.targetKey) return;
     this.targetKey = key;
     this.targetActions = actorId && targetId && targetId !== actorId ? listActionsOnTarget(state, this.catalog, actorId, targetId) : [];
@@ -357,7 +361,11 @@ export class Hud {
       this.targetBox.innerHTML = '';
       return;
     }
-    const actor = state.units[actorId!]!;
+    const actor = state.units[actorId!];
+    if (!actor) {
+      this.targetBox.innerHTML = '';
+      return;
+    }
     // Disponíveis primeiro; indisponíveis mostram o motivo.
     const order = this.targetActions.map((x, idx) => ({ x, idx })).sort((a, b) => Number(b.x.available) - Number(a.x.available));
     this.targetBox.innerHTML = `

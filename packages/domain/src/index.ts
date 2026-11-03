@@ -29,3 +29,4 @@ export * from './scenario/scenario.js';
 export * from './commands/checks.js';
 export * from './commands/availability.js';
 export * from './visibility/visibility.js';
+export * from './visibility/projection.js';

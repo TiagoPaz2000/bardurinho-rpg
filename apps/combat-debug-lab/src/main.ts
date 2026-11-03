@@ -351,6 +351,7 @@ function renderToolbar(): void {
 
   toolbar.replaceChildren(...[
     h('strong', {}, 'COMBAT DEBUG LAB'),
+    h('a', { class: 'btn', href: '/network.html', title: 'Modo NETWORK: estado do servidor × visão de cada cliente (Fase 3)' }, 'NETWORK ↗'),
     h('span', { class: 'pill' }, `Rodada ${s.turn.round} · Turno #${s.turn.turnId} · ${active ?? '—'}`),
     s.status === 'finished' ? h('span', { class: 'pill danger' }, `FIM: ${JSON.stringify(s.result)}`) : null,
     h('button', { onclick: () => active && exec({ type: 'END_TURN', actorId: active }) && refresh(), disabled: !active, title: 'Atalho: E' }, 'Encerrar turno'),

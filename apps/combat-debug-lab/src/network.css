@@ -1,0 +1,17 @@
+#net { padding: 8px 12px; }
+.net-bar { display: flex; flex-wrap: wrap; gap: 8px; align-items: center; margin-bottom: 8px; }
+.net-bar strong { color: #ffd43b; letter-spacing: 0.08em; }
+.net-cols { display: grid; grid-template-columns: repeat(3, minmax(0, 1fr)); gap: 10px; }
+.net-col { background: #1a1b1e; border: 1px solid #2c2e33; border-radius: 6px; padding: 6px 8px; min-width: 0; }
+.net-col h3 { margin: 2px 0 6px; display: flex; justify-content: space-between; gap: 8px; }
+.net-col canvas { width: 100%; height: auto; image-rendering: auto; border: 1px solid #2c2e33; }
+.net-kv { display: grid; grid-template-columns: auto 1fr; gap: 1px 10px; margin-top: 6px; font-size: 11px; }
+.net-kv > span:nth-child(odd) { color: #868e96; }
+.ok { color: #69db7c; }
+.bad { color: #ff6b6b; }
+.warn { color: #ffa94d; }
+.net-table { width: 100%; border-collapse: collapse; margin-top: 10px; font-size: 11px; }
+.net-table th, .net-table td { border-bottom: 1px solid #25262b; padding: 2px 6px; text-align: left; }
+.net-table th { color: #868e96; font-weight: 500; }
+.net-list { display: flex; flex-wrap: wrap; gap: 6px; }
+.net-empty { color: #868e96; padding: 20px 0; }

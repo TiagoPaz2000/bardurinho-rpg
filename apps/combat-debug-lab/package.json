@@ -10,6 +10,7 @@
   "dependencies": {
     "@bardurinho/assets-manifest": "*",
     "@bardurinho/content": "*",
-    "@bardurinho/domain": "*"
+    "@bardurinho/domain": "*",
+    "@bardurinho/protocol": "*"
   }
 }

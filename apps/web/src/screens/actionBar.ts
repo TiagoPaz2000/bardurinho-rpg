@@ -15,6 +15,8 @@ export interface ActionBarView {
   busy: boolean;
   /** Chave da ação em mira (destaque da carta), ou null. */
   aimingKey: string | null;
+  /** O personagem da vez é deste cliente; senão a barra some (rede: vez do adversário). */
+  controllable?: boolean;
 }
 
 export interface ActionBarHandlers {
@@ -113,11 +115,14 @@ export class ActionBar {
   }
 
   /** Chamado a cada quadro; só recalcula quando o estado, a animação ou a mira mudam. */
+  private lastControllable: boolean | undefined = undefined;
+
   update(v: ActionBarView): void {
     const s = v.state;
-    if (s !== this.lastState) {
+    if (s !== this.lastState || v.controllable !== this.lastControllable) {
       this.lastState = s;
-      const id = s.status === 'active' ? s.turn.activeUnitId : null;
+      this.lastControllable = v.controllable;
+      const id = s.status === 'active' && v.controllable !== false ? s.turn.activeUnitId : null;
       this.actions = id ? listUnitActions(s, this.catalog, id) : [];
       this.lastKey = '';
       // Tooltip aberto fica com o texto antigo: reabre no próximo movimento do mouse.

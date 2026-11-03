@@ -1,0 +1,10 @@
+{
+  "extends": "../../tsconfig.base.json",
+  "compilerOptions": {
+    "rootDir": "src",
+    "outDir": "../../node_modules/.cache/tsc-server",
+    "types": ["node"]
+  },
+  "include": ["src"],
+  "references": [{ "path": "../../packages/domain" }, { "path": "../../packages/content" }, { "path": "../../packages/protocol" }]
+}

@@ -53,7 +53,7 @@ import { PALETTE } from '../rendering/materials.js';
 import { pickAt, type PickResult } from '../rendering/picking.js';
 import type { WorldLabels } from '../rendering/worldLabels.js';
 import type { Inspected } from '../screens/hud.js';
-import type { MatchController } from './MatchController.js';
+import type { MatchDriver } from './MatchController.js';
 
 /** Distância máxima (px) entre pointerdown e pointerup para contar como clique. */
 const CLICK_SLOP = 6;
@@ -65,7 +65,7 @@ export interface TacticalInteractionOptions {
   scene: Scene;
   canvas: HTMLCanvasElement;
   arena: ArenaView;
-  match: MatchController;
+  match: MatchDriver;
   catalog: Catalog;
   labels: WorldLabels;
   /** Entrada manual do jogador (interrompe a câmera automática, seção 14.12). */
@@ -158,7 +158,7 @@ export class TacticalInteraction {
   private get actorId(): EntityId | null {
     const id = this.selectedUnitId;
     const s = this.state;
-    return id && s.status === 'active' && s.turn.activeUnitId === id && s.units[id]?.alive ? id : null;
+    return id && s.status === 'active' && s.turn.activeUnitId === id && s.units[id]?.alive && this.o.match.canControl(id) ? id : null;
   }
 
   selectUnit(id: EntityId | null): void {
@@ -178,7 +178,7 @@ export class TacticalInteraction {
   /** Entra no modo de habilidade com uma ação com alvo do personagem da vez. */
   startAiming(info: ActionInfo): boolean {
     const actorId = this.state.turn.activeUnitId;
-    if (!actorId || this.o.match.busy) return false;
+    if (!actorId || this.o.match.busy || !this.o.match.canControl(actorId)) return false;
     if (info.kind !== 'attack' && info.kind !== 'ability' && info.kind !== 'item') return false;
     if (this.aiming?.key === info.key) {
       // Mesma ação de novo: alterna (sai da mira).
