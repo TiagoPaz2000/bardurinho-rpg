@@ -10,6 +10,8 @@
  * Etapa 5: oclusão da câmera (CameraOcclusion), andar visualizado que acompanha o
  * personagem da vez, fantasmas consistentes (modelo, barra, rótulos, efeitos) e fila de
  * câmera com prioridade/duração/enquadramento.
+ * Etapa 6: tela de opções (Esc / botão: câmera automática, ritmo, sensibilidade, inverter,
+ * tremor; guardadas no navegador), resultado com resumo e reiniciar / jogar novamente.
  */
 import { Color4, Engine, Matrix, Scene, Vector3 } from '@babylonjs/core';
 import { buildScenario, coordKey, reachableCells, type ActionInfo, type Catalog, type Coord, type GameState, type GameplayCommand } from '@bardurinho/domain';
@@ -25,6 +27,9 @@ import { UnitStatusBars } from '../rendering/unitBars.js';
 import { WorldLabels } from '../rendering/worldLabels.js';
 import { ActionBar } from './actionBar.js';
 import { Hud } from './hud.js';
+import { OptionsMenu } from './optionsMenu.js';
+import { loadSettings, saveSettings, type ClientSettings } from './settings.js';
+import { summarizeMatch } from '../game/matchSummary.js';
 
 const OVERVIEW_RADIUS = 46;
 
@@ -42,6 +47,9 @@ export interface ArenaScreen {
   actionBar: ActionBar;
   hud: Hud;
   occlusion: CameraOcclusion;
+  options: OptionsMenu;
+  /** Preferências atuais do cliente (tela de opções). */
+  readonly settings: ClientSettings;
   /** Escolha manual do andar visualizado (PgUp/PgDn). */
   setViewedFloor(floor: number): void;
   /** Andar escolhido pelo jogador (o visualizado sobe acima dele quando o personagem da vez sobe). */
@@ -169,27 +177,58 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   };
   // Tremor das explosões (desligado junto com a câmera automática).
   arena.vfx.shake = (amplitude, seconds) => {
-    if (cameraEvents.preference !== 'off') camera.shake(amplitude, seconds);
+    if (cameraEvents.preference !== 'off' && settings.cameraShake) camera.shake(amplitude, seconds);
   };
-  const toggleSpeed = () => {
-    pace.setFast(!pace.fast);
+  const setFast = (fast: boolean) => {
+    pace.setFast(fast);
     hud.setFast(pace.fast);
+    options.setFast(pace.fast);
   };
+  const toggleSpeed = () => setFast(!pace.fast);
   const input = new CameraInput(camera, canvas, { focusActive, onManualInput: manualInput });
+
+  // Preferências do cliente (tela de opções, etapa 6).
+  let settings = loadSettings();
+  const applySettings = (s: ClientSettings) => {
+    settings = s;
+    cameraEvents.preference = s.autoCamera;
+    input.sensitivity = s.cameraSensitivity;
+    input.invertDrag = s.invertDrag;
+    input.invertZoom = s.invertZoom;
+  };
+  applySettings(settings);
+  /** Recarrega a tela: mesma semente (reiniciar) ou semente nova (jogar novamente). */
+  const reload = (sameSeed: boolean) => {
+    const params = new URLSearchParams(location.search);
+    params.set('seed', String(sameSeed ? seed : newSeed()));
+    location.search = params.toString();
+  };
 
   const hud = new Hud(hudRoot, catalog, {
     endTurn: () => void endTurn(),
     execute: (command) => void execute(command),
     aim: (action) => void tactical.startAiming(action),
-    newMatch: () => {
-      // Nova partida = recarregar com uma semente nova (reconstrói cena e estado do zero).
-      const params = new URLSearchParams(location.search);
-      params.set('seed', String(newSeed()));
-      location.search = params.toString();
-    },
+    // Nova partida = recarregar com uma semente nova (reconstrói cena e estado do zero).
+    newMatch: () => reload(false),
+    restart: () => reload(true),
+    openOptions: () => options.open(),
+    summary: () => summarizeMatch(match.state, match.history),
     toggleSpeed: () => toggleSpeed(),
   });
   hud.setFast(pace.fast);
+  const options = new OptionsMenu(hudRoot, settings, pace.fast, {
+    change: (s) => {
+      applySettings(s);
+      saveSettings(s);
+    },
+    setFast,
+    restart: () => reload(true),
+    newMatch: () => reload(false),
+    toggled: (open) => {
+      input.enabled = !open;
+      if (open) tactical.cancelAiming();
+    },
+  });
   const labels = new WorldLabels(scene, engine, hudRoot);
   // Rótulo de algo num andar fantasma fica translúcido como o dono (barra, números, dados).
   labels.ghostAt = (p) => {
@@ -234,6 +273,8 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
       pts.push({ x: p.x, y: p.y + 1.0, z: p.z, entityId: id }, { x: p.x, y: p.y + 1.75, z: p.z, entityId: id });
     }
     if (tactical.hoverCell) cell(tactical.hoverCell, 0.4);
+    // Chão sob o cursor atrás de um muro/porta: esmaece o que está na frente (etapa 6).
+    if (tactical.pointerFloorCell) cell(tactical.pointerFloorCell, 0.4);
     if (tactical.aiming) for (const t of tactical.aiming.cells.values()) if (t.valid) cell(t.cell, 0.5);
     if (match.busy) {
       for (const c of spotlight.cells) cell(c, 0.6);
@@ -301,6 +342,8 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
     if (!action || match.busy) return;
     if (action.kind === 'move') {
       tactical.cancelAiming();
+      // Volta a selecionar o personagem da vez (o jogador pode ter inspecionado outro).
+      if (match.activeUnit && tactical.selectedUnitId !== match.activeUnit.id) tactical.selectUnit(match.activeUnit.id);
       if (!action.available) hud.toast(action.reason?.message ?? 'Movimento indisponível');
       return;
     }
@@ -315,6 +358,14 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   // Teclas da tela (não são da câmera): ações 1–9, andar visualizado, grade, visão geral, turno.
   window.addEventListener('keydown', (e) => {
     if (e.ctrlKey || e.metaKey || e.altKey || e.repeat) return;
+    // Tela de opções aberta: só Esc (fecha); o resto da partida não recebe teclas.
+    if (options.isOpen) {
+      if (e.code === 'Escape') {
+        options.close();
+        e.preventDefault();
+      }
+      return;
+    }
     const f = arena.floorView.viewedFloor;
     const digit = /^(?:Digit|Numpad)([1-9])$/.exec(e.code);
     if (digit) {
@@ -329,8 +380,9 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
     else if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space') void endTurn();
     else if (e.code === 'Escape') {
       manualInput();
+      // Esc cancela a mira; sem mira abre as opções (limpar a seleção: clique direito).
       if (tactical.aiming) tactical.cancelAiming();
-      else tactical.clearSelection();
+      else options.open();
     } else return;
     e.preventDefault();
   });
@@ -383,6 +435,10 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
     actionBar,
     hud,
     occlusion,
+    options,
+    get settings() {
+      return settings;
+    },
     setViewedFloor: chooseFloor,
     get preferredFloor() {
       return preferredFloor;

@@ -20,10 +20,11 @@
  * - Clique esquerdo confirma (`BASIC_ATTACK` / `USE_ABILITY` / `USE_ITEM`, alvo entidade
  *   quando se clica no personagem/objeto e o motor aceita; senão a célula). Esc ou clique
  *   direito (sem arrastar) cancela e volta ao modo tático. A câmera continua livre.
+ * - Clique direito sem mira: limpa a seleção (Esc sem mira abre a tela de opções).
  *
  * Tudo aqui é prévia visual: o core recalcula e valida o comando (seção 14.8).
  */
-import { Vector3, type Scene } from '@babylonjs/core';
+import { Matrix, Vector3, type Scene } from '@babylonjs/core';
 import {
   applyCommand,
   coordKey,
@@ -47,7 +48,7 @@ import {
 } from '@bardurinho/domain';
 import type { ArenaView } from '../rendering/ArenaView.js';
 import { CellHighlightLayer, type CellMark } from '../rendering/highlights.js';
-import { cellToWorld } from '../rendering/grid.js';
+import { cellToWorld, FLOOR_HEIGHT, worldToCell } from '../rendering/grid.js';
 import { PALETTE } from '../rendering/materials.js';
 import { pickAt, type PickResult } from '../rendering/picking.js';
 import type { WorldLabels } from '../rendering/worldLabels.js';
@@ -58,6 +59,7 @@ import type { MatchController } from './MatchController.js';
 const CLICK_SLOP = 6;
 const PATH_LABEL = 'path-cost';
 const AIM_LABEL = 'aim-hint';
+const IDENTITY = Matrix.Identity();
 
 export interface TacticalInteractionOptions {
   scene: Scene;
@@ -96,6 +98,12 @@ export class TacticalInteraction {
   inspected: Inspected | null = null;
   /** Célula sob o cursor (null fora do mapa). */
   hoverCell: Coord | null = null;
+  /**
+   * Célula de chão sob o cursor ignorando estruturas e objetos (raio × plano do andar
+   * visualizado, depois os de baixo). Alvo da oclusão: o muro/porta na frente dela esmaece e
+   * deixa de ser selecionável, então a célula logo atrás de uma porta ou muro fica clicável.
+   */
+  pointerFloorCell: Coord | null = null;
   /** Modo de habilidade ativo (null = modo tático). */
   aiming: Aiming | null = null;
 
@@ -134,6 +142,7 @@ export class TacticalInteraction {
       if (e.button === 0) this.click(e.offsetX, e.offsetY);
       // Clique direito sem arrastar (arrastar = pan da câmera): cancela a mira.
       else if (this.aiming) this.cancelAiming();
+      else this.clearSelection();
     });
     scene.onBeforeRenderObservable.add(() => this.updateHover());
 
@@ -329,7 +338,24 @@ export class TacticalInteraction {
     return e?.pos ?? null;
   }
 
+  private floorCellUnderPointer(): Coord | null {
+    const cam = this.o.scene.activeCamera;
+    if (!this.pointer || !cam) return null;
+    const ray = this.o.scene.createPickingRay(this.pointer.x, this.pointer.y, IDENTITY, cam);
+    if (Math.abs(ray.direction.y) < 1e-4) return null;
+    const map = this.state.map;
+    for (let floor = this.o.arena.floorView.viewedFloor; floor >= 0; floor--) {
+      const t = (floor * FLOOR_HEIGHT - ray.origin.y) / ray.direction.y;
+      if (t <= 0) continue;
+      const p = ray.origin.add(ray.direction.scale(t));
+      const c = worldToCell({ x: p.x, y: p.y, z: p.z }, map, floor);
+      if (c && getCell(map, c)?.terrain === 'ground') return c;
+    }
+    return null;
+  }
+
   private updateHover(): void {
+    this.pointerFloorCell = this.o.match.busy ? null : this.floorCellUnderPointer();
     const pick = this.pointer ? pickAt(this.o.scene, this.state.map, this.pointer.x, this.pointer.y) : null;
     this.hoverPick = pick;
     this.hoverCell = this.o.match.busy ? null : this.cellOf(pick);
@@ -398,7 +424,10 @@ export class TacticalInteraction {
     if (!cell) return;
     const actorId = this.actorId;
     const reachable = actorId ? this.reach?.get(coordKey(cell)) : undefined;
-    this.inspected = pick.kind === 'entity' ? { kind: 'object', id: pick.entityId } : { kind: 'cell', cell };
+    // Clique no chão de uma célula com objeto (ex.: a porta esmaecida pela oclusão deixa o raio
+    // passar até o piso): inspeciona o objeto, para as ações sobre ele continuarem à mão.
+    const objectHere = pick.kind === 'cell' ? Object.values(this.state.objects).find((o) => o.state !== 'destroyed' && sameCoord(o.pos, cell)) : undefined;
+    this.inspected = pick.kind === 'entity' ? { kind: 'object', id: pick.entityId } : objectHere ? { kind: 'object', id: objectHere.id } : { kind: 'cell', cell };
     if (actorId && reachable && reachable.cost > 0) {
       void this.move(actorId, cell);
       return;

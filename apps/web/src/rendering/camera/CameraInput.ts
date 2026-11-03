@@ -39,6 +39,14 @@ export class CameraInput {
   private readonly held = new Set<string>();
   private drag: { x: number; y: number; pointerId: number } | null = null;
   private readonly disposers: Array<() => void> = [];
+  /** Desligado (ex.: tela de opções aberta): ignora teclado, scroll e arrasto. */
+  enabled = true;
+  /** Multiplicador do pan (teclado/arrasto) e do passo do zoom (opções, 0,5–2). */
+  sensitivity = 1;
+  /** Arrastar move a câmera no sentido do mouse (padrão: "agarra" o chão). */
+  invertDrag = false;
+  /** Scroll para cima afasta (padrão: aproxima). */
+  invertZoom = false;
 
   constructor(
     private readonly controller: CameraController,
@@ -66,7 +74,7 @@ export class CameraInput {
   }
 
   private onKeyDown(e: KeyboardEvent): void {
-    if (this.isTyping(e) || e.ctrlKey || e.metaKey || e.altKey) return;
+    if (!this.enabled || this.isTyping(e) || e.ctrlKey || e.metaKey || e.altKey) return;
     if (PAN_KEYS[e.code]) {
       this.held.add(e.code);
       this.actions.onManualInput?.();
@@ -93,13 +101,14 @@ export class CameraInput {
 
   private onWheel(e: WheelEvent): void {
     e.preventDefault();
-    const notches = Math.max(-3, Math.min(3, e.deltaY / 100));
+    if (!this.enabled) return;
+    const notches = Math.max(-3, Math.min(3, e.deltaY / 100)) * (this.invertZoom ? -1 : 1);
     this.actions.onManualInput?.();
-    this.controller.zoom(Math.pow(WHEEL_ZOOM_STEP, notches));
+    this.controller.zoom(Math.pow(WHEEL_ZOOM_STEP, notches * this.sensitivity));
   }
 
   private onPointerDown(e: PointerEvent): void {
-    if (e.button !== 1 && e.button !== 2) return;
+    if (!this.enabled || (e.button !== 1 && e.button !== 2)) return;
     e.preventDefault();
     this.drag = { x: e.clientX, y: e.clientY, pointerId: e.pointerId };
     this.canvas.setPointerCapture(e.pointerId);
@@ -113,7 +122,7 @@ export class CameraInput {
     this.drag.y = e.clientY;
     // Metros por pixel na distância atual (aproximação suficiente para o pan "agarrar" o chão).
     const cam = this.controller.camera;
-    const mpp = (2 * cam.radius * Math.tan(cam.fov / 2)) / Math.max(1, this.canvas.clientHeight);
+    const mpp = ((2 * cam.radius * Math.tan(cam.fov / 2)) / Math.max(1, this.canvas.clientHeight)) * this.sensitivity * (this.invertDrag ? -1 : 1);
     this.actions.onManualInput?.();
     this.controller.pan(-dx * mpp, dy * mpp * Math.SQRT2);
   }
@@ -137,8 +146,12 @@ export class CameraInput {
       }
     }
     if (rx === 0 && fz === 0) return;
+    if (!this.enabled) {
+      this.held.clear();
+      return;
+    }
     const len = Math.hypot(rx, fz);
-    const speed = KEY_PAN_SPEED * this.controller.radius * dt;
+    const speed = KEY_PAN_SPEED * this.sensitivity * this.controller.radius * dt;
     this.controller.pan((rx / len) * speed, (fz / len) * speed);
   }
 

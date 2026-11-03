@@ -91,7 +91,7 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #141517; col
 .hud-initiative .row { display: flex; justify-content: space-between; gap: 16px; padding: 1px 0; }
 .hud-initiative .sub, .end-box .sub { color: #868e96; font-size: 11px; margin-top: 4px; }
 .d20-chip { display: inline-block; min-width: 26px; text-align: center; font: 700 12px ui-monospace, monospace; color: #141517; background: #ffd43b; border-radius: 4px; padding: 0 5px; }
-.hud-end { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.45); pointer-events: auto; }
+.hud-end { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.45); pointer-events: auto; z-index: 15; }
 .hud-end[hidden] { display: none; }
 .hud-end .end-box { position: static; min-width: 300px; padding: 16px 20px; text-align: left; }
 .hud-end .end-title { font-size: 22px; font-weight: 700; margin-bottom: 2px; }
@@ -142,3 +142,35 @@ html, body { margin: 0; height: 100%; overflow: hidden; background: #141517; col
 
 /* Etapa 5: rótulos de algo num andar fantasma (mesma opacidade dos personagens fantasmas, GHOST_ENTITY_VISIBILITY) */
 .world-label.ghost { filter: opacity(0.35); }
+
+/* Etapa 6: tela de opções e resultado da partida */
+.hud-options { position: absolute; inset: 0; display: flex; align-items: center; justify-content: center; background: rgba(0, 0, 0, 0.5); pointer-events: auto; z-index: 20; }
+.hud-options[hidden] { display: none; }
+.hud-options .options-box { position: static; width: 420px; padding: 16px 20px; }
+.hud-options .opt-title { font-size: 18px; font-weight: 700; color: #ffd43b; margin-bottom: 10px; }
+.hud-options .opt-row { margin-bottom: 12px; }
+.hud-options .opt-label { color: #ced4da; font-size: 12px; margin-bottom: 4px; display: flex; justify-content: space-between; }
+.hud-options .opt-hint { color: #868e96; font-size: 11px; margin-top: 4px; }
+.opt-seg { display: flex; border: 1px solid #3d4047; border-radius: 5px; overflow: hidden; }
+.opt-seg button { flex: 1; font: 500 13px system-ui, sans-serif; color: #dee2e6; background: #25262b; border: 0; border-right: 1px solid #3d4047; padding: 7px 8px; cursor: pointer; }
+.opt-seg button:last-child { border-right: 0; }
+.opt-seg button:hover { background: #343a40; }
+.opt-seg button.on { background: #1c7ed6; color: #fff; font-weight: 600; }
+.hud-options input[type='range'] { width: 100%; accent-color: #1c7ed6; }
+.opt-checks { display: flex; flex-direction: column; gap: 4px; }
+.opt-check { display: flex; align-items: center; gap: 8px; font: 13px system-ui, sans-serif; color: #dee2e6; background: none; border: 0; padding: 2px 0; cursor: pointer; text-align: left; }
+.opt-check .box { width: 16px; height: 16px; border: 1px solid #5c5f66; border-radius: 3px; display: inline-flex; align-items: center; justify-content: center; font-size: 12px; color: #fff; }
+.opt-check.on .box { background: #1c7ed6; border-color: #1c7ed6; }
+.opt-actions, .end-actions { display: flex; gap: 6px; margin-top: 14px; }
+.opt-actions .hud-button, .end-actions .hud-button { flex: 1; margin-top: 0 !important; width: auto !important; padding: 8px 6px; }
+.hud-button.opt-secondary { background: #343a40; color: #dee2e6; }
+.hud-button.opt-secondary:hover { background: #495057; }
+.hud-button.hud-result-btn[hidden] { display: none; }
+.hud-end .end-box { min-width: 520px; }
+.hud-end .end-kicker { color: #868e96; font-size: 11px; text-transform: uppercase; letter-spacing: 0.08em; }
+.end-table { width: 100%; border-collapse: collapse; margin-top: 12px; font-size: 12px; }
+.end-table th { color: #868e96; font-weight: 500; text-align: right; padding: 3px 6px; border-bottom: 1px solid #2c2e33; }
+.end-table td { text-align: right; padding: 4px 6px; border-bottom: 1px solid #25262b; font-variant-numeric: tabular-nums; }
+.end-table th:first-child, .end-table td:first-child { text-align: left; }
+.end-table tr.winner td:first-child::before { content: '★ '; color: #ffd43b; }
+.end-table .dead { color: #ff8787; }

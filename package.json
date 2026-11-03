@@ -17,7 +17,8 @@
     "icons": "tsx tools/icons/resize.ts",
     "lab": "npm run dev -w @bardurinho/combat-debug-lab",
     "web": "npm run dev -w @bardurinho/web",
-    "optimize-models": "tsx tools/models/optimize.ts"
+    "optimize-models": "tsx tools/models/optimize.ts",
+    "e2e:partida": "node tools/e2e/partida-ui.mjs"
   },
   "devDependencies": {
     "@gltf-transform/cli": "^4.5.1",

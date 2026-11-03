@@ -33,6 +33,7 @@ export class MatchController {
   private current: GameState;
   private shown: GameState;
   private events: readonly GameEvent[] = [];
+  private readonly log: GameEvent[] = [];
   private playing = false;
   private readonly listeners = new Set<(change: MatchChange) => void>();
   presenter: MatchPresenter | null = null;
@@ -63,6 +64,11 @@ export class MatchController {
     return this.events;
   }
 
+  /** Todos os eventos aceitos desde o início (resumo da tela de resultado). */
+  get history(): readonly GameEvent[] {
+    return this.log;
+  }
+
   /** Animação em andamento: comandos novos são ignorados. */
   get busy(): boolean {
     return this.playing;
@@ -89,6 +95,7 @@ export class MatchController {
     }
     this.current = r.state;
     this.events = r.events;
+    this.log.push(...r.events);
     this.playing = true;
     try {
       await this.presenter?.play(r.events, before, r.state);

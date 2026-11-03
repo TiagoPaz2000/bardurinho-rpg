@@ -1,12 +1,13 @@
 # Fase 2 — Arena visual 3D mínima
 
-Objetivo (seção 15 do [plano](plano_mvp_rpg_tatico.md)): conectar o core validado na Fase 1 a um cliente Babylon.js. **Critério de aprovação:** uma partida completa executada localmente no cliente 3D, controlando os dois lados.
+Objetivo (seção 15 do [plano](plano_mvp_rpg_tatico.md)): conectar o core validado na Fase 1 a um cliente Babylon.js. **Critério de aprovação:** uma partida completa executada localmente no cliente 3D, controlando os dois lados — **atendido na etapa 6** (ver "Partida completa e opções").
 
 ## Como rodar
 
 ```bash
 npm install
 npm run web        # cliente 3D em http://127.0.0.1:5173
+npm run e2e:partida   # (com o cliente rodando) partida completa por entrada real + capturas da etapa 6
 ```
 
 O cliente fica em `apps/web` (`@bardurinho/web`, Vite + TypeScript + `@babylonjs/core` / `@babylonjs/loaders`). A pasta `assets/` da raiz é servida na raiz do site (`/models/...`), como no Combat Debug Lab. O decodificador meshopt dos GLBs é servido localmente em `/vendor/meshopt_decoder.js` (copiado de `node_modules/meshoptimizer` pelo `vite.config.ts`), sem CDN.
@@ -20,6 +21,9 @@ apps/web/src/
   screens/hud.ts             HUD HTML (vez e recursos, seleção + ações sobre o alvo, encerrar turno,
                              avisos, iniciativa, aviso do modo de habilidade, fim de partida, ajuda)
   screens/actionBar.ts       barra de ações do personagem da vez (listUnitActions), atalhos 1–9, tooltip
+  screens/optionsMenu.ts     tela de opções (Esc / botão): câmera automática, ritmo, sensibilidade, inverter, tremor
+  screens/settings.ts        preferências do cliente guardadas no navegador (localStorage)
+  game/matchSummary.ts       resumo da partida para a tela de resultado (só a partir dos eventos aceitos)
   game/MatchController.ts    estado oficial da partida; aplica comandos pelo core (applyCommand)
   game/TacticalInteraction.ts modo tático (cursor, seleção, MOVE por clique) e modo de habilidade (mira)
   rendering/picking.ts       raycast da tela → entidade ou célula lógica (x, y, floor)
@@ -70,7 +74,8 @@ O `MatchController` guarda o `GameState` oficial e só o altera via `applyComman
 | Clique esquerdo numa célula/objeto | Mostra no painel; se o personagem selecionado é o da vez e a célula está ao alcance, envia `MOVE` |
 | Cursor sobre célula alcançável | Prévia do caminho (azul) e custo total em PM |
 | Enter / Espaço / botão "Encerrar turno" | `END_TURN` do personagem da vez; a câmera foca o próximo |
-| Esc | Cancela a mira; sem mira, limpa a seleção |
+| Esc | Cancela a mira; sem mira, abre/fecha a tela de opções (etapa 6) |
+| Clique direito sem arrastar | Cancela a mira; sem mira, limpa a seleção (etapa 6; antes era o Esc) |
 
 **Picking (14.5).** `rendering/picking.ts` lança um raio da câmera e só considera malhas selecionáveis e visíveis com metadados de terreno (`{ terrain, floor }`, em `terrain.ts`) ou de entidade (`metadata.entityId`, procurado subindo pelos pais). Destaques, superfícies, grade e o disco da equipe são ignorados. Estruturas acima do andar visualizado são fantasmas sem picking (FloorView), então com o térreo visualizado o raio atravessa as plataformas. A célula vem de `worldToCell` no ponto atingido recuado 1 cm para dentro da malha; o andar vem dos metadados da malha (pisos/lajes são mesclados por andar) — nas paredes, pela altura (pilares sob as lajes). Escadas pertencem à célula de baixo.
 
@@ -128,7 +133,52 @@ Detalhes, tabela evento → efeito e custos em [vfx.md](vfx.md). Resumo:
 
 **Erro no d20.** Antes de animar `ATTACK_PERFORMED` / `ABILITY_USED` / `ITEM_USED`, a reprodução olha os eventos seguintes até a próxima ação (`actionHint`); se todas as jogadas de ataque erraram, o projétil desvia ~1,5 m para o lado do alvo, segue ~4 m além e some (capturas 07–09); golpe corpo a corpo não mostra o corte no alvo; o alvo faz a animação `dodge` (passo lateral).
 
-**Fim de partida.** `MATCH_ENDED` → tela com vitória/empate, motivo, PV finais e "Nova partida" (recarrega com uma semente nova).
+**Fim de partida.** `MATCH_ENDED` → tela com vitória/empate, motivo, PV finais e "Nova partida" (recarrega com uma semente nova). Etapa 6: resumo, "Reiniciar" e "Ver a arena" (abaixo).
+
+## Partida completa e opções (etapa 6)
+
+**Critério de aprovação da fase.** `tools/e2e/partida-ui.mjs` (`npm run e2e:partida`, com o cliente rodando) abre o cliente num Chrome headless e joga uma partida inteira do Pátio das Ruínas (Guerreiro A × Mago B, `?seed=7`) **só com entrada real**: cliques do mouse nas células do canvas, nas cartas da barra, no painel do alvo e nos botões; atalhos 1–9, Enter, Esc; arrasto com o botão do meio para trazer a célula à tela. O `window.__arena` é só **lido** (estado, células alcançáveis, ponto da tela de uma célula) para o roteiro decidir a jogada; antes de cada clique ele confere que o picking acha a célula pretendida. Única ajuda de depuração: `__pace.speed = 3` para encurtar as animações (o ritmo "Rápido" é escolhido na própria tela de opções). Execução registrada (seed 7): 9 rodadas, 18 turnos, 49 comandos, vitória da equipe B por eliminação, **nenhum erro/aviso no console**, ~85 s. O roteiro sai com erro se algum item obrigatório faltar ou se houver erro no console.
+
+| Momento | Como (entrada) | Captura |
+|---|---|---|
+| Opções: câmera automática Reduzida → Alta, ritmo Rápido, tremor liga/desliga; recarregar e conferir que persistiu | Esc, cliques nos botões | 01 |
+| Mover (todos os turnos) | clique numa célula verde | — |
+| Acender o óleo: Chama concentrada em (11,11) → fogo | atalho da carta + clique na célula | 02, 03 |
+| Detonar o barril (10,10) com a Varinha arcana → explosão | clique na carta + clique no barril | 04a/b |
+| Destruir obstáculo: Espada no caixote (6,3) | atalho + clique | 05 |
+| Linha de visão: mira da Chama, cursor numa célula atrás do muro → "Sem linha de visão"; Esc cancela a mira (e não abre as opções) | atalho, mouse, Esc | 06 |
+| Barreira arcana (sem alvo) | atalho | — |
+| Subir a escada (0,3) → (0,4, andar 1) e descer | clique na plataforma / no térreo | 07, 08 |
+| Célula logo atrás da porta (2,6), câmera a 0° | cursor: a porta esmaece e a célula fica clicável | 09 |
+| Abrir a porta (2,7) | clique na porta → botão "Abrir porta" do painel | 10 |
+| Investida, Espada, Empurrão (Guerreiro); Chama, Raio de geada, Varinha (Mago) no adversário | atalhos/cartas + clique | 11 |
+| Encerrar turno | Enter e botão "Encerrar turno", alternados | — |
+| Vitória → resultado; "Ver a arena" → "Resultado da partida" → "Reiniciar" (mesma semente, rodada 1) | cliques | 12, 13, 14 |
+
+Capturas: [`screenshots/fase-02/passo-6/`](screenshots/fase-02/passo-6/). O roteiro é adaptativo (vai para a célula alcançável mais próxima do objetivo, ataca quando o alvo é válido, gira a câmera com E se a célula estiver encoberta), então outras sementes também devem chegar ao fim, mas só a 7 foi registrada.
+
+**Tela de resultado.** Vencedor (ou empate) e motivo, rodadas, turnos, comandos e uma tabela por personagem: estado final, dano causado em personagens (pela `cause.sourceId` do evento — inclui explosões/fogo que ele disparou), dano recebido, acertos/jogadas de d20, cura e objetos destruídos (`game/matchSummary.ts`, só eventos aceitos, guardados em `MatchController.history`; teste em `tests/unit/match-summary.test.ts`). Botões: **Jogar novamente** (semente nova), **Reiniciar** (mesma semente) e **Ver a arena** (fecha; o botão "Resultado da partida" acima de "Encerrar turno" reabre). Reiniciar/jogar novamente recarregam a página com `?seed=` (o jeito mais simples e garantido de reconstruir cena e estado do zero; mantém `?units=`).
+
+**Tela de opções** (Esc sem mira ativa, ou botão "Opções"; Esc, "Voltar ao jogo" ou clique fora fecham). Enquanto aberta, a partida não recebe teclas, cliques, scroll nem arrasto, e a mira é cancelada.
+
+| Opção | Efeito |
+|---|---|
+| Câmera automática: Alta / Reduzida / Desativada | `CameraEventQueue.preference` (`high` / `reduced` / `off`, regras da etapa 5); Desativada também desliga o tremor |
+| Ritmo das animações: Normal / Rápido | o mesmo da tecla T e do botão do HUD (`bardurinho.pace`) |
+| Sensibilidade da câmera 0,5×–2× | multiplica o pan por teclado/arrasto e o passo do zoom |
+| Inverter arrasto da câmera | arrastar move a câmera no sentido do mouse em vez de "agarrar" o chão |
+| Inverter zoom (scroll) | scroll para cima afasta |
+| Tremor da câmera nas explosões | liga/desliga o `camera.shake` |
+| Reiniciar partida / Nova partida | mesma semente / semente nova |
+
+Guardadas em `localStorage` (`bardurinho.settings`, validadas por `normalizeSettings`; o ritmo continua em `bardurinho.pace`).
+
+**Correções descobertas pela partida roteirizada.**
+
+- *Célula logo atrás de uma porta não era selecionável.* Com a câmera a 0°, a porta (2,7) cobre a célula (2,6) na tela; o raio do cursor batia na porta, e a oclusão só esmaecia o que cobria a célula *já* sob o cursor (ovo e galinha). Agora o cursor também calcula a célula de chão sob ele ignorando estruturas (raio × plano do andar visualizado e dos de baixo, `TacticalInteraction.pointerFloorCell`), e ela entra nos alvos da oclusão: o que estiver na frente esmaece (e deixa de ser selecionável), e a célula atrás fica clicável (captura 09). Vale também para muros; a lacuna da etapa 5 "passar o cursor logo acima do muro pode esmaecê-lo" passa a ser o comportamento esperado.
+- Consequência: com a porta esmaecida o clique chega ao piso da célula da porta — clique no piso de uma célula com objeto agora inspeciona o objeto (painel com "Abrir/Fechar porta", ataques…).
+- A carta "Mover" volta a selecionar o personagem da vez: depois de inspecionar a porta ou o adversário, os cliques em células voltam a mover.
+- Rótulos do mundo (barras de PV) apareciam por cima da tela de resultado; agora ela fica acima.
 
 ## Controles da câmera
 
@@ -141,6 +191,7 @@ Detalhes, tabela evento → efeito e custos em [vfx.md](vfx.md). Resumo:
 | F | Focar o personagem ativo |
 | PageUp / PageDown | Andar escolhido (térreo / plataformas); o visualizado sobe junto quando o personagem da vez está acima — as teclas 1–9 são da barra de ações |
 | H | Mostrar/ocultar a tabela de controles |
+| Esc / botão "Opções" | Tela de opções (sem mira ativa) |
 | T | Ritmo das animações: normal / rápido |
 | G | Grade de debug |
 | Home | Visão geral da arena |
@@ -221,10 +272,22 @@ Detalhes, tabela evento → efeito e custos em [vfx.md](vfx.md). Resumo:
 - [x] `CameraEventQueue`: duração/prioridade com tomada adiada, abertura do enquadramento na explosão, retorno com zoom restaurado, `reduced`/`off`/`essential`, interrupção que para a câmera onde está — testes em `tests/unit/camera.test.ts`
 - [x] `?units=` com andar e consumíveis (depuração das capturas de poção e frasco)
 - [x] Capturas: oclusão a 0° (antes/depois, mira), andar fantasma (personagem + fogo), escada, projétil errando, poção de vida, frasco de óleo em arco, porta abrindo — [`screenshots/fase-02/passo-5/`](screenshots/fase-02/passo-5/)
-- [ ] Tela de opções para a preferência de câmera automática (a fila já aceita `high`/`reduced`/`off`; etapa 6)
+- [x] Tela de opções para a preferência de câmera automática (etapa 6)
 - Lacunas conhecidas: a oclusão é translucidez (20 %), não recorte — a estrutura esmaecida ainda projeta sombra; passar o cursor logo acima do muro pode esmaecê-lo (o centro da célula sob o cursor está atrás dele); barris e caixotes (< 1,3 m) nunca esmaecem; o erro é decidido por ação (todas as jogadas erraram) — numa área com acertos e erros mistos o projétil vai ao alvo; o desvio do projétil não testa paredes (pode atravessar o muro ao passar direto); o fogo no andar fantasma da captura 05 foi criado só na cena (`stateFx.setSurface`, sem regra) para conferir a emissão; o foco no início da partida/turno não passa pela fila (é direto, por isso vale mesmo com `off`).
+
+### Etapa 6 — Partida completa, resultado e opções
+
+- [x] **Critério de aprovação da Fase 2:** partida completa no cliente 3D, controlando os dois lados até a vitória, só por entrada real (`tools/e2e/partida-ui.mjs`, seed 7: 9 rodadas, vitória da equipe B, sem erros no console) — mover, subir/descer escada, abrir porta, habilidades das duas classes, acender óleo, detonar barril, destruir caixote, linha de visão, fim com tela de resultado e reiniciar
+- [x] Tela de resultado: vencedor, motivo, rodadas/turnos/comandos, tabela por personagem (dano causado/recebido, acertos, cura, objetos); Jogar novamente / Reiniciar / Ver a arena
+- [x] Tela de opções (Esc / botão): câmera automática Alta/Reduzida/Desativada, ritmo, sensibilidade, inverter arrasto/zoom, tremor; guardadas no navegador; partida bloqueada enquanto aberta
+- [x] Cursor sobre o chão atrás de porta/muro esmaece o oclusor e a célula fica clicável; clique no piso de célula com objeto inspeciona o objeto; "Mover" reseleciona o personagem da vez; resultado acima dos rótulos
+- [x] Testes: `tests/unit/match-summary.test.ts` (resumo e normalização das preferências)
+- [x] Capturas: [`screenshots/fase-02/passo-6/`](screenshots/fase-02/passo-6/)
+- Decisões: Esc sem mira abre as opções (limpar a seleção passou para o clique direito); reiniciar = recarregar a página com `?seed=` (mesma ou nova); a sensibilidade vale para pan e zoom (a rotação é em passos de 90°); sem tela de título/menu inicial — a partida começa ao abrir a página.
+- Lacunas conhecidas: a partida registrada usa uma semente (7) e o duelo 1 × 1 do cenário do mapa — só Guerreiro e Mago jogaram uma partida inteira (Ladino e Druida foram vistos nas etapas 3–5 via `?units=`); consumíveis, baú, alavanca/portão, cisterna e altar não entraram na partida roteirizada (cobertos pelos testes do core e pelas capturas das etapas anteriores); a câmera automática jogou em "Alta" (Reduzida/Desativada só foram escolhidas na tela; o comportamento delas é coberto por `tests/unit/camera.test.ts`); o esmaecimento pelo chão sob o cursor também esmaece um muro quando o cursor só passa por cima dele; rótulos de eventos simultâneos podem se sobrepor (ex.: "Barril explodiu" e "destruído", captura 04a); ocultação/névoa por equipe continuam para a Fase 3 (os dois lados no mesmo cliente veem tudo).
 
 ### Próximas etapas
 
-- [x] Etapa 5 — Andares e oclusão da câmera (14.6–14.7): o muro central cobre alvos ao norte com a câmera a 0°; personagens/rótulos em andar fantasma
-- [ ] Etapa 6 — Partida completa controlando os dois lados (critério de aprovação), preferência de câmera automática, tela de opções
+- [x] Etapa 5 — Andares e oclusão da câmera (14.6–14.7)
+- [x] Etapa 6 — Partida completa controlando os dois lados (critério de aprovação), preferência de câmera automática, tela de opções
+- Fase 2 concluída. Próxima: Fase 3 — multiplayer local (servidor autoritativo, visão individual).

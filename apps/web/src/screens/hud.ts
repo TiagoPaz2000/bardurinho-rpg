@@ -19,6 +19,7 @@ import {
   type MapObject,
   type Unit,
 } from '@bardurinho/domain';
+import type { MatchSummary } from '../game/matchSummary.js';
 
 export type Inspected = { kind: 'cell'; cell: Coord } | { kind: 'unit'; id: EntityId } | { kind: 'object'; id: EntityId };
 
@@ -46,8 +47,14 @@ export interface HudActions {
   execute: (command: GameplayCommand) => void;
   /** Ação com alvo escolhida no painel (entra no modo de habilidade). */
   aim: (action: ActionInfo) => void;
-  /** "Nova partida" na tela de fim. */
+  /** "Jogar novamente" na tela de fim (semente nova). */
   newMatch: () => void;
+  /** "Reiniciar" na tela de fim (mesma semente). */
+  restart: () => void;
+  /** Botão "Opções" (mesmo que Esc). */
+  openOptions: () => void;
+  /** Resumo da partida (eventos aceitos) para a tela de resultado. */
+  summary: () => MatchSummary;
   /** Alterna o ritmo da reprodução (normal / rápido). */
   toggleSpeed: () => void;
 }
@@ -73,6 +80,8 @@ export class Hud {
   private readonly selection: HTMLDivElement;
   private readonly endTurnBtn: HTMLButtonElement;
   private readonly speedBtn: HTMLButtonElement;
+  private readonly optionsBtn: HTMLButtonElement;
+  private readonly resultBtn: HTMLButtonElement;
   private readonly toasts: HTMLDivElement;
   private readonly targetBox: HTMLDivElement;
   private help!: HTMLDivElement;
@@ -113,7 +122,14 @@ export class Hud {
     this.endOverlay.className = 'hud-end';
     this.endOverlay.hidden = true;
     this.endOverlay.addEventListener('click', (e) => {
-      if ((e.target as HTMLElement).closest('button[data-new-match]')) this.actions.newMatch();
+      const t = e.target as HTMLElement;
+      if (t.closest('button[data-new-match]')) this.actions.newMatch();
+      else if (t.closest('button[data-restart]')) this.actions.restart();
+      else if (t.closest('button[data-view-arena]')) {
+        // Fecha o resultado para ver a arena; o botão "Resultado" do HUD reabre.
+        this.endOverlay.hidden = true;
+        this.resultBtn.hidden = false;
+      }
     });
     this.modeBanner = document.createElement('div');
     this.modeBanner.className = 'hud-mode';
@@ -138,7 +154,25 @@ export class Hud {
       actions.toggleSpeed();
     });
     this.setFast(false);
-    turnBox.append(this.speedBtn, this.endTurnBtn);
+    this.optionsBtn = document.createElement('button');
+    this.optionsBtn.className = 'hud-button hud-speed hud-options-btn';
+    this.optionsBtn.type = 'button';
+    this.optionsBtn.innerHTML = 'Opções <kbd>Esc</kbd>';
+    this.optionsBtn.addEventListener('click', () => {
+      this.optionsBtn.blur();
+      actions.openOptions();
+    });
+    this.resultBtn = document.createElement('button');
+    this.resultBtn.className = 'hud-button hud-result-btn';
+    this.resultBtn.type = 'button';
+    this.resultBtn.textContent = 'Resultado da partida';
+    this.resultBtn.hidden = true;
+    this.resultBtn.addEventListener('click', () => {
+      this.resultBtn.blur();
+      this.resultBtn.hidden = true;
+      this.endOverlay.hidden = false;
+    });
+    turnBox.append(this.optionsBtn, this.speedBtn, this.resultBtn, this.endTurnBtn);
 
     this.toasts = document.createElement('div');
     this.toasts.className = 'hud-toasts';
@@ -150,7 +184,8 @@ export class Hud {
       <table>
         <tr><td>clique esquerdo</td><td>selecionar / mover / confirmar alvo</td></tr>
         <tr><td><kbd>1</kbd>–<kbd>9</kbd></td><td>ações da barra (alvo: modo de habilidade)</td></tr>
-        <tr><td><kbd>Esc</kbd> / clique direito</td><td>cancelar mira · limpar seleção</td></tr>
+        <tr><td><kbd>Esc</kbd></td><td>cancelar mira · sem mira: opções</td></tr>
+        <tr><td>clique direito</td><td>cancelar mira · limpar seleção</td></tr>
         <tr><td><kbd>Enter</kbd> / <kbd>Espaço</kbd></td><td>encerrar turno</td></tr>
         <tr><td><kbd>W</kbd><kbd>A</kbd><kbd>S</kbd><kbd>D</kbd> / setas</td><td>mover a câmera</td></tr>
         <tr><td><kbd>Q</kbd> <kbd>E</kbd></td><td>girar 90°</td></tr>
@@ -221,16 +256,29 @@ export class Hud {
     };
     const why = String((r as { reason?: string }).reason ?? '');
     const title = r.kind === 'victory' ? `Vitória da equipe <span class="team-${esc(r.winnerTeam)}">${esc(r.winnerTeam)}</span>` : 'Empate';
-    const units = Object.values(state.units)
-      .filter((u) => !u.flags.isDummy)
-      .map((u) => `<div class="row">${this.unitName(u)}<span>${u.alive ? `${u.hp}/${u.maxHp} PV` : 'derrotado'}</span></div>`)
+    const sum = this.actions.summary();
+    const rows = sum.units
+      .map((s) => {
+        const u = state.units[s.unitId]!;
+        const status = s.alive ? `${s.hp}/${s.maxHp} PV` : '<span class="dead">derrotado</span>';
+        const winner = r.kind === 'victory' && s.team === r.winnerTeam ? ' class="winner"' : '';
+        return `<tr${winner}><td>${this.unitName(u)} <span class="sub">(${esc(s.team)})</span></td><td>${status}</td><td>${s.damageDealt}</td><td>${s.damageTaken}</td><td>${s.attacks ? `${s.hits}/${s.attacks}` : '—'}</td><td>${s.healing || '—'}</td><td>${s.objectsDestroyed || '—'}</td></tr>`;
+      })
       .join('');
     this.endOverlay.innerHTML = `
       <div class="hud-panel end-box">
+        <div class="end-kicker">Fim da partida</div>
         <div class="end-title">${title}</div>
-        <div class="sub">${esc(reasons[why] ?? why)} · rodada ${state.turn.round}</div>
-        ${units}
-        <button type="button" class="hud-button" data-new-match>Nova partida</button>
+        <div class="sub">${esc(reasons[why] ?? why)} · ${sum.rounds} ${sum.rounds === 1 ? 'rodada' : 'rodadas'} · ${sum.turns} turnos · ${sum.commands} comandos</div>
+        <table class="end-table">
+          <thead><tr><th>Personagem</th><th>Final</th><th title="Dano em personagens causado por ele (inclui fogo/explosões que disparou)">Causou</th><th>Recebeu</th><th title="Jogadas de ataque (d20) que acertaram">Acertos</th><th>Cura</th><th>Objetos</th></tr></thead>
+          <tbody>${rows}</tbody>
+        </table>
+        <div class="end-actions">
+          <button type="button" class="hud-button" data-new-match>Jogar novamente</button>
+          <button type="button" class="hud-button opt-secondary" data-restart title="Mesma semente dos dados">Reiniciar</button>
+          <button type="button" class="hud-button opt-secondary" data-view-arena>Ver a arena</button>
+        </div>
       </div>`;
     this.endOverlay.hidden = false;
   }
