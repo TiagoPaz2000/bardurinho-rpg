@@ -1,0 +1,13 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "mage-01",
+    "abilityId": "mage.flame",
+    "target": {
+      "kind": "cell",
+      "x": 2,
+      "y": 2,
+      "floor": 0
+    }
+  }
+]

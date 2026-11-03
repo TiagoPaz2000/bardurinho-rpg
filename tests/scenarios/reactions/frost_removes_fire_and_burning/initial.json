@@ -1,0 +1,53 @@
+{
+  "name": "Frio + fogo e Frio + Queimando",
+  "description": "Chama no guerreiro parado no fogo (Queimando). Em seguida o Raio de geada apaga o fogo da célula e remove Queimando; aplica Lentidão.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 5,
+          "y": 3
+        }
+      ],
+      "surface": "fire"
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

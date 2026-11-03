@@ -1,0 +1,18 @@
+[
+  {
+    "type": "DEFEND",
+    "actorId": "warrior-a"
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "warrior-a"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-a"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-b"
+  }
+]

@@ -1,0 +1,29 @@
+{
+  "errors": 1,
+  "units": {
+    "dummy-01": {
+      "hp": 60,
+      "statuses": [
+        "burning"
+      ]
+    },
+    "mage-01": {
+      "focus": 8,
+      "ap": 1
+    }
+  },
+  "damage": [
+    {
+      "raw": 18,
+      "hpAfter": 82
+    },
+    {
+      "raw": 4,
+      "hpAfter": 78
+    },
+    {
+      "raw": 18,
+      "hpAfter": 60
+    }
+  ]
+}

@@ -1,0 +1,16 @@
+{
+  "errors": 0,
+  "units": {
+    "warrior-01": {
+      "mp": 3,
+      "statuses": [
+        "slowed"
+      ]
+    }
+  },
+  "events": [
+    "STATUS_APPLIED",
+    "STATUS_REFRESHED",
+    "TURN_STARTED"
+  ]
+}

@@ -1,0 +1,18 @@
+{
+  "errors": 0,
+  "activeUnitId": "mage-01",
+  "units": {
+    "mage-01": {
+      "shield": 0
+    }
+  },
+  "events": [
+    "SHIELD_GRANTED",
+    "SHIELD_GRANTED",
+    "TURN_STARTED",
+    "TURN_STARTED",
+    "TURN_STARTED",
+    "TURN_STARTED",
+    "SHIELD_EXPIRED"
+  ]
+}

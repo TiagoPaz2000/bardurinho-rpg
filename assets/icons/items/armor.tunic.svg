@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="items_armor_tunic_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><linearGradient id="items_armor_tunic_cloth1" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#B9A0FF"/><stop offset="0.5" stop-color="#6A48D8"/><stop offset="1" stop-color="#2E1C80"/></linearGradient><radialGradient id="items_armor_tunic_gloss2" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="items_armor_tunic_gold3" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.5" stop-color="#F4B43C"/><stop offset="1" stop-color="#B86A16"/></linearGradient><linearGradient id="items_armor_tunic_dark4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#4A3A66"/><stop offset="0.5" stop-color="#1E1430"/><stop offset="1" stop-color="#0A0612"/></linearGradient><linearGradient id="items_armor_tunic_leather5" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#D9A070"/><stop offset="0.5" stop-color="#99582E"/><stop offset="1" stop-color="#5A2E14"/></linearGradient><linearGradient id="items_armor_tunic_gem6" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#F4C2FF"/><stop offset="0.5" stop-color="#A63CD8"/><stop offset="1" stop-color="#4E0E78"/></linearGradient></defs>
+<ellipse cx="128" cy="238" rx="76" ry="9" fill="#1a0e24" opacity="0.28" filter="url(#items_armor_tunic_blur0)"/>
+<path d="M100,38 Q128,64 156,38 L188,50 L226,98 L198,128 L182,114 L194,222 Q128,236 62,222 L74,114 L58,128 L30,98 L68,50 Z" fill="url(#items_armor_tunic_cloth1)" stroke="#1C0E50" stroke-width="5" stroke-linejoin="round"/>
+<path d="M100,38 Q128,64 156,38 L188,50 L226,98 L198,128 L182,114 L194,222 Q128,236 62,222 L74,114 L58,128 L30,98 L68,50 Z" fill="url(#items_armor_tunic_gloss2)" opacity="0.8"/>
+<path d="M98,120 Q92,170 86,214 M158,120 Q164,170 170,214" fill="none" stroke="#1C0E50" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.4"/>
+<path d="M100,38 Q128,64 156,38 L162,44 L128,104 L94,44 Z" fill="url(#items_armor_tunic_gold3)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M100,38 Q128,64 156,38 L162,44 L128,104 L94,44 Z" fill="url(#items_armor_tunic_gloss2)" opacity="0.8"/>
+<path d="M106,46 Q128,64 150,46 L128,88 Z" fill="url(#items_armor_tunic_dark4)" stroke="#05030A" stroke-width="2" stroke-linejoin="round"/>
+<path d="M30,98 L42,86 L66,116 L58,128 Z" fill="url(#items_armor_tunic_gold3)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M30,98 L42,86 L66,116 L58,128 Z" fill="url(#items_armor_tunic_gloss2)" opacity="0.8"/>
+<path d="M226,98 L214,86 L190,116 L198,128 Z" fill="url(#items_armor_tunic_gold3)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M226,98 L214,86 L190,116 L198,128 Z" fill="url(#items_armor_tunic_gloss2)" opacity="0.8"/>
+<path d="M64,204 Q128,218 192,204 L194,222 Q128,236 62,222 Z" fill="url(#items_armor_tunic_gold3)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M64,204 Q128,218 192,204 L194,222 Q128,236 62,222 Z" fill="url(#items_armor_tunic_gloss2)" opacity="0.8"/>
+<path d="M76,142 Q128,154 180,142 L182,162 Q128,174 74,162 Z" fill="url(#items_armor_tunic_leather5)" stroke="#3A1A08" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M76,142 Q128,154 180,142 L182,162 Q128,174 74,162 Z" fill="url(#items_armor_tunic_gloss2)" opacity="0.4"/>
+<path d="M120,142 L136,142 Q142,142 142,148 L142,162 Q142,168 136,168 L120,168 Q114,168 114,162 L114,148 Q114,142 120,142 Z" fill="url(#items_armor_tunic_gold3)" stroke="#6A3A0C" stroke-width="3" stroke-linejoin="round"/>
+<path d="M120,142 L136,142 Q142,142 142,148 L142,162 Q142,168 136,168 L120,168 Q114,168 114,162 L114,148 Q114,142 120,142 Z" fill="url(#items_armor_tunic_gloss2)" opacity="0.8"/>
+<path d="M125,149 L131,149 Q134,149 134,152 L134,158 Q134,161 131,161 L125,161 Q122,161 122,158 L122,152 Q122,149 125,149 Z" fill="url(#items_armor_tunic_gem6)" stroke="#2E0648" stroke-width="2" stroke-linejoin="round"/>
+<path d="M64,62 L65.6,68.4 L72,70 L65.6,71.6 L64,78 L62.4,71.6 L56,70 L62.4,68.4 Z" fill="#E8E0FF" opacity="0.9"/>
+</svg>

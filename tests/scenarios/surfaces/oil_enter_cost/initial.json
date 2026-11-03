@@ -1,0 +1,40 @@
+{
+  "name": "Óleo: entrar custa 2 PM",
+  "description": "Corredor com óleo: andar 3 células passando pelo óleo custa 1 + 2 + 1 = 4 PM. Depois, 2 células com 1 PM restante são recusadas.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "########",
+        "#......#",
+        "########",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 2
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 3,
+          "y": 2
+        }
+      ],
+      "surface": "oil"
+    }
+  ],
+  "order": [
+    "warrior-01"
+  ]
+}

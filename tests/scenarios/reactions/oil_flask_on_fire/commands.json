@@ -1,0 +1,13 @@
+[
+  {
+    "type": "USE_ITEM",
+    "actorId": "mage-01",
+    "itemId": "consumable.oil_flask",
+    "target": {
+      "kind": "cell",
+      "x": 4,
+      "y": 3,
+      "floor": 0
+    }
+  }
+]

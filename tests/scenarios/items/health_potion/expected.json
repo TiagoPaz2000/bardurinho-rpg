@@ -1,0 +1,14 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "hp": 74,
+      "ap": 1
+    }
+  },
+  "events": [
+    "RESOURCE_SPENT",
+    "ITEM_USED",
+    "HEALED"
+  ]
+}

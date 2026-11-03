@@ -1,0 +1,17 @@
+[
+  {
+    "type": "INTERACT",
+    "actorId": "warrior-01",
+    "objectId": "chest-01"
+  },
+  {
+    "type": "USE_ITEM",
+    "actorId": "warrior-01",
+    "itemId": "consumable.health_potion"
+  },
+  {
+    "type": "INTERACT",
+    "actorId": "warrior-01",
+    "objectId": "chest-01"
+  }
+]

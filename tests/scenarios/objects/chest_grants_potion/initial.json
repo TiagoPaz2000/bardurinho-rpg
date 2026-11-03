@@ -1,0 +1,46 @@
+{
+  "name": "Baú: concede uma Poção de vida, uma única vez",
+  "description": "Guerreiro com Poção de Foco abre o baú (1 PA), recebe a Poção de vida e a usa (60 → 84). Segunda abertura: NO_USES_LEFT.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      },
+      "hp": 60,
+      "consumables": [
+        "consumable.focus_potion"
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "id": "chest-01",
+      "defId": "chest",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "warrior-01"
+  ]
+}

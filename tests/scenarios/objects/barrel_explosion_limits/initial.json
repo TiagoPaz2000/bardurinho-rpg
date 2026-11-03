@@ -1,0 +1,84 @@
+{
+  "name": "Barril: explode ao chegar a 0 PV; 20 de fogo em raio 1 limitado por paredes e pelo andar",
+  "description": "Varinha (14) no barril (8 PV) o detona. Atinge o boneco na diagonal livre; não atinge o boneco atrás da quina de paredes nem o boneco no andar de cima.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "....#...",
+        "...#....",
+        "........",
+        "........",
+        "........"
+      ],
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 0,
+        "y": 3,
+        "floor": 0
+      }
+    },
+    {
+      "id": "dummy-hit",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 2,
+        "y": 2,
+        "floor": 0
+      }
+    },
+    {
+      "id": "dummy-behind-walls",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 4,
+        "y": 4,
+        "floor": 0
+      }
+    },
+    {
+      "id": "dummy-upstairs",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 3,
+        "y": 3,
+        "floor": 1
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "barrel-01",
+      "defId": "barrel",
+      "pos": {
+        "x": 3,
+        "y": 3,
+        "floor": 0
+      }
+    }
+  ],
+  "order": [
+    "mage-01"
+  ]
+}

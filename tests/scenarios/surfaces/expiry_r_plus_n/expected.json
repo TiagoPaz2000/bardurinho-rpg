@@ -1,0 +1,27 @@
+{
+  "errors": 0,
+  "round": 4,
+  "cells": [
+    {
+      "x": 4,
+      "y": 4,
+      "surface": null
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "surface": null
+    }
+  ],
+  "events": [
+    "SURFACE_CREATED",
+    "ROUND_STARTED",
+    "ROUND_STARTED",
+    "ROUND_STARTED",
+    "SURFACE_EXPIRED",
+    "SURFACE_EXPIRED",
+    "SURFACE_EXPIRED",
+    "SURFACE_EXPIRED",
+    "SURFACE_EXPIRED"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "Defender: barreira 6 até o início do próximo turno próprio, uma vez por turno",
+  "description": "Segundo DEFEND no mesmo turno é recusado (MAX_USES_REACHED). A barreira de 6 expira no início do turno próprio seguinte.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-a",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "id": "warrior-b",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 6,
+        "y": 6
+      }
+    }
+  ],
+  "order": [
+    "warrior-a",
+    "warrior-b"
+  ]
+}

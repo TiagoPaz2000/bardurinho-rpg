@@ -1,0 +1,42 @@
+{
+  "name": "Oculto: não pode ser mirado diretamente; dano às cegas na célula encerra a Ocultação",
+  "description": "Ladino oculto em área escura. O mago não pode mirá-lo (TARGET_NOT_VISIBLE), mas um disparo da varinha na célula acerta (14 arcano) e o estado hidden termina.",
+  "map": {
+    "floors": [
+      [
+        "dd......",
+        "dd......",
+        "dd......",
+        "dd......",
+        "dd......",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "rogue-01",
+    "mage-01"
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "Barreira arcana: 18 pontos que ainda protegem no turno inimigo após o 1º turno próprio seguinte",
+  "description": "mage.arcane_barrier no turno próprio 1 dura até o início do turno próprio 3. No turno do guerreiro após o turno próprio 2 do mago, a espada (18) é toda absorvida.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

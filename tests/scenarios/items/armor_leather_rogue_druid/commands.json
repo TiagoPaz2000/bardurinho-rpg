@@ -1,0 +1,20 @@
+[
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "warrior-01",
+    "weaponId": "weapon.iron_sword",
+    "target": {
+      "kind": "entity",
+      "id": "rogue-01"
+    }
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "warrior-01",
+    "weaponId": "weapon.iron_sword",
+    "target": {
+      "kind": "entity",
+      "id": "druid-01"
+    }
+  }
+]

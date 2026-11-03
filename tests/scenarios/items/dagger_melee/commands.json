@@ -1,0 +1,22 @@
+[
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "rogue-01",
+    "weaponId": "weapon.dagger",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "rogue-01",
+    "weaponId": "weapon.dagger",
+    "target": {
+      "kind": "cell",
+      "x": 6,
+      "y": 3,
+      "floor": 0
+    }
+  }
+]

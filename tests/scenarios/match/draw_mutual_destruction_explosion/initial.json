@@ -1,0 +1,54 @@
+{
+  "name": "Morte simultânea na explosão: empate",
+  "description": "O mago detona o barril ao lado; a explosão (20 de fogo) derruba os dois personagens, resultando em empate.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-a",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 2,
+        "y": 3
+      },
+      "hp": 10
+    },
+    {
+      "id": "warrior-b",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3
+      },
+      "hp": 10
+    }
+  ],
+  "objects": [
+    {
+      "id": "barrel-01",
+      "defId": "barrel",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "mage-a",
+    "warrior-b"
+  ]
+}

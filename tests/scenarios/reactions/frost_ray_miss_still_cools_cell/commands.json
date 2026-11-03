@@ -1,0 +1,26 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "mage-01",
+    "abilityId": "mage.flame",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  },
+  {
+    "type": "DEBUG_SET_RNG",
+    "forced": [
+      1
+    ]
+  },
+  {
+    "type": "USE_ABILITY",
+    "actorId": "mage-01",
+    "abilityId": "mage.frost_ray",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  }
+]

@@ -1,0 +1,29 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "mage-01",
+    "abilityId": "mage.flame",
+    "target": {
+      "kind": "cell",
+      "x": 3,
+      "y": 1,
+      "floor": 0
+    }
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "mage-01"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-01"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "mage-01"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-01"
+  }
+]

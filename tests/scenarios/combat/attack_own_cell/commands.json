@@ -1,0 +1,13 @@
+[
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "warrior-01",
+    "weaponId": "weapon.iron_sword",
+    "target": {
+      "kind": "cell",
+      "x": 3,
+      "y": 3,
+      "floor": 0
+    }
+  }
+]

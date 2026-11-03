@@ -1,0 +1,15 @@
+{
+  "errors": 0,
+  "units": {
+    "druid-01": {
+      "hp": 84,
+      "focus": 6,
+      "ap": 1
+    }
+  },
+  "events": [
+    "COOLDOWN_STARTED",
+    "ABILITY_USED",
+    "HEALED"
+  ]
+}

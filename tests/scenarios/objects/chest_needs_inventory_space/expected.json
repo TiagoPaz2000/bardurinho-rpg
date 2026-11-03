@@ -1,0 +1,19 @@
+{
+  "errors": 2,
+  "units": {
+    "warrior-a": {
+      "ap": 2
+    },
+    "warrior-b": {
+      "ap": 2
+    }
+  },
+  "objects": {
+    "chest-01": {
+      "state": "normal"
+    }
+  },
+  "forbiddenEvents": [
+    "CONSUMABLE_GRANTED"
+  ]
+}

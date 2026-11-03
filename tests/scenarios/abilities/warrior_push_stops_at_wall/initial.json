@@ -1,0 +1,42 @@
+{
+  "name": "Empurrão não atravessa paredes",
+  "description": "warrior.push com parede a duas células do alvo: o alvo anda uma célula e para (MOVE_BLOCKED).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "......#.",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    },
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "warrior-01",
+    "rogue-01"
+  ]
+}

@@ -96,5 +96,10 @@ export function checkInteract(state: GameState, catalog: Catalog, actor: Unit, o
   if (interaction.kind === 'toggleDoor' && obj.state === 'open' && unitAt(state, obj.pos)) {
     return err('CELL_OCCUPIED', 'Há um personagem na passagem');
   }
+  // Mesma regra da porta para o portão acionado pela alavanca: não fecha sobre um personagem.
+  const linked = interaction.kind === 'toggleLinked' && obj.linkedId ? state.objects[obj.linkedId] : undefined;
+  if (linked && linked.state === 'open' && unitAt(state, linked.pos)) {
+    return err('CELL_OCCUPIED', 'Há um personagem na passagem do portão');
+  }
   return checkCost(actor, INTERACT_COST, options);
 }

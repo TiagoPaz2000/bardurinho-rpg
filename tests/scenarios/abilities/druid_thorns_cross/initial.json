@@ -1,0 +1,41 @@
+{
+  "name": "Espinheiro: cruz de 5 células, exposição inicial de quem está no centro",
+  "description": "druid.thorns cria espinhos na célula central e nas quatro vizinhas por 3 rodadas (expiram no início da rodada 4). O boneco no centro recebe 5 físico ao ser criada a superfície.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "druid-01",
+      "classId": "druid",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 4
+      }
+    },
+    {
+      "id": "dummy-01",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 4,
+        "y": 4
+      }
+    }
+  ],
+  "order": [
+    "druid-01"
+  ]
+}

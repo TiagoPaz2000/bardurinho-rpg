@@ -1,0 +1,22 @@
+{
+  "errors": 0,
+  "units": {
+    "rogue-01": {
+      "statuses": []
+    },
+    "warrior-01": {
+      "pos": {
+        "x": 2,
+        "y": 3
+      },
+      "mp": 2
+    }
+  },
+  "events": [
+    "STATUS_APPLIED",
+    "UNIT_MOVED",
+    "UNIT_MOVED",
+    "UNIT_MOVED",
+    "STATUS_REMOVED"
+  ]
+}

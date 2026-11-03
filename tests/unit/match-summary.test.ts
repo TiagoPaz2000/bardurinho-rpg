@@ -55,6 +55,11 @@ describe('preferências do cliente (tela de opções)', () => {
       invertDrag: false,
       invertZoom: true,
       cameraShake: false,
+      sfxVolume: DEFAULT_SETTINGS.sfxVolume,
     });
+    // Fase 4: volume dos efeitos sonoros (0 = mudo), limitado a 0–1.
+    expect(normalizeSettings({ sfxVolume: 3 }).sfxVolume).toBe(1);
+    expect(normalizeSettings({ sfxVolume: 0 }).sfxVolume).toBe(0);
+    expect(normalizeSettings({ sfxVolume: 'x' }).sfxVolume).toBe(DEFAULT_SETTINGS.sfxVolume);
   });
 });

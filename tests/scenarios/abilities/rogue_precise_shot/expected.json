@@ -1,0 +1,28 @@
+{
+  "errors": 0,
+  "units": {
+    "warrior-01": {
+      "hp": 92
+    },
+    "rogue-01": {
+      "ap": 1,
+      "focus": 5
+    }
+  },
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 22,
+      "damageType": "physical",
+      "mitigation": 4,
+      "hpDamage": 18,
+      "hpAfter": 92
+    }
+  ],
+  "events": [
+    "COOLDOWN_STARTED",
+    "ABILITY_USED",
+    "ATTACK_ROLLED",
+    "DAMAGE_APPLIED"
+  ]
+}

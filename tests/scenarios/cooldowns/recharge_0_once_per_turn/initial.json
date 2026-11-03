@@ -1,0 +1,42 @@
+{
+  "name": "Recarga 0: no máximo uma vez por turno",
+  "description": "mage.flame duas vezes no mesmo turno: a segunda é recusada (MAX_USES_REACHED). No turno próprio seguinte, volta a funcionar.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "dummy-01",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "mage-01",
+    "dummy-01"
+  ]
+}

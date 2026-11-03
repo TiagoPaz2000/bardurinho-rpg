@@ -1,0 +1,19 @@
+{
+  "errors": 1,
+  "units": {
+    "mage-01": {
+      "focus": 6,
+      "ap": 1
+    }
+  },
+  "objects": {
+    "altar-01": {
+      "state": "used"
+    }
+  },
+  "events": [
+    "RESOURCE_SPENT",
+    "RESOURCE_RESTORED",
+    "OBJECT_STATE_CHANGED"
+  ]
+}

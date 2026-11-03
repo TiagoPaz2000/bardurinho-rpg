@@ -1,0 +1,33 @@
+{
+  "errors": 0,
+  "units": {
+    "warrior-01": {
+      "hp": 86,
+      "statuses": [
+        "burning"
+      ]
+    }
+  },
+  "cells": [
+    {
+      "x": 5,
+      "y": 3,
+      "surface": "fire",
+      "expiresAtRound": 4
+    }
+  ],
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 18,
+      "damageType": "fire",
+      "hpAfter": 92
+    },
+    {
+      "targetId": "warrior-01",
+      "raw": 6,
+      "damageType": "fire",
+      "hpAfter": 86
+    }
+  ]
+}

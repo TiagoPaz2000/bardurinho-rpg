@@ -1,0 +1,35 @@
+{
+  "errors": 0,
+  "units": {
+    "mage-b": {
+      "hp": 62,
+      "statuses": [
+        "burning"
+      ]
+    }
+  },
+  "damage": [
+    {
+      "targetId": "mage-b",
+      "raw": 18,
+      "damageType": "fire",
+      "mitigation": 2,
+      "hpDamage": 16,
+      "hpAfter": 64
+    },
+    {
+      "targetId": "mage-b",
+      "raw": 4,
+      "damageType": "fire",
+      "mitigation": 2,
+      "hpDamage": 2,
+      "hpAfter": 62
+    }
+  ],
+  "events": [
+    "STATUS_APPLIED",
+    "TURN_STARTED",
+    "STATUS_TICK",
+    "DAMAGE_APPLIED"
+  ]
+}

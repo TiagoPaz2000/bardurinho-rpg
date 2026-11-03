@@ -1,0 +1,42 @@
+{
+  "name": "Superfície criada na rodada R com duração 3 expira no início de R + 3",
+  "description": "Espinheiro na rodada 1 (3 rodadas): ainda existe nas rodadas 2 e 3 e expira no início da rodada 4.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "druid-01",
+      "classId": "druid",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 4
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 7,
+        "y": 7
+      }
+    }
+  ],
+  "order": [
+    "druid-01",
+    "warrior-01"
+  ]
+}

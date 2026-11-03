@@ -1,0 +1,52 @@
+{
+  "name": "Espinheiro não substitui óleo, fogo nem paredes",
+  "description": "druid.thorns sobre uma cruz com óleo, fogo e parede: essas células ficam como estavam; só as compatíveis recebem espinhos.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "...#....",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "druid-01",
+      "classId": "druid",
+      "team": "A",
+      "pos": {
+        "x": 4,
+        "y": 1
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 4,
+          "y": 3
+        }
+      ],
+      "surface": "oil"
+    },
+    {
+      "cells": [
+        {
+          "x": 5,
+          "y": 4
+        }
+      ],
+      "surface": "fire"
+    }
+  ],
+  "order": [
+    "druid-01"
+  ]
+}

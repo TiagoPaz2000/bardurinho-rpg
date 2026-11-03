@@ -1,0 +1,42 @@
+{
+  "name": "Enraizado vale durante o próximo turno do alvo",
+  "description": "druid.root no guerreiro; no turno dele o estado rooted está ativo e o MOVE é recusado (ROOTED), com os 5 PM intactos.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "druid-01",
+      "classId": "druid",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "druid-01",
+    "warrior-01"
+  ]
+}

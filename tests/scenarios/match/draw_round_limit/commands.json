@@ -1,0 +1,18 @@
+[
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-a"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "rogue-b"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-a"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "rogue-b"
+  }
+]

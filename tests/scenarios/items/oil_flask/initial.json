@@ -1,0 +1,44 @@
+{
+  "name": "Frasco de óleo: cruz de 5 células, sem dano imediato",
+  "description": "consumable.oil_flask a 3 células, sobre um boneco: óleo permanente na cruz; nenhum dano.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      },
+      "consumables": [
+        "consumable.oil_flask"
+      ]
+    },
+    {
+      "id": "dummy-01",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "mage-01"
+  ]
+}

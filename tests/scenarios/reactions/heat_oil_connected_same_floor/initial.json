@@ -1,0 +1,75 @@
+{
+  "name": "Calor + óleo: fogo por 3 rodadas em toda a mancha conectada do mesmo andar",
+  "description": "Chama numa ponta da mancha (3 células em linha). Óleo só na diagonal e óleo no andar de cima não pegam fogo.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ],
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 2,
+        "y": 6,
+        "floor": 0
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 2,
+          "y": 2,
+          "floor": 0
+        },
+        {
+          "x": 3,
+          "y": 2,
+          "floor": 0
+        },
+        {
+          "x": 4,
+          "y": 2,
+          "floor": 0
+        },
+        {
+          "x": 5,
+          "y": 3,
+          "floor": 0
+        },
+        {
+          "x": 3,
+          "y": 2,
+          "floor": 1
+        }
+      ],
+      "surface": "oil"
+    }
+  ],
+  "order": [
+    "mage-01"
+  ]
+}

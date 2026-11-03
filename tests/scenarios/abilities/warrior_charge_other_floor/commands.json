@@ -1,0 +1,11 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "warrior-01",
+    "abilityId": "warrior.charge",
+    "target": {
+      "kind": "entity",
+      "id": "dummy-01"
+    }
+  }
+]

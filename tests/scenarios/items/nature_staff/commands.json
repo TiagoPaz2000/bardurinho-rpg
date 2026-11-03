@@ -1,0 +1,22 @@
+[
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "druid-01",
+    "weaponId": "weapon.nature_staff",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "druid-01",
+    "weaponId": "weapon.nature_staff",
+    "target": {
+      "kind": "cell",
+      "x": 6,
+      "y": 3,
+      "floor": 0
+    }
+  }
+]

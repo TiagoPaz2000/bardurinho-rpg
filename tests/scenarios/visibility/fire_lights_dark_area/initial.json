@@ -1,0 +1,53 @@
+{
+  "name": "Fogo ilumina a área escura (2 células)",
+  "description": "Mesmo cenário, com fogo ao lado do guerreiro: iluminado, ele é detectado a 3 células.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "....dd..",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 5,
+          "y": 3
+        }
+      ],
+      "surface": "fire"
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

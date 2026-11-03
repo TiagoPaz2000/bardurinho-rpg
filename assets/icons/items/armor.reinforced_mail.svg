@@ -1,0 +1,45 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="items_armor_reinforced_mail_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><pattern id="items_armor_reinforced_mail_mail1" width="12" height="10" patternUnits="userSpaceOnUse"><circle cx="6" cy="5" r="4" fill="none" stroke="#5A6472" stroke-width="2"/><circle cx="0" cy="0" r="4" fill="none" stroke="#5A6472" stroke-width="2"/><circle cx="12" cy="0" r="4" fill="none" stroke="#5A6472" stroke-width="2"/><circle cx="0" cy="10" r="4" fill="none" stroke="#5A6472" stroke-width="2"/><circle cx="12" cy="10" r="4" fill="none" stroke="#5A6472" stroke-width="2"/></pattern><linearGradient id="items_armor_reinforced_mail_steel2" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.5" stop-color="#C3CAD3"/><stop offset="1" stop-color="#7A8592"/></linearGradient><radialGradient id="items_armor_reinforced_mail_gloss3" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="items_armor_reinforced_mail_gold4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.5" stop-color="#F4B43C"/><stop offset="1" stop-color="#B86A16"/></linearGradient><linearGradient id="items_armor_reinforced_mail_gem5" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#F4C2FF"/><stop offset="0.5" stop-color="#A63CD8"/><stop offset="1" stop-color="#4E0E78"/></linearGradient></defs>
+<ellipse cx="128" cy="238" rx="78" ry="9" fill="#1a0e24" opacity="0.28" filter="url(#items_armor_reinforced_mail_blur0)"/>
+<path d="M70,118 L186,118 L198,216 Q128,234 58,216 Z" fill="url(#items_armor_reinforced_mail_steel2)" stroke="#3C4450" stroke-width="4.5" stroke-linejoin="round"/>
+<path d="M70,118 L186,118 L198,216 Q128,234 58,216 Z" fill="url(#items_armor_reinforced_mail_gloss3)" opacity="0.3"/>
+<path d="M70,118 L186,118 L198,216 Q128,234 58,216 Z" fill="url(#items_armor_reinforced_mail_mail1)" opacity="0.8"/>
+<path d="M60,208 Q128,226 196,208 L198,218 Q128,236 58,218 Z" fill="url(#items_armor_reinforced_mail_gold4)" stroke="#6A3A0C" stroke-width="3" stroke-linejoin="round"/>
+<path d="M60,208 Q128,226 196,208 L198,218 Q128,236 58,218 Z" fill="url(#items_armor_reinforced_mail_gloss3)" opacity="0.8"/>
+<path d="M72,46 Q128,72 184,46 L200,68 L192,152 Q128,174 64,152 L56,68 Z" fill="url(#items_armor_reinforced_mail_steel2)" stroke="#3C4450" stroke-width="5" stroke-linejoin="round"/>
+<path d="M72,46 Q128,72 184,46 L200,68 L192,152 Q128,174 64,152 L56,68 Z" fill="url(#items_armor_reinforced_mail_gloss3)" opacity="0.8"/>
+<path d="M128,70 L128,164" fill="none" stroke="#7A8592" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+<path d="M120,74 L118,158" fill="none" stroke="#fff" stroke-width="3.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+<path d="M72,46 Q128,72 184,46" fill="none" stroke="#6A3A0C" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M72,46 Q128,72 184,46" fill="none" stroke="#F4B43C" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M66,150 Q128,172 190,150" fill="none" stroke="#6A3A0C" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M66,150 Q128,172 190,150" fill="none" stroke="#F4B43C" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M113.5,104 A14.5,14.5 0 1 0 142.5,104 A14.5,14.5 0 1 0 113.5,104 Z" fill="url(#items_armor_reinforced_mail_gold4)" stroke="#6A3A0C" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M113.5,104 A14.5,14.5 0 1 0 142.5,104 A14.5,14.5 0 1 0 113.5,104 Z" fill="url(#items_armor_reinforced_mail_gloss3)" opacity="0.8"/>
+<path d="M118,104 A10,10 0 1 0 138,104 A10,10 0 1 0 118,104 Z" fill="url(#items_armor_reinforced_mail_gem5)" stroke="#2E0648" stroke-width="1.7999999999999998" stroke-linejoin="round"/>
+<ellipse cx="125" cy="100.5" rx="3.8" ry="2.2" transform="rotate(-35 125 100.5)" fill="#fff" opacity="0.9"/>
+<path d="M75,80 A5,5 0 1 0 85,80 A5,5 0 1 0 75,80 Z" fill="url(#items_armor_reinforced_mail_gold4)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M76.8,78.5 A1.8,1.8 0 1 0 80.3,78.5 A1.8,1.8 0 1 0 76.8,78.5 Z" fill="#fff" opacity="0.85"/>
+<path d="M171,80 A5,5 0 1 0 181,80 A5,5 0 1 0 171,80 Z" fill="url(#items_armor_reinforced_mail_gold4)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M172.8,78.5 A1.8,1.8 0 1 0 176.3,78.5 A1.8,1.8 0 1 0 172.8,78.5 Z" fill="#fff" opacity="0.85"/>
+<path d="M79,132 A5,5 0 1 0 89,132 A5,5 0 1 0 79,132 Z" fill="url(#items_armor_reinforced_mail_gold4)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M80.8,130.5 A1.8,1.8 0 1 0 84.3,130.5 A1.8,1.8 0 1 0 80.8,130.5 Z" fill="#fff" opacity="0.85"/>
+<path d="M167,132 A5,5 0 1 0 177,132 A5,5 0 1 0 167,132 Z" fill="url(#items_armor_reinforced_mail_gold4)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M168.8,130.5 A1.8,1.8 0 1 0 172.3,130.5 A1.8,1.8 0 1 0 168.8,130.5 Z" fill="#fff" opacity="0.85"/>
+<g transform="rotate(-18 56 66)">
+<path d="M22,78 Q22,40 56,40 Q90,40 90,78 Z" fill="url(#items_armor_reinforced_mail_steel2)" stroke="#3C4450" stroke-width="4.5" stroke-linejoin="round"/>
+<path d="M22,78 Q22,40 56,40 Q90,40 90,78 Z" fill="url(#items_armor_reinforced_mail_gloss3)" opacity="0.8"/>
+<path d="M23,76 L89,76" fill="none" stroke="#6A3A0C" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M23,76 L89,76" fill="none" stroke="#F4B43C" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M51,56 A5,5 0 1 0 61,56 A5,5 0 1 0 51,56 Z" fill="url(#items_armor_reinforced_mail_gold4)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M52.8,54.5 A1.8,1.8 0 1 0 56.3,54.5 A1.8,1.8 0 1 0 52.8,54.5 Z" fill="#fff" opacity="0.85"/>
+</g>
+<g transform="rotate(18 200 66)">
+<path d="M166,78 Q166,40 200,40 Q234,40 234,78 Z" fill="url(#items_armor_reinforced_mail_steel2)" stroke="#3C4450" stroke-width="4.5" stroke-linejoin="round"/>
+<path d="M166,78 Q166,40 200,40 Q234,40 234,78 Z" fill="url(#items_armor_reinforced_mail_gloss3)" opacity="0.8"/>
+<path d="M167,76 L233,76" fill="none" stroke="#6A3A0C" stroke-width="11" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M167,76 L233,76" fill="none" stroke="#F4B43C" stroke-width="6" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M195,56 A5,5 0 1 0 205,56 A5,5 0 1 0 195,56 Z" fill="url(#items_armor_reinforced_mail_gold4)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M196.8,54.5 A1.8,1.8 0 1 0 200.3,54.5 A1.8,1.8 0 1 0 196.8,54.5 Z" fill="#fff" opacity="0.85"/>
+</g>
+</svg>

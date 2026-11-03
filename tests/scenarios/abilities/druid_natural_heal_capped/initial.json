@@ -1,0 +1,33 @@
+{
+  "name": "Cura natural não ultrapassa o máximo de PV",
+  "description": "druid.natural_heal com 90/95 PV: fica em 95 (excedente descartado).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "druid-01",
+      "classId": "druid",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      },
+      "hp": 90
+    }
+  ],
+  "order": [
+    "druid-01"
+  ]
+}

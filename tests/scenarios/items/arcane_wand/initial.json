@@ -1,0 +1,42 @@
+{
+  "name": "Varinha arcana: 14 arcano até 5 células (armadura não reduz)",
+  "description": "weapon.arcane_wand contra guerreiro a 4 células: 14 arcano, armadura física não conta. Célula a 6: OUT_OF_RANGE.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

@@ -1,0 +1,9 @@
+{
+  "errors": 0,
+  "status": "finished",
+  "result": {
+    "kind": "draw",
+    "reason": "roundLimit"
+  },
+  "round": 2
+}

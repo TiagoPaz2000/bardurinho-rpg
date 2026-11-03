@@ -1,0 +1,42 @@
+[
+  {
+    "type": "MOVE",
+    "actorId": "warrior-01",
+    "to": {
+      "x": 5,
+      "y": 2,
+      "floor": 0
+    }
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "warrior-01",
+    "weaponId": "weapon.iron_sword",
+    "target": {
+      "kind": "cell",
+      "x": 3,
+      "y": 2,
+      "floor": 0
+    }
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "warrior-01",
+    "weaponId": "weapon.iron_sword",
+    "target": {
+      "kind": "cell",
+      "x": 3,
+      "y": 2,
+      "floor": 0
+    }
+  },
+  {
+    "type": "MOVE",
+    "actorId": "warrior-01",
+    "to": {
+      "x": 5,
+      "y": 2,
+      "floor": 0
+    }
+  }
+]

@@ -1,0 +1,9 @@
+{
+  "errors": 0,
+  "status": "finished",
+  "result": {
+    "kind": "victory",
+    "winnerTeam": "B",
+    "reason": "surrender"
+  }
+}

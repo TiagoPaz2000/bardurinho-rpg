@@ -1,0 +1,68 @@
+{
+  "name": "Investida não usa escadas: alvo em outro andar é recusado",
+  "description": "warrior.charge contra um alvo na plataforma, logo acima da escada: DIFFERENT_FLOOR (o percurso da Investida não atravessa conexões entre andares).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ],
+      [
+        "________",
+        "________",
+        "___.....",
+        "___.....",
+        "________",
+        "________",
+        "________",
+        "________"
+      ]
+    ],
+    "connections": [
+      {
+        "a": {
+          "x": 2,
+          "y": 2,
+          "floor": 0
+        },
+        "b": {
+          "x": 3,
+          "y": 2,
+          "floor": 1
+        },
+        "cost": 2
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 2,
+        "y": 2,
+        "floor": 0
+      }
+    },
+    {
+      "id": "dummy-01",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 4,
+        "y": 2,
+        "floor": 1
+      }
+    }
+  ],
+  "order": [
+    "warrior-01"
+  ]
+}

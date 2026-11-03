@@ -1,0 +1,24 @@
+[
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "rogue-01",
+    "weaponId": "weapon.dagger",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "rogue-01"
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "mage-01",
+    "weaponId": "weapon.arcane_wand",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  }
+]

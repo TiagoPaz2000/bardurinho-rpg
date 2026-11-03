@@ -39,6 +39,7 @@ import { CELL, render, renderLegend, type Layers } from './render.js';
 
 const legendPanel = renderLegend(); // estática: criada uma vez
 import { LabSession } from './session.js';
+import { checkScenario, openScenario, scenarioLibrary, type LibraryScenario } from './scenarioLibrary.js';
 
 // ---------------------------------------------------------------------------
 // Estado da interface (não é estado de jogo)
@@ -550,6 +551,14 @@ function sidebarCategories(): Array<{ key: string; title: string; entries: Entry
       entries: maps.map((m): Entry => ({
         id: m.id, name: m.name, version: m.version, tags: m.tags, meta: m.description,
         arm: () => { ui.session = newSession(m.scenario); ui.floor = 0; ui.selectedUnitId = Object.keys(state().units)[0] ?? null; ui.message = { text: `Mapa carregado: ${m.name}`, kind: 'ok' }; },
+      })),
+    },
+    {
+      // Fase 4: os cenários de tests/scenarios, conferidos com o expected.json (como no vitest).
+      key: 'scenarios', title: `Cenários de teste (${scenarioLibrary.length})`,
+      entries: scenarioLibrary.map((sc): Entry => ({
+        id: sc.id, name: sc.name, tags: [sc.category.toUpperCase()], meta: `${sc.id}${sc.description ? ` — ${sc.description}` : ''}`,
+        arm: () => loadLibraryScenario(sc),
       })),
     },
     {
@@ -1204,6 +1213,39 @@ function refresh(): void {
   renderInspector();
   renderTimeline();
   drawGrid();
+}
+
+/** Abre um cenário da biblioteca: timeline com os comandos dele + conferência do expected.json. */
+function loadLibraryScenario(sc: LibraryScenario): void {
+  const r = openScenario(catalog, sc);
+  ui.session = r.session;
+  ui.floor = 0;
+  ui.eventViewSeq = null;
+  ui.selectedUnitId = Object.keys(state().units)[0] ?? null;
+  ui.bottomTab = 'timeline';
+  ui.message = r.failures.length
+    ? { text: `Cenário ${sc.id}: FALHOU — ${r.failures.join(' | ')}`, kind: 'error' }
+    : { text: `Cenário ${sc.id}: ✓ conforme o expected.json (${sc.commands.length} comandos${r.rejected ? `, ${r.rejected} recusado(s) como esperado` : ''})`, kind: 'ok' };
+  document.body.dataset.scenario = sc.id;
+  document.body.dataset.scenarioOk = r.failures.length ? '0' : '1';
+}
+
+// Depuração/e2e: lista e conferência de todos os cenários no navegador.
+(window as unknown as { __lab: unknown }).__lab = {
+  scenarios: () => scenarioLibrary.map((s) => s.id),
+  open: (id: string) => {
+    const sc = scenarioLibrary.find((s) => s.id === id);
+    if (!sc) return false;
+    loadLibraryScenario(sc);
+    refresh();
+    return document.body.dataset.scenarioOk === '1';
+  },
+  runAll: () => scenarioLibrary.map((s) => ({ id: s.id, failures: checkScenario(catalog, s) })),
+};
+{
+  const wanted = new URLSearchParams(location.search).get('scenario');
+  const sc = wanted ? scenarioLibrary.find((s) => s.id === wanted) : undefined;
+  if (sc) loadLibraryScenario(sc);
 }
 
 refresh();

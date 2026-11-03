@@ -1,0 +1,29 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "rogue-01",
+    "abilityId": "rogue.precise_shot",
+    "target": {
+      "kind": "entity",
+      "id": "dummy-adjacent"
+    }
+  },
+  {
+    "type": "USE_ABILITY",
+    "actorId": "rogue-01",
+    "abilityId": "rogue.precise_shot",
+    "target": {
+      "kind": "entity",
+      "id": "dummy-far"
+    }
+  },
+  {
+    "type": "USE_ABILITY",
+    "actorId": "rogue-01",
+    "abilityId": "rogue.precise_shot",
+    "target": {
+      "kind": "entity",
+      "id": "dummy-behind-wall"
+    }
+  }
+]

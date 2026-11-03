@@ -1,0 +1,20 @@
+{
+  "errors": 1,
+  "activeUnitId": "warrior-01",
+  "units": {
+    "warrior-01": {
+      "hp": 102,
+      "mp": 5,
+      "pos": {
+        "x": 5,
+        "y": 3
+      },
+      "statuses": [
+        "rooted"
+      ]
+    }
+  },
+  "forbiddenEvents": [
+    "UNIT_MOVED"
+  ]
+}

@@ -1,0 +1,32 @@
+{
+  "errors": 2,
+  "units": {
+    "warrior-01": {
+      "pos": {
+        "x": 3,
+        "y": 0
+      },
+      "ap": 0,
+      "mp": 1
+    }
+  },
+  "objects": {
+    "gate-01": {
+      "state": "open",
+      "hp": null
+    },
+    "lever-01": {
+      "state": "open"
+    }
+  },
+  "events": [
+    "ATTACK_PERFORMED",
+    "UNIT_MOVED",
+    "OBJECT_STATE_CHANGED",
+    "OBJECT_STATE_CHANGED",
+    "UNIT_MOVED"
+  ],
+  "forbiddenEvents": [
+    "OBJECT_DAMAGED"
+  ]
+}

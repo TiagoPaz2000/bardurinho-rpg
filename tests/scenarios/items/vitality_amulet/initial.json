@@ -1,0 +1,45 @@
+{
+  "name": "Amuleto da vitalidade: +8 PV máximos",
+  "description": "accessory.vitality_amulet: guerreiro começa com 118/118; druida com 103 máximos é curado de 90 até 103 (não 114).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "druid-01",
+      "classId": "druid",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      },
+      "accessoryId": "accessory.vitality_amulet",
+      "hp": 90
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 6,
+        "y": 6
+      },
+      "accessoryId": "accessory.vitality_amulet"
+    }
+  ],
+  "order": [
+    "druid-01",
+    "warrior-01"
+  ]
+}

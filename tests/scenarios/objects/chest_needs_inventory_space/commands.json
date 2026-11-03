@@ -1,0 +1,16 @@
+[
+  {
+    "type": "INTERACT",
+    "actorId": "warrior-a",
+    "objectId": "chest-01"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-a"
+  },
+  {
+    "type": "INTERACT",
+    "actorId": "warrior-b",
+    "objectId": "chest-01"
+  }
+]

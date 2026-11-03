@@ -1,0 +1,17 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "pos": {
+        "x": 3,
+        "y": 0
+      },
+      "ap": 1
+    }
+  },
+  "objects": {
+    "door-01": {
+      "state": "closed"
+    }
+  }
+}

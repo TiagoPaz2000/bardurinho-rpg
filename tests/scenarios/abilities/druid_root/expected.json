@@ -1,0 +1,45 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "hp": 102,
+      "pos": {
+        "x": 4,
+        "y": 3
+      },
+      "statuses": []
+    },
+    "druid-01": {
+      "hp": 79
+    }
+  },
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 8,
+      "damageType": "nature",
+      "mitigation": 0,
+      "hpAfter": 102
+    },
+    {
+      "targetId": "druid-01",
+      "raw": 18,
+      "damageType": "physical",
+      "mitigation": 2,
+      "hpAfter": 79
+    }
+  ],
+  "events": [
+    "ABILITY_USED",
+    "DAMAGE_APPLIED",
+    "STATUS_APPLIED",
+    "TURN_STARTED",
+    "ATTACK_PERFORMED",
+    "DAMAGE_APPLIED",
+    "STATUS_EXPIRED",
+    "TURN_ENDED"
+  ],
+  "forbiddenEvents": [
+    "UNIT_MOVED"
+  ]
+}

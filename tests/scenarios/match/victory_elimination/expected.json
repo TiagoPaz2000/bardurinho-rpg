@@ -1,0 +1,19 @@
+{
+  "errors": 0,
+  "status": "finished",
+  "result": {
+    "kind": "victory",
+    "winnerTeam": "A",
+    "reason": "elimination"
+  },
+  "units": {
+    "mage-b": {
+      "alive": false
+    }
+  },
+  "events": [
+    "DAMAGE_APPLIED",
+    "UNIT_DEFEATED",
+    "MATCH_ENDED"
+  ]
+}

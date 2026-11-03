@@ -1,0 +1,49 @@
+{
+  "name": "Porta de madeira queima até ser destruída",
+  "description": "Chama na porta: 18 de dano (30 → 12) e combustão; 6 de fogo no início das rodadas 2 e 3 a destroem.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "###.####",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 0,
+        "y": 0
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "door-01",
+      "defId": "door",
+      "pos": {
+        "x": 3,
+        "y": 1
+      }
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

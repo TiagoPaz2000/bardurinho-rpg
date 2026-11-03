@@ -4,11 +4,11 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export async function launch({ port = 9341, profile, width = 1400, height = 900 }) {
+export async function launch({ port = 9341, profile, width = 1400, height = 900, extraArgs = [] }) {
   mkdirSync(profile, { recursive: true });
   const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', [
     '--headless=new', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-webgl', '--ignore-gpu-blocklist',
-    `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, `--window-size=${width},${height}`, 'about:blank',
+    `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, `--window-size=${width},${height}`, ...extraArgs, 'about:blank',
   ], { stdio: 'ignore' });
   let targets;
   for (let i = 0; i < 80; i++) {

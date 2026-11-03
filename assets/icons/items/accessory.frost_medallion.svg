@@ -1,0 +1,53 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="items_accessory_frost_medallion_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><linearGradient id="items_accessory_frost_medallion_gold1" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.5" stop-color="#F4B43C"/><stop offset="1" stop-color="#B86A16"/></linearGradient><radialGradient id="items_accessory_frost_medallion_gloss2" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="items_accessory_frost_medallion_blue3" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#C8F2FF"/><stop offset="0.5" stop-color="#2E92EA"/><stop offset="1" stop-color="#103C88"/></linearGradient><linearGradient id="items_accessory_frost_medallion_ice4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.5" stop-color="#A6E6FF"/><stop offset="1" stop-color="#3E9AD8"/></linearGradient></defs>
+<ellipse cx="128" cy="238" rx="64" ry="8" fill="#1a0e24" opacity="0.25" filter="url(#items_accessory_frost_medallion_blur0)"/>
+<path d="M58.5,22 A5.5,5.5 0 1 0 69.5,22 A5.5,5.5 0 1 0 58.5,22 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M58.5,22 A5.5,5.5 0 1 0 69.5,22 A5.5,5.5 0 1 0 58.5,22 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M59.3,35.9 A5.5,5.5 0 1 0 70.3,35.9 A5.5,5.5 0 1 0 59.3,35.9 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M59.3,35.9 A5.5,5.5 0 1 0 70.3,35.9 A5.5,5.5 0 1 0 59.3,35.9 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M60.8,49.8 A5.5,5.5 0 1 0 71.8,49.8 A5.5,5.5 0 1 0 60.8,49.8 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M60.8,49.8 A5.5,5.5 0 1 0 71.8,49.8 A5.5,5.5 0 1 0 60.8,49.8 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M66.3,62.5 A5.5,5.5 0 1 0 77.3,62.5 A5.5,5.5 0 1 0 66.3,62.5 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M66.3,62.5 A5.5,5.5 0 1 0 77.3,62.5 A5.5,5.5 0 1 0 66.3,62.5 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M76.8,71.6 A5.5,5.5 0 1 0 87.8,71.6 A5.5,5.5 0 1 0 76.8,71.6 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M76.8,71.6 A5.5,5.5 0 1 0 87.8,71.6 A5.5,5.5 0 1 0 76.8,71.6 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M88.9,78.5 A5.5,5.5 0 1 0 99.9,78.5 A5.5,5.5 0 1 0 88.9,78.5 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M88.9,78.5 A5.5,5.5 0 1 0 99.9,78.5 A5.5,5.5 0 1 0 88.9,78.5 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M101.8,84 A5.5,5.5 0 1 0 112.8,84 A5.5,5.5 0 1 0 101.8,84 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M101.8,84 A5.5,5.5 0 1 0 112.8,84 A5.5,5.5 0 1 0 101.8,84 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M115.5,86 A5.5,5.5 0 1 0 126.5,86 A5.5,5.5 0 1 0 115.5,86 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M115.5,86 A5.5,5.5 0 1 0 126.5,86 A5.5,5.5 0 1 0 115.5,86 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M129.5,86 A5.5,5.5 0 1 0 140.5,86 A5.5,5.5 0 1 0 129.5,86 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M129.5,86 A5.5,5.5 0 1 0 140.5,86 A5.5,5.5 0 1 0 129.5,86 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M143.2,84 A5.5,5.5 0 1 0 154.2,84 A5.5,5.5 0 1 0 143.2,84 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M143.2,84 A5.5,5.5 0 1 0 154.2,84 A5.5,5.5 0 1 0 143.2,84 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M156.1,78.5 A5.5,5.5 0 1 0 167.1,78.5 A5.5,5.5 0 1 0 156.1,78.5 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M156.1,78.5 A5.5,5.5 0 1 0 167.1,78.5 A5.5,5.5 0 1 0 156.1,78.5 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M168.2,71.6 A5.5,5.5 0 1 0 179.2,71.6 A5.5,5.5 0 1 0 168.2,71.6 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M168.2,71.6 A5.5,5.5 0 1 0 179.2,71.6 A5.5,5.5 0 1 0 168.2,71.6 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M178.7,62.5 A5.5,5.5 0 1 0 189.7,62.5 A5.5,5.5 0 1 0 178.7,62.5 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M178.7,62.5 A5.5,5.5 0 1 0 189.7,62.5 A5.5,5.5 0 1 0 178.7,62.5 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M184.2,49.8 A5.5,5.5 0 1 0 195.2,49.8 A5.5,5.5 0 1 0 184.2,49.8 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M184.2,49.8 A5.5,5.5 0 1 0 195.2,49.8 A5.5,5.5 0 1 0 184.2,49.8 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M185.7,35.9 A5.5,5.5 0 1 0 196.7,35.9 A5.5,5.5 0 1 0 185.7,35.9 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M185.7,35.9 A5.5,5.5 0 1 0 196.7,35.9 A5.5,5.5 0 1 0 185.7,35.9 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M186.5,22 A5.5,5.5 0 1 0 197.5,22 A5.5,5.5 0 1 0 186.5,22 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="2.2" stroke-linejoin="round"/>
+<path d="M186.5,22 A5.5,5.5 0 1 0 197.5,22 A5.5,5.5 0 1 0 186.5,22 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M118,90 A10,10 0 1 0 138,90 A10,10 0 1 0 118,90 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="3" stroke-linejoin="round"/>
+<path d="M118,90 A10,10 0 1 0 138,90 A10,10 0 1 0 118,90 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.8"/>
+<path d="M128,82 L195.5,121 L195.5,199 L128,238 L60.5,199 L60.5,121 Z" fill="url(#items_accessory_frost_medallion_gold1)" stroke="#6A3A0C" stroke-width="5" stroke-linejoin="round"/>
+<path d="M128,82 L195.5,121 L195.5,199 L128,238 L60.5,199 L60.5,121 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.8"/>
+<path d="M128,98 L181.7,129 L181.7,191 L128,222 L74.3,191 L74.3,129 Z" fill="url(#items_accessory_frost_medallion_blue3)" stroke="#0A2050" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M128,98 L181.7,129 L181.7,191 L128,222 L74.3,191 L74.3,129 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.3"/>
+<path d="M128,154 L128,110 M128,135 L115,124.1 M128,135 L141,124.1 M128,121 L120.3,114.6 M128,121 L135.7,114.6 M133.2,157 L171.3,135 M149.7,147.5 L152.6,130.8 M149.7,147.5 L165.6,153.3 M161.8,140.5 L163.5,130.7 M161.8,140.5 L171.2,143.9 M133.2,163 L171.3,185 M149.7,172.5 L165.6,166.7 M149.7,172.5 L152.6,189.2 M161.8,179.5 L171.2,176.1 M161.8,179.5 L163.5,189.3 M128,166 L128,210 M128,185 L141,195.9 M128,185 L115,195.9 M128,199 L135.7,205.4 M128,199 L120.3,205.4 M122.8,163 L84.7,185 M106.3,172.5 L103.4,189.2 M106.3,172.5 L90.4,166.7 M94.2,179.5 L92.5,189.3 M94.2,179.5 L84.8,176.1 M122.8,157 L84.7,135 M106.3,147.5 L90.4,153.3 M106.3,147.5 L103.4,130.8 M94.2,140.5 L84.8,143.9 M94.2,140.5 L92.5,130.7" fill="none" stroke="#0A2050" stroke-width="15.3" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M128,154 L128,110 M128,135 L115,124.1 M128,135 L141,124.1 M128,121 L120.3,114.6 M128,121 L135.7,114.6 M133.2,157 L171.3,135 M149.7,147.5 L152.6,130.8 M149.7,147.5 L165.6,153.3 M161.8,140.5 L163.5,130.7 M161.8,140.5 L171.2,143.9 M133.2,163 L171.3,185 M149.7,172.5 L165.6,166.7 M149.7,172.5 L152.6,189.2 M161.8,179.5 L171.2,176.1 M161.8,179.5 L163.5,189.3 M128,166 L128,210 M128,185 L141,195.9 M128,185 L115,195.9 M128,199 L135.7,205.4 M128,199 L120.3,205.4 M122.8,163 L84.7,185 M106.3,172.5 L103.4,189.2 M106.3,172.5 L90.4,166.7 M94.2,179.5 L92.5,189.3 M94.2,179.5 L84.8,176.1 M122.8,157 L84.7,135 M106.3,147.5 L90.4,153.3 M106.3,147.5 L103.4,130.8 M94.2,140.5 L84.8,143.9 M94.2,140.5 L92.5,130.7" fill="none" stroke="#FFFFFF" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M128,150 L136.7,155 L136.7,165 L128,170 L119.3,165 L119.3,155 Z" fill="url(#items_accessory_frost_medallion_ice4)" stroke="#16507E" stroke-width="3.15" stroke-linejoin="round"/>
+<path d="M128,150 L136.7,155 L136.7,165 L128,170 L119.3,165 L119.3,155 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.6"/>
+<path d="M123,90 A5,5 0 1 0 133,90 A5,5 0 1 0 123,90 Z" fill="url(#items_accessory_frost_medallion_ice4)" stroke="#16507E" stroke-width="2" stroke-linejoin="round"/>
+<path d="M183.6,125 A5,5 0 1 0 193.6,125 A5,5 0 1 0 183.6,125 Z" fill="url(#items_accessory_frost_medallion_ice4)" stroke="#16507E" stroke-width="2" stroke-linejoin="round"/>
+<path d="M183.6,195 A5,5 0 1 0 193.6,195 A5,5 0 1 0 183.6,195 Z" fill="url(#items_accessory_frost_medallion_ice4)" stroke="#16507E" stroke-width="2" stroke-linejoin="round"/>
+<path d="M123,230 A5,5 0 1 0 133,230 A5,5 0 1 0 123,230 Z" fill="url(#items_accessory_frost_medallion_ice4)" stroke="#16507E" stroke-width="2" stroke-linejoin="round"/>
+<path d="M62.4,195 A5,5 0 1 0 72.4,195 A5,5 0 1 0 62.4,195 Z" fill="url(#items_accessory_frost_medallion_ice4)" stroke="#16507E" stroke-width="2" stroke-linejoin="round"/>
+<path d="M62.4,125 A5,5 0 1 0 72.4,125 A5,5 0 1 0 62.4,125 Z" fill="url(#items_accessory_frost_medallion_ice4)" stroke="#16507E" stroke-width="2" stroke-linejoin="round"/>
+<path d="M128,82 L195.5,121 L195.5,199 L128,238 L60.5,199 L60.5,121 Z" fill="url(#items_accessory_frost_medallion_gloss2)" opacity="0.45"/>
+</svg>

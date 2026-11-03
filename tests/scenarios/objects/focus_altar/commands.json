@@ -1,0 +1,19 @@
+[
+  {
+    "type": "DEBUG_SET_UNIT",
+    "unitId": "mage-01",
+    "patch": {
+      "focus": 2
+    }
+  },
+  {
+    "type": "INTERACT",
+    "actorId": "mage-01",
+    "objectId": "altar-01"
+  },
+  {
+    "type": "INTERACT",
+    "actorId": "mage-01",
+    "objectId": "altar-01"
+  }
+]

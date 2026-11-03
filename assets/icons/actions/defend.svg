@@ -1,0 +1,26 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="actions_defend_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><linearGradient id="actions_defend_gold1" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.5" stop-color="#F4B43C"/><stop offset="1" stop-color="#B86A16"/></linearGradient><radialGradient id="actions_defend_gloss2" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="actions_defend_steel3" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.5" stop-color="#C3CAD3"/><stop offset="1" stop-color="#7A8592"/></linearGradient><linearGradient id="actions_defend_gem4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#F4C2FF"/><stop offset="0.5" stop-color="#A63CD8"/><stop offset="1" stop-color="#4E0E78"/></linearGradient></defs>
+<ellipse cx="128" cy="240" rx="70" ry="8" fill="#1a0e24" opacity="0.28" filter="url(#actions_defend_blur0)"/>
+<path d="M45.4,34.8 Q128,13.6 210.6,34.8 L210.6,113.3 C210.6,174.8 172.2,210.8 128,232 C83.8,210.8 45.4,174.8 45.4,113.3 Z" fill="url(#actions_defend_gold1)" stroke="#6A3A0C" stroke-width="5" stroke-linejoin="round"/>
+<path d="M45.4,34.8 Q128,13.6 210.6,34.8 L210.6,113.3 C210.6,174.8 172.2,210.8 128,232 C83.8,210.8 45.4,174.8 45.4,113.3 Z" fill="url(#actions_defend_gloss2)" opacity="0.8"/>
+<path d="M60.9,50 Q128,32.8 195.1,50 L195.1,113.7 C195.1,163.6 163.9,192.8 128,210 C92.1,192.8 60.9,163.6 60.9,113.7 Z" fill="url(#actions_defend_steel3)" stroke="#3C4450" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M60.9,50 Q128,32.8 195.1,50 L195.1,113.7 C195.1,163.6 163.9,192.8 128,210 C92.1,192.8 60.9,163.6 60.9,113.7 Z" fill="url(#actions_defend_gloss2)" opacity="0.8"/>
+<path d="M128,46 L128,206" fill="none" stroke="#8A4A10" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+<path d="M128,46 L128,206" fill="none" stroke="#FFE08A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M56,112 L200,112" fill="none" stroke="#8A4A10" stroke-width="10" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+<path d="M56,112 L200,112" fill="none" stroke="#FFE08A" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M66,56 A6,6 0 1 0 78,56 A6,6 0 1 0 66,56 Z" fill="url(#actions_defend_gold1)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M68.1,54.2 A2.1,2.1 0 1 0 72.3,54.2 A2.1,2.1 0 1 0 68.1,54.2 Z" fill="#fff" opacity="0.85"/>
+<path d="M178,56 A6,6 0 1 0 190,56 A6,6 0 1 0 178,56 Z" fill="url(#actions_defend_gold1)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M180.1,54.2 A2.1,2.1 0 1 0 184.3,54.2 A2.1,2.1 0 1 0 180.1,54.2 Z" fill="#fff" opacity="0.85"/>
+<path d="M70,160 A6,6 0 1 0 82,160 A6,6 0 1 0 70,160 Z" fill="url(#actions_defend_gold1)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M72.1,158.2 A2.1,2.1 0 1 0 76.3,158.2 A2.1,2.1 0 1 0 72.1,158.2 Z" fill="#fff" opacity="0.85"/>
+<path d="M174,160 A6,6 0 1 0 186,160 A6,6 0 1 0 174,160 Z" fill="url(#actions_defend_gold1)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M176.1,158.2 A2.1,2.1 0 1 0 180.3,158.2 A2.1,2.1 0 1 0 176.1,158.2 Z" fill="#fff" opacity="0.85"/>
+<path d="M106,112 A22,22 0 1 0 150,112 A22,22 0 1 0 106,112 Z" fill="url(#actions_defend_gold1)" stroke="#6A3A0C" stroke-width="4" stroke-linejoin="round"/>
+<path d="M106,112 A22,22 0 1 0 150,112 A22,22 0 1 0 106,112 Z" fill="url(#actions_defend_gloss2)" opacity="0.8"/>
+<path d="M113.5,112 A14.5,14.5 0 1 0 142.5,112 A14.5,14.5 0 1 0 113.5,112 Z" fill="url(#actions_defend_gold1)" stroke="#6A3A0C" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M113.5,112 A14.5,14.5 0 1 0 142.5,112 A14.5,14.5 0 1 0 113.5,112 Z" fill="url(#actions_defend_gloss2)" opacity="0.8"/>
+<path d="M118,112 A10,10 0 1 0 138,112 A10,10 0 1 0 118,112 Z" fill="url(#actions_defend_gem4)" stroke="#2E0648" stroke-width="1.7999999999999998" stroke-linejoin="round"/>
+<ellipse cx="125" cy="108.5" rx="3.8" ry="2.2" transform="rotate(-35 125 108.5)" fill="#fff" opacity="0.9"/>
+</svg>

@@ -1,0 +1,12 @@
+[
+  {
+    "type": "USE_ITEM",
+    "actorId": "warrior-01",
+    "itemId": "consumable.health_potion"
+  },
+  {
+    "type": "USE_ITEM",
+    "actorId": "warrior-01",
+    "itemId": "consumable.health_potion"
+  }
+]

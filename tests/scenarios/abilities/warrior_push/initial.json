@@ -1,0 +1,42 @@
+{
+  "name": "Empurrão: 6 físico e desloca o alvo duas células em linha reta",
+  "description": "warrior.push contra ladino adjacente (Armadura de couro 2): 6 − 2 = 4 e deslocamento de (4,3) para (6,3).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    },
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "warrior-01",
+    "rogue-01"
+  ]
+}

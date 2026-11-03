@@ -1,0 +1,31 @@
+{
+  "errors": 0,
+  "units": {
+    "warrior-01": {
+      "hp": 92,
+      "statuses": []
+    }
+  },
+  "cells": [
+    {
+      "x": 5,
+      "y": 3,
+      "surface": null
+    }
+  ],
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 18,
+      "hpAfter": 92
+    }
+  ],
+  "events": [
+    "STATUS_APPLIED",
+    "ABILITY_USED",
+    "ATTACK_ROLLED",
+    "STIMULUS_EMITTED",
+    "SURFACE_REMOVED",
+    "STATUS_REMOVED"
+  ]
+}

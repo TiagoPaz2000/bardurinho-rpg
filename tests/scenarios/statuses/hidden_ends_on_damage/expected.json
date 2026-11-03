@@ -1,0 +1,24 @@
+{
+  "errors": 1,
+  "units": {
+    "rogue-01": {
+      "hp": 76,
+      "statuses": []
+    }
+  },
+  "damage": [
+    {
+      "targetId": "rogue-01",
+      "raw": 14,
+      "damageType": "arcane",
+      "hpAfter": 76
+    }
+  ],
+  "events": [
+    "STATUS_APPLIED",
+    "ATTACK_PERFORMED",
+    "ATTACK_ROLLED",
+    "DAMAGE_APPLIED",
+    "STATUS_REMOVED"
+  ]
+}

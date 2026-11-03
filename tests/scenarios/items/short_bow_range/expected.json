@@ -1,0 +1,24 @@
+{
+  "errors": 2,
+  "units": {
+    "warrior-01": {
+      "hp": 100
+    },
+    "dummy-adjacent": {
+      "hp": 100
+    },
+    "rogue-01": {
+      "ap": 0
+    }
+  },
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 14,
+      "damageType": "physical",
+      "mitigation": 4,
+      "hpDamage": 10,
+      "hpAfter": 100
+    }
+  ]
+}

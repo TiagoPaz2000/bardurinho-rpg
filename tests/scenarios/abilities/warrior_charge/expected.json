@@ -1,0 +1,34 @@
+{
+  "errors": 0,
+  "units": {
+    "warrior-01": {
+      "pos": {
+        "x": 4,
+        "y": 3
+      },
+      "mp": 5,
+      "ap": 1,
+      "focus": 6
+    },
+    "dummy-01": {
+      "hp": 84
+    }
+  },
+  "damage": [
+    {
+      "targetId": "dummy-01",
+      "raw": 16,
+      "damageType": "physical",
+      "mitigation": 0,
+      "hpAfter": 84
+    }
+  ],
+  "events": [
+    "COOLDOWN_STARTED",
+    "ABILITY_USED",
+    "UNIT_MOVED",
+    "UNIT_MOVED",
+    "UNIT_MOVED",
+    "DAMAGE_APPLIED"
+  ]
+}

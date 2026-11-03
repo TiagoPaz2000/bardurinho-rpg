@@ -1,0 +1,18 @@
+{
+  "errors": 0,
+  "objects": {
+    "door-01": {
+      "state": "destroyed",
+      "hp": 0
+    }
+  },
+  "events": [
+    "OBJECT_DAMAGED",
+    "OBJECT_IGNITED",
+    "ROUND_STARTED",
+    "OBJECT_DAMAGED",
+    "ROUND_STARTED",
+    "OBJECT_DAMAGED",
+    "OBJECT_DESTROYED"
+  ]
+}

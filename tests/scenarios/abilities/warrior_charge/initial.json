@@ -1,0 +1,42 @@
+{
+  "name": "Investida: desloca até a célula adjacente e causa 16 físico sem gastar PM",
+  "description": "warrior.charge a 4 células de um boneco: anda 3 células (custo 3, até 4 PM) para (4,3) e causa 16 físico. PM normais intactos.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "dummy-01",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "warrior-01",
+    "dummy-01"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "name": "Óleo lançado sobre fogo incendeia imediatamente",
+  "description": "consumable.oil_flask com o centro sobre fogo: o óleo do centro incendeia na hora (fogo renovado até a rodada 4). Comportamento atual: os braços da cruz ficam com óleo (o fogo não se propaga para o óleo recém-lançado).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      },
+      "consumables": [
+        "consumable.oil_flask"
+      ]
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 4,
+          "y": 3
+        }
+      ],
+      "surface": "fire",
+      "durationRounds": 2
+    }
+  ],
+  "order": [
+    "mage-01"
+  ]
+}

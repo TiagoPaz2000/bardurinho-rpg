@@ -1,0 +1,42 @@
+{
+  "name": "Barreira arcana expira no início do segundo turno próprio seguinte",
+  "description": "Usada no turno próprio 1; o evento SHIELD_EXPIRED ocorre apenas no início do turno próprio 3 (após quatro TURN_STARTED).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 6,
+        "y": 6
+      }
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

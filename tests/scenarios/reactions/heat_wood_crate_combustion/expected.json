@@ -1,0 +1,27 @@
+{
+  "errors": 0,
+  "objects": {
+    "crate-01": {
+      "state": "destroyed",
+      "hp": 0,
+      "burning": false
+    }
+  },
+  "units": {
+    "mage-01": {
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  },
+  "events": [
+    "OBJECT_DAMAGED",
+    "STIMULUS_EMITTED",
+    "OBJECT_IGNITED",
+    "ROUND_STARTED",
+    "OBJECT_DAMAGED",
+    "OBJECT_DESTROYED",
+    "UNIT_MOVED"
+  ]
+}

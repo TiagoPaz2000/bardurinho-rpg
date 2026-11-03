@@ -23,7 +23,7 @@ export interface RoomListing {
   clients: number;
   locked: boolean;
   private: boolean;
-  metadata?: { matchId?: string; status?: string; seats?: Array<{ username: string | null; connected: boolean; team: string }> };
+  metadata?: { matchId?: string; status?: string; teamSize?: number | null; seats?: Array<{ username: string | null; connected: boolean; team: string }> };
 }
 
 export async function listRooms(serverUrl: string): Promise<RoomListing[]> {
@@ -52,6 +52,9 @@ export interface JoinOptions {
   /** Só com o servidor em modo dev. */
   seed?: number;
   turnSeconds?: number;
+  /** Fase 4: formato da sala (1 = 1 × 1, 2 = 2 × 2) e escolha de personagens do jogador. */
+  teamSize?: number;
+  team?: Array<{ classId: string; accessoryId?: string | null; consumables?: string[] }>;
 }
 
 export interface Joined {

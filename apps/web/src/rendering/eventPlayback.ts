@@ -35,6 +35,21 @@ import { standingPoint } from './terrain.js';
 import type { UnitStatusBars } from './unitBars.js';
 import type { ActionHint } from './vfx.js';
 import type { WorldLabels } from './worldLabels.js';
+import type { Sfx } from './sfx.js';
+import { cellToWorld } from './grid.js';
+import { iconImg, itemIcon, statusIcon } from '../screens/icons.js';
+
+/** Fase 4: nomes das reações ambientais (REACTION_TRIGGERED) para o rótulo flutuante. */
+const REACTION_LABEL: Record<string, string> = {
+  heat_oil: 'Óleo em chamas!',
+  heat_thorns: 'Espinhos queimam!',
+  heat_explosive: 'Barril detonado!',
+  oil_on_fire: 'Óleo sobre o fogo!',
+  cold_effect_extinguish_fire: 'Fogo apagado (frio)',
+  cold_effect_remove_burning: 'Queimadura apagada (frio)',
+  water_extinguish_fire: 'Fogo apagado (água)',
+  water_remove_burning: 'Queimadura apagada (água)',
+};
 
 /** Duração de um passo (s). */
 export const STEP_SECONDS = 0.25;
@@ -70,6 +85,8 @@ export interface PlaybackContext {
   spotlight?: Spotlight;
   /** Um personagem trocou de andar (meio do passo de escada). */
   onFloorChange?: (unitId: string, floor: number) => void;
+  /** Fase 4: efeitos sonoros (WebAudio). */
+  sfx?: Sfx;
 }
 
 export interface Spotlight {
@@ -289,10 +306,57 @@ export async function playEvents(ctx: PlaybackContext, events: readonly GameEven
         if (head) ctx.labels.float(name, head, 'status', 1600);
         break;
       }
+      case 'STATUS_REMOVED':
+      case 'STATUS_EXPIRED': {
+        const head = anchor(ctx, String(p.unitId), -0.45);
+        const name = ctx.catalog?.statuses[String(p.statusId)]?.name ?? String(p.statusId);
+        if (head) ctx.labels.float(`${iconImg(statusIcon(String(p.statusId)), 'fl-icon')}${name} terminou`, head, 'status-end', 1500, true);
+        break;
+      }
+      case 'RESOURCE_RESTORED': {
+        const gained = Number(p.after) - Number(p.before);
+        const head = anchor(ctx, String(p.unitId), -0.35);
+        const label = p.resource === 'focus' ? 'Foco' : String(p.resource).toUpperCase();
+        if (head) ctx.labels.float(gained > 0 ? `+${gained} ${label}` : `${label} no máximo`, head, 'resource', 1600);
+        break;
+      }
+      case 'CONSUMABLE_GRANTED': {
+        const head = anchor(ctx, String(p.unitId), -0.2);
+        const id = String(p.itemId);
+        if (head) ctx.labels.float(`${iconImg(itemIcon(id), 'fl-icon')}+ ${ctx.catalog?.items[id]?.name ?? id}`, head, 'loot', 1900, true);
+        break;
+      }
+      case 'REACTION_TRIGGERED': {
+        const text = REACTION_LABEL[String(p.reaction)];
+        const c = (p.cell ?? p.origin) as Coord | undefined;
+        const at = c ? cellToWorld(c) : null;
+        const objAt = p.objectId ? anchor(ctx, String(p.objectId), 0.3) : null;
+        const where = objAt ?? (at ? new Vector3(at.x, at.y + 1.6, at.z) : null);
+        if (text && where) ctx.labels.float(text, where, 'reaction', 1800);
+        break;
+      }
+      case 'OBJECT_IGNITED': {
+        const at = anchor(ctx, String(p.objectId), 0.2);
+        if (at) ctx.labels.float('em chamas', at, 'reaction', 1500);
+        break;
+      }
+      case 'MOVE_BLOCKED': {
+        // Empurrão contra parede/obstáculo (o personagem para antes).
+        const head = anchor(ctx, String(p.unitId), -0.2);
+        if (head) ctx.labels.float('bloqueado', head, 'status-end', 1300);
+        break;
+      }
+      case 'COOLDOWN_STARTED': {
+        const head = anchor(ctx, String(p.unitId), 0.3);
+        const ab = ctx.catalog?.abilities[String(p.abilityId)];
+        if (head && ab) ctx.labels.float(`${ab.name}: recarga ${ab.blockedOwnTurnsAfterUse}`, head, 'status-end', 1400);
+        break;
+      }
       case 'INITIATIVE_ROLLED':
         ctx.onInitiative?.(p.rolls as InitiativeRoll[], p.order as string[]);
         break;
     }
+    ctx.sfx?.event(ev);
     await ctx.arena.vfx.event(ev, ctx.after, hint);
   }
   if (returnTo) {

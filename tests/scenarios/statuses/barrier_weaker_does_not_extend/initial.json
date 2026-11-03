@@ -1,0 +1,42 @@
+{
+  "name": "Barreira mais fraca não prolonga a mais forte",
+  "description": "Barreira arcana (18, até o turno próprio 3) seguida de uma barreira de 6 com 5 turnos: a fraca é ignorada e a de 18 expira no início do turno próprio 3.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 6,
+        "y": 6
+      }
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

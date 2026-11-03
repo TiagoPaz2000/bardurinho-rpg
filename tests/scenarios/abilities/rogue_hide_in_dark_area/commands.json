@@ -1,0 +1,19 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "rogue-01",
+    "abilityId": "rogue.hide",
+    "target": {
+      "kind": "self"
+    }
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "rogue-01",
+    "weaponId": "weapon.short_bow",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  }
+]

@@ -1,0 +1,18 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "hp": 82
+    }
+  },
+  "events": [
+    "COOLDOWN_STARTED",
+    "ABILITY_USED",
+    "TURN_STARTED",
+    "TURN_STARTED",
+    "TURN_STARTED",
+    "TURN_STARTED",
+    "COOLDOWN_STARTED",
+    "ABILITY_USED"
+  ]
+}

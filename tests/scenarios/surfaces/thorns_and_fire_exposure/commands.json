@@ -1,0 +1,19 @@
+[
+  {
+    "type": "MOVE",
+    "actorId": "mage-01",
+    "to": {
+      "x": 4,
+      "y": 2,
+      "floor": 0
+    }
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "mage-01"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-01"
+  }
+]

@@ -1,0 +1,33 @@
+{
+  "name": "Cura natural: recupera 24 PV",
+  "description": "druid.natural_heal (4d6+8, média 24) com 60/95 PV: 84. Custo 1 PA + 4 Foco; recarga 2.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "druid-01",
+      "classId": "druid",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      },
+      "hp": 60
+    }
+  ],
+  "order": [
+    "druid-01"
+  ]
+}

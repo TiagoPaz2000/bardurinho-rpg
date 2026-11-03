@@ -1,0 +1,13 @@
+[
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "mage-a",
+    "weaponId": "weapon.arcane_wand",
+    "target": {
+      "kind": "cell",
+      "x": 3,
+      "y": 3,
+      "floor": 0
+    }
+  }
+]

@@ -1,0 +1,15 @@
+{
+  "errors": 0,
+  "units": {
+    "warrior-01": {
+      "hp": 110
+    },
+    "rogue-ally": {
+      "hp": 40
+    }
+  },
+  "events": [
+    "ITEM_USED",
+    "HEALED"
+  ]
+}

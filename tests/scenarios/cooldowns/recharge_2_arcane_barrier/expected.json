@@ -1,0 +1,18 @@
+{
+  "errors": 2,
+  "round": 4,
+  "units": {
+    "mage-01": {
+      "shield": 18
+    }
+  },
+  "events": [
+    "COOLDOWN_STARTED",
+    "SHIELD_GRANTED",
+    "SHIELD_EXPIRED",
+    "TURN_STARTED",
+    "TURN_STARTED",
+    "COOLDOWN_STARTED",
+    "SHIELD_GRANTED"
+  ]
+}

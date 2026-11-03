@@ -1,0 +1,16 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "pos": {
+        "x": 4,
+        "y": 2
+      },
+      "mp": 1,
+      "hp": 110
+    }
+  },
+  "forbiddenEvents": [
+    "DAMAGE_APPLIED"
+  ]
+}

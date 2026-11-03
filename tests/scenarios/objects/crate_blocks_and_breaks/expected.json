@@ -1,0 +1,24 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "pos": {
+        "x": 5,
+        "y": 2
+      },
+      "mp": 2
+    }
+  },
+  "objects": {
+    "crate-01": {
+      "state": "destroyed",
+      "hp": 0
+    }
+  },
+  "events": [
+    "OBJECT_DAMAGED",
+    "OBJECT_DAMAGED",
+    "OBJECT_DESTROYED",
+    "UNIT_MOVED"
+  ]
+}

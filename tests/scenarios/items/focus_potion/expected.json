@@ -1,0 +1,18 @@
+{
+  "errors": 0,
+  "units": {
+    "mage-01": {
+      "focus": 7
+    },
+    "rogue-01": {
+      "focus": 8,
+      "ap": 1
+    }
+  },
+  "events": [
+    "ITEM_USED",
+    "RESOURCE_RESTORED",
+    "ITEM_USED",
+    "RESOURCE_RESTORED"
+  ]
+}

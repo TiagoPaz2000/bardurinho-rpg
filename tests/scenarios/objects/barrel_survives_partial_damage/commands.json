@@ -1,0 +1,19 @@
+[
+  {
+    "type": "DEBUG_APPLY_EFFECTS",
+    "target": {
+      "kind": "cell",
+      "x": 3,
+      "y": 3,
+      "floor": 0
+    },
+    "effects": [
+      {
+        "op": "damage",
+        "selector": "targetCellOccupants",
+        "amount": 5,
+        "damageType": "physical"
+      }
+    ]
+  }
+]

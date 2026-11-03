@@ -1,0 +1,42 @@
+{
+  "name": "Recarga 2: bloqueada nos dois turnos próprios seguintes",
+  "description": "mage.arcane_barrier no turno próprio 1 (aceita), 2 e 3 (ON_COOLDOWN) e 4 (aceita).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 6,
+        "y": 6
+      }
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

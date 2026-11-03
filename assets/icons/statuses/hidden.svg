@@ -1,0 +1,16 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="statuses_hidden_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><linearGradient id="statuses_hidden_gold1" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.5" stop-color="#F4B43C"/><stop offset="1" stop-color="#B86A16"/></linearGradient><radialGradient id="statuses_hidden_gloss2" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><radialGradient id="statuses_hidden_disc3" cx="0.4" cy="0.32" r="0.75"><stop offset="0" stop-color="#8E96AA"/><stop offset="0.55" stop-color="#40475A"/><stop offset="1" stop-color="#151824"/></radialGradient><linearGradient id="statuses_hidden_white4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.5" stop-color="#F2F6FA"/><stop offset="1" stop-color="#C8D2DE"/></linearGradient><clipPath id="statuses_hidden_clip5"><path d="M50,130 Q128,52 206,130 Q128,204 50,130 Z"/></clipPath><linearGradient id="statuses_hidden_gem6" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#F4C2FF"/><stop offset="0.5" stop-color="#A63CD8"/><stop offset="1" stop-color="#4E0E78"/></linearGradient></defs>
+<ellipse cx="128" cy="240" rx="70" ry="7" fill="#1a0e24" opacity="0.25" filter="url(#statuses_hidden_blur0)"/>
+<path d="M16,128 A112,112 0 1 0 240,128 A112,112 0 1 0 16,128 Z" fill="url(#statuses_hidden_gold1)" stroke="#6A3A0C" stroke-width="5" stroke-linejoin="round"/>
+<path d="M16,128 A112,112 0 1 0 240,128 A112,112 0 1 0 16,128 Z" fill="url(#statuses_hidden_gloss2)" opacity="0.5"/>
+<path d="M32,128 A96,96 0 1 0 224,128 A96,96 0 1 0 32,128 Z" fill="url(#statuses_hidden_disc3)" stroke="#0A0C14" stroke-width="4"/>
+<path d="M50,130 Q128,52 206,130 Q128,204 50,130 Z" fill="url(#statuses_hidden_white4)" stroke="#5A6474" stroke-width="6" stroke-linejoin="round"/>
+<g clip-path="url(#statuses_hidden_clip5)">
+<path d="M94,130 A34,34 0 1 0 162,130 A34,34 0 1 0 94,130 Z" fill="url(#statuses_hidden_gem6)" stroke="#2E0648" stroke-width="4" stroke-linejoin="round"/>
+<path d="M113,130 A15,15 0 1 0 143,130 A15,15 0 1 0 113,130 Z" fill="#12061E"/>
+<ellipse cx="116" cy="118" rx="9" ry="6" transform="rotate(-35 116 118)" fill="#fff" opacity="0.95"/>
+</g>
+<path d="M62,196 L194,64" fill="none" stroke="#151824" stroke-width="26" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M62,196 L194,64" fill="none" stroke="#FFFFFF" stroke-width="14" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M52,108 Q60,48 128,40 Q196,48 204,108 Q128,82 52,108 Z" fill="#fff" opacity="0.28"/>
+</svg>

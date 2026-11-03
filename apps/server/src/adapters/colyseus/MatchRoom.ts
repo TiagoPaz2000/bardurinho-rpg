@@ -21,6 +21,13 @@ interface JoinOptions {
   /** Só com `dev`: semente dos dados e duração do turno escolhidas ao criar a sala. */
   seed?: number;
   turnSeconds?: number;
+  /**
+   * Fase 4: formato escolhido por quem cria a sala (1 = 1 × 1, 2 = 2 × 2; o matchmaking só
+   * junta salas do mesmo formato — `filterBy(['teamSize'])`) e a escolha de personagens do
+   * jogador (classe, acessório, consumíveis), validada no servidor (`normalizeTeam`).
+   */
+  teamSize?: number;
+  team?: unknown;
 }
 
 interface ClientAuth {
@@ -70,10 +77,12 @@ export class MatchRoom extends Room {
     const seed = dev && Number.isInteger(options.seed) && options.seed! > 0 ? options.seed! : 1 + Math.floor(Math.random() * (2 ** 31 - 2));
     const turnSeconds = dev && typeof options.turnSeconds === 'number' && options.turnSeconds > 0 ? options.turnSeconds : svc.config.turnSeconds;
     this.autoDispose = false;
+    const teamSize = options.teamSize === 1 || options.teamSize === 2 ? options.teamSize : undefined;
     this.session = new MatchSession({
       roomId: this.roomId,
       mapId: svc.map.id,
       scenario: svc.map.scenario,
+      ...(teamSize ? { teamSize, setupMap: svc.map } : {}),
       catalog: svc.catalog,
       repo: svc.matches,
       seed,
@@ -83,7 +92,7 @@ export class MatchRoom extends Room {
     });
     await this.session.ready;
     svc.rooms.set(this.session.id, this);
-    await this.setMetadata({ matchId: this.session.id, seats: this.session.seatInfo(), status: this.session.state.status });
+    await this.setMetadata({ matchId: this.session.id, seats: this.session.seatInfo(), status: this.session.state.status, teamSize: this.session.teamSize });
     svc.log(`[sala ${this.roomId}] partida ${this.session.id} criada (semente ${seed}, turno ${turnSeconds} s)`);
 
     this.onMessage('command', async (client, message) => {
@@ -110,10 +119,10 @@ export class MatchRoom extends Room {
     return { account };
   }
 
-  override async onJoin(client: Client, _options: JoinOptions, auth?: ClientAuth) {
+  override async onJoin(client: Client, options: JoinOptions = {}, auth?: ClientAuth) {
     const account = (auth ?? (client.auth as ClientAuth)).account;
     const hadSeat = !!this.session.seatOf(account.id);
-    const seat = await this.session.claimSeat(account);
+    const seat = await this.session.claimSeat(account, options.team);
     if (!seat) throw new Error('Sala cheia');
     // Mesma conta de novo (ex.: recarregou a página sem o token de reconexão): a conexão nova assume.
     const previous = this.seatClients.get(seat.seat);
@@ -123,6 +132,11 @@ export class MatchRoom extends Room {
     client.userData = { seat: seat.seat };
     this.cancelAbandon();
     client.send('snapshot', this.session.snapshot(seat.seat, hadSeat ? 'reconnect' : 'join', this.roomId));
+    // Fase 4: a montagem mudou com a escolha deste jogador — quem já estava na sala recebe o
+    // estado inicial novo (ainda na versão 0, antes do START_MATCH).
+    if (!hadSeat && this.session.teamSize) {
+      for (const [other, c] of this.seatClients) if (other !== seat.seat && this.session.seats[other]?.connected) c.send('snapshot', this.session.snapshot(other, 'resync', this.roomId));
+    }
     this.broadcastPresence();
     this.svc.log(`[sala ${this.roomId}] ${account.username} no assento ${seat.seat} (equipe ${seat.team})`);
     // Os dois assentos ocupados: inicia depois que a entrada terminar (o cliente já recebeu o snapshot).
@@ -208,7 +222,7 @@ export class MatchRoom extends Room {
 
   private async updateMeta() {
     try {
-      await this.setMetadata({ matchId: this.session.id, seats: this.session.seatInfo(), status: this.session.state.status, version: this.session.version });
+      await this.setMetadata({ matchId: this.session.id, seats: this.session.seatInfo(), status: this.session.state.status, version: this.session.version, teamSize: this.session.teamSize });
     } catch {
       /* sala encerrando */
     }

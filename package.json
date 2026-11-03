@@ -15,13 +15,16 @@
     "screenshots": "tsx tools/screenshots/index.ts",
     "validate-content": "tsx tools/validate-content/index.ts",
     "icons": "tsx tools/icons/resize.ts",
+    "icons:svg": "tsx tools/icons/svg.ts",
+    "icons:sheet": "tsx tools/icons/sheet.ts",
     "lab": "npm run dev -w @bardurinho/combat-debug-lab",
     "web": "npm run dev -w @bardurinho/web",
     "optimize-models": "tsx tools/models/optimize.ts",
     "e2e:partida": "node tools/e2e/partida-ui.mjs",
     "server": "npm run dev -w @bardurinho/server",
     "e2e:rede": "tsx tools/e2e/rede.ts",
-    "e2e:rede-ui": "tsx tools/e2e/rede-ui.ts"
+    "e2e:rede-ui": "tsx tools/e2e/rede-ui.ts",
+    "e2e:conteudo": "tsx tools/e2e/conteudo.ts"
   },
   "devDependencies": {
     "@gltf-transform/cli": "^4.5.1",

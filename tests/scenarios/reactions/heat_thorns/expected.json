@@ -1,0 +1,30 @@
+{
+  "errors": 0,
+  "cells": [
+    {
+      "x": 4,
+      "y": 4,
+      "surface": "fire",
+      "expiresAtRound": 3
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "surface": "fire",
+      "expiresAtRound": 4
+    },
+    {
+      "x": 6,
+      "y": 4,
+      "surface": "fire",
+      "expiresAtRound": 4
+    }
+  ],
+  "events": [
+    "STIMULUS_EMITTED",
+    "REACTION_TRIGGERED",
+    "SURFACE_REMOVED",
+    "SURFACE_CREATED",
+    "REACTION_TRIGGERED"
+  ]
+}

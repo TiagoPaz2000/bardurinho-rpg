@@ -1,0 +1,35 @@
+{
+  "name": "Frasco de óleo: alcance 4 e exige linha de visão",
+  "description": "consumable.oil_flask atrás de parede (NO_LINE_OF_SIGHT) e a 5 células (OUT_OF_RANGE): nada é criado e o frasco não é gasto.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "...#....",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      },
+      "consumables": [
+        "consumable.oil_flask"
+      ]
+    }
+  ],
+  "order": [
+    "mage-01"
+  ]
+}

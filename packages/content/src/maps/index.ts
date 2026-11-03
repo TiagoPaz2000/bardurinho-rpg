@@ -1,4 +1,4 @@
-import type { ScenarioInitial } from '@bardurinho/domain';
+import type { ScenarioInitial, ScenarioPos } from '@bardurinho/domain';
 
 export interface MapDefinition {
   id: string;
@@ -8,6 +8,8 @@ export interface MapDefinition {
   description: string;
   /** Mapa + objetos + superfícies iniciais + personagens de exemplo nos pontos de início. */
   scenario: ScenarioInitial;
+  /** Pontos de início por equipe (o primeiro é o principal; o segundo, do 2 × 2). */
+  spawns: Record<'A' | 'B', ScenarioPos[]>;
 }
 
 /*
@@ -49,6 +51,8 @@ export const patioDasRuinas: MapDefinition = {
   name: 'Pátio das Ruínas',
   tags: ['MVP', 'ARENA', 'MULTI_FLOOR'],
   description: 'Arena do MVP: 16×16, duas plataformas elevadas, muro central com portas e portão.',
+  // Simétricos por rotação de 180°: (7,0)↔(8,15) e (6,0)↔(9,15).
+  spawns: { A: [{ x: 7, y: 0 }, { x: 6, y: 0 }], B: [{ x: 8, y: 15 }, { x: 9, y: 15 }] },
   scenario: {
     name: 'Pátio das Ruínas',
     map: {
@@ -95,3 +99,5 @@ export const patioDasRuinas: MapDefinition = {
 };
 
 export const maps: MapDefinition[] = [patioDasRuinas];
+
+

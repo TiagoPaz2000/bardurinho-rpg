@@ -1,0 +1,39 @@
+{
+  "name": "Porta: fechada bloqueia caminho; abrir e fechar custam 1 PA",
+  "description": "Andar através da porta fechada: NO_PATH. Abrir (1 PA), atravessar (2 PM), fechar do outro lado (1 PA).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "###.####",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 0
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "door-01",
+      "defId": "door",
+      "pos": {
+        "x": 3,
+        "y": 1
+      }
+    }
+  ],
+  "order": [
+    "warrior-01"
+  ]
+}

@@ -1,0 +1,36 @@
+{
+  "errors": 0,
+  "activeUnitId": "warrior-01",
+  "units": {
+    "warrior-01": {
+      "hp": 96,
+      "mp": 3,
+      "statuses": [
+        "slowed"
+      ]
+    },
+    "mage-01": {
+      "focus": 8
+    }
+  },
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 14,
+      "damageType": "cold",
+      "mitigation": 0,
+      "hpDamage": 14,
+      "hpAfter": 96
+    }
+  ],
+  "events": [
+    "COOLDOWN_STARTED",
+    "ABILITY_USED",
+    "ATTACK_ROLLED",
+    "DAMAGE_APPLIED",
+    "STATUS_APPLIED",
+    "STIMULUS_EMITTED",
+    "TURN_ENDED",
+    "TURN_STARTED"
+  ]
+}

@@ -1,0 +1,11 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "mage-a",
+    "abilityId": "mage.frost_ray",
+    "target": {
+      "kind": "entity",
+      "id": "mage-b"
+    }
+  }
+]

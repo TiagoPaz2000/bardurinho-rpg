@@ -1,0 +1,51 @@
+{
+  "name": "Arco curto: 14 físico entre 2 e 6 células, nunca em alvo adjacente",
+  "description": "weapon.short_bow contra guerreiro a 3 células (14 − 4 = 10). Contra boneco adjacente: TOO_CLOSE. Contra célula a 7: OUT_OF_RANGE. Um disparo a 3 células na célula vazia é aceito (gasta o 2º PA).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    },
+    {
+      "id": "dummy-adjacent",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 1,
+        "y": 4
+      }
+    }
+  ],
+  "order": [
+    "rogue-01",
+    "warrior-01"
+  ]
+}

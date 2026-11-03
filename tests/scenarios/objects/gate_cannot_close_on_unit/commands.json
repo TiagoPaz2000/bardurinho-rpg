@@ -1,0 +1,29 @@
+[
+  {
+    "type": "INTERACT",
+    "actorId": "warrior-01",
+    "objectId": "lever-01"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-01"
+  },
+  {
+    "type": "MOVE",
+    "actorId": "rogue-01",
+    "to": {
+      "x": 3,
+      "y": 0,
+      "floor": 0
+    }
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "rogue-01"
+  },
+  {
+    "type": "INTERACT",
+    "actorId": "warrior-01",
+    "objectId": "lever-01"
+  }
+]

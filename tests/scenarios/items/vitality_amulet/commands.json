@@ -1,0 +1,10 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "druid-01",
+    "abilityId": "druid.natural_heal",
+    "target": {
+      "kind": "self"
+    }
+  }
+]

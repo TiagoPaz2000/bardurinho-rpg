@@ -1,0 +1,55 @@
+{
+  "errors": 0,
+  "units": {
+    "dummy-01": {
+      "hp": 100
+    },
+    "mage-01": {
+      "ap": 1
+    }
+  },
+  "cells": [
+    {
+      "x": 4,
+      "y": 3,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "surface": "oil",
+      "expiresAtRound": null
+    }
+  ],
+  "events": [
+    "ITEM_USED",
+    "SURFACE_CREATED",
+    "SURFACE_CREATED",
+    "SURFACE_CREATED",
+    "SURFACE_CREATED",
+    "SURFACE_CREATED"
+  ],
+  "forbiddenEvents": [
+    "DAMAGE_APPLIED",
+    "SURFACE_EXPOSURE"
+  ]
+}

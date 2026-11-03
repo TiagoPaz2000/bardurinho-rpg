@@ -1,0 +1,40 @@
+{
+  "errors": 0,
+  "cells": [
+    {
+      "x": 4,
+      "y": 3,
+      "surface": "fire",
+      "expiresAtRound": 4
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 4,
+      "y": 4,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 3,
+      "y": 3,
+      "surface": "oil",
+      "expiresAtRound": null
+    }
+  ],
+  "events": [
+    "ITEM_USED",
+    "REACTION_TRIGGERED",
+    "SURFACE_CREATED"
+  ]
+}

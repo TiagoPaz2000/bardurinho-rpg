@@ -1,0 +1,11 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "mage-01",
+    "abilityId": "mage.flame",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  }
+]

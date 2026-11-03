@@ -110,6 +110,15 @@ export class MatchesRepository {
     });
   }
 
+  /**
+   * Fase 4: a composição das equipes (classes/acessórios/consumíveis escolhidos ao entrar) só
+   * fica definida com os dois assentos ocupados, antes do START_MATCH. Enquanto nada foi
+   * jogado (versão 0), o snapshot inicial é substituído pela montagem final.
+   */
+  async replaceInitialSnapshot(matchId: string, state: GameState, hash: string): Promise<void> {
+    await this.db.query('UPDATE match_snapshots SET state = $3::jsonb, state_hash = $4 WHERE match_id = $1 AND version = $2', [matchId, 0, json(state), hash]);
+  }
+
   async addPlayer(matchId: string, seat: number, team: string, accountId: string): Promise<void> {
     await this.db.query('INSERT INTO match_players (match_id, seat, team, account_id) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING', [matchId, seat, team, accountId]);
   }

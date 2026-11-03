@@ -1,0 +1,57 @@
+{
+  "name": "Empurrão para dentro do fogo: 6 de fogo uma única vez no turno global",
+  "description": "warrior.push leva o ladino por duas células de fogo: recebe 6 − 2 = 4 do empurrão e 6 de fogo só na primeira célula.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    },
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 5,
+          "y": 3
+        },
+        {
+          "x": 6,
+          "y": 3
+        }
+      ],
+      "surface": "fire"
+    }
+  ],
+  "order": [
+    "warrior-01",
+    "rogue-01"
+  ]
+}

@@ -18,7 +18,7 @@
  */
 import { Color4, Engine, Matrix, Scene, Vector3 } from '@babylonjs/core';
 import { buildScenario, coordKey, reachableCells, type ActionInfo, type Catalog, type Coord, type GameState, type GameplayCommand } from '@bardurinho/domain';
-import type { MapDefinition } from '@bardurinho/content';
+import { decodeSetup, scenarioFromSetup, type MapDefinition } from '@bardurinho/content';
 import { MatchController, type MatchDriver } from '../game/MatchController.js';
 import type { NetworkMatch } from '../network/NetworkMatch.js';
 import { NetworkHud } from './networkHud.js';
@@ -35,6 +35,7 @@ import { Hud } from './hud.js';
 import { OptionsMenu } from './optionsMenu.js';
 import { loadSettings, saveSettings, type ClientSettings } from './settings.js';
 import { summarizeMatch } from '../game/matchSummary.js';
+import { Sfx } from '../rendering/sfx.js';
 
 const OVERVIEW_RADIUS = 46;
 
@@ -78,8 +79,13 @@ export interface ArenaScreen {
  * montagem do cenário; as regras são as mesmas. Sem o parâmetro, o cenário do mapa é usado como está.
  */
 export function scenarioOverride(mapDef: MapDefinition, catalog: Catalog, search = location.search): MapDefinition['scenario'] {
+  // Fase 4: `?setup=A=warrior:vitality_amulet:health_potion,focus_potion|rogue;B=mage` monta as
+  // equipes (tela de escolha); `?units=` continua valendo por cima (posições/classe, depuração).
+  const setupText = new URLSearchParams(search).get('setup');
+  const setup = setupText ? decodeSetup(catalog, setupText) : null;
+  const base = setup ? scenarioFromSetup(mapDef, catalog, setup) : mapDef.scenario;
   const raw = new URLSearchParams(search).get('units');
-  if (!raw) return mapDef.scenario;
+  if (!raw) return base;
   const specs = raw.split(';').map((entry) => {
     // '+' vira espaço na query string sem codificação: aceita os dois.
     const [main, items] = entry.trim().split(/[+\s]+/);
@@ -93,15 +99,16 @@ export function scenarioOverride(mapDef: MapDefinition, catalog: Catalog, search
       .filter((i) => catalog.items[i]?.kind === 'consumable');
     return { classId: classId?.trim() ?? '', pos: at ? { x: x!, y: y!, floor: floor || 0 } : null, consumables };
   });
-  const units = mapDef.scenario.units?.map((u, i) => {
+  const units = base.units?.map((u, i) => {
     const spec = specs[i];
     if (!spec || !catalog.classes[spec.classId]) return u;
-    return { ...u, classId: spec.classId, id: `${spec.classId}-0${i + 1}`, ...(spec.pos ? { pos: spec.pos } : {}), ...(spec.consumables.length ? { consumables: spec.consumables } : {}) };
+    // Mesma classe (só posição/itens): mantém o id do cenário (ex.: o do `?setup=`).
+    return { ...u, classId: spec.classId, id: 'classId' in u && u.classId === spec.classId ? u.id : `${spec.classId}-0${i + 1}`, ...(spec.pos ? { pos: spec.pos } : {}), ...(spec.consumables.length ? { consumables: spec.consumables } : {}) };
   });
   // A ordem fixa do cenário cita os ids antigos.
-  const renamed = new Map((mapDef.scenario.units ?? []).map((u, i) => [u.id, units?.[i]?.id ?? u.id]));
-  const order = mapDef.scenario.order?.map((id) => renamed.get(id) ?? id);
-  return { ...mapDef.scenario, units, ...(order ? { order } : {}) };
+  const renamed = new Map((base.units ?? []).map((u, i) => [u.id, units?.[i]?.id ?? u.id]));
+  const order = base.order?.map((id) => renamed.get(id) ?? id);
+  return { ...base, units, ...(order ? { order } : {}) };
 }
 
 /** Semente dos dados: `?seed=123` na URL (reprodutível) ou aleatória. */
@@ -129,7 +136,10 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   // montado sem iniciar: o START_MATCH passa pelo MatchController para a iniciativa (d20)
   // chegar à tela como evento.
   const seed = matchSeed();
-  const match: MatchDriver = net?.match ?? new MatchController(catalog, buildScenario(catalog, { ...scenarioOverride(mapDef, catalog), dice: 'random', seed, autoStart: false }));
+  // Depuração (Fase 4, só partida local): `?dice=average` usa o modo "média fixa" dos cenários de
+  // teste (cada dado vale a média; d20 = 11) para roteiros determinísticos (tools/e2e/conteudo.ts).
+  const dice = new URLSearchParams(location.search).get('dice') === 'average' ? 'average' : 'random';
+  const match: MatchDriver = net?.match ?? new MatchController(catalog, buildScenario(catalog, { ...scenarioOverride(mapDef, catalog), dice, seed, autoStart: false }));
   const map = match.state.map;
   const arena = new ArenaView(scene, match.state);
 
@@ -202,8 +212,12 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
 
   // Preferências do cliente (tela de opções, etapa 6).
   let settings = loadSettings();
+  // Fase 4: efeitos sonoros (WebAudio, volume nas opções). `window.__sfx` para depuração/e2e.
+  const sfx = new Sfx();
+  (window as unknown as { __sfx: Sfx }).__sfx = sfx;
   const applySettings = (s: ClientSettings) => {
     settings = s;
+    sfx.volume = s.sfxVolume;
     cameraEvents.preference = s.autoCamera;
     input.sensitivity = s.cameraSensitivity;
     input.invertDrag = s.invertDrag;
@@ -314,6 +328,7 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
           camera: cameraEvents,
           after,
           spotlight,
+          sfx,
           onInitiative: (rolls, order) => hud.showInitiative(after, rolls, order),
           // O andar visualizado acompanha o personagem da vez na escada.
           onFloorChange: (unitId, floor) => {
@@ -326,7 +341,10 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
       arena.sync(state);
       bars.sync(state);
     },
-    rejected: (error) => hud.toast(error.message),
+    rejected: (error) => {
+      sfx.play('ui.error');
+      hud.toast(error.message);
+    },
   };
   match.onChange(({ before, state }) => {
     // Novo turno: seleciona e enquadra o personagem da vez.

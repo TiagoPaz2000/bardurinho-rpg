@@ -1,0 +1,11 @@
+[
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "mage-01",
+    "weaponId": "weapon.arcane_wand",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  }
+]

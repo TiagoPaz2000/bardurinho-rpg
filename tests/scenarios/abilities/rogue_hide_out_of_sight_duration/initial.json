@@ -1,0 +1,42 @@
+{
+  "name": "Ocultação fora da visão inimiga termina ao final do próximo turno próprio",
+  "description": "rogue.hide atrás de um muro (sem linha de visão). Oculto continua durante o turno do inimigo e expira ao final do turno próprio seguinte.",
+  "map": {
+    "floors": [
+      [
+        "...#....",
+        "...#....",
+        "...#....",
+        "...#....",
+        "...#....",
+        "...#....",
+        "...#....",
+        "...#...."
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "rogue-01",
+    "warrior-01"
+  ]
+}

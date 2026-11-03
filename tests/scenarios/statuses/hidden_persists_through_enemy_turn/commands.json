@@ -1,0 +1,23 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "rogue-01",
+    "abilityId": "rogue.hide",
+    "target": {
+      "kind": "self"
+    }
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "rogue-01"
+  },
+  {
+    "type": "USE_ABILITY",
+    "actorId": "mage-01",
+    "abilityId": "mage.flame",
+    "target": {
+      "kind": "entity",
+      "id": "rogue-01"
+    }
+  }
+]

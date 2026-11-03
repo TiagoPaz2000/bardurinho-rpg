@@ -1,0 +1,59 @@
+{
+  "name": "Tiro preciso: recusado contra alvo adjacente, além de 7 células e sem linha de visão",
+  "description": "Três tentativas inválidas de rogue.precise_shot: alvo adjacente (TOO_CLOSE), distância 8 (OUT_OF_RANGE) e atrás de parede (NO_LINE_OF_SIGHT). Nenhum recurso é gasto.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        ".#......",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "id": "dummy-adjacent",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "id": "dummy-far",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 7,
+        "y": 3
+      }
+    },
+    {
+      "id": "dummy-behind-wall",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 1,
+        "y": 5
+      }
+    }
+  ],
+  "order": [
+    "rogue-01"
+  ]
+}

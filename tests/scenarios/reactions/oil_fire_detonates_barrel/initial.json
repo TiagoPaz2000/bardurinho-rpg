@@ -1,0 +1,70 @@
+{
+  "name": "Fogo + barril explosivo: o incêndio da mancha de óleo detona o barril",
+  "description": "Chama numa ponta da mancha de óleo; o fogo chega à célula do barril e o detona (20 de fogo em raio 1).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 2,
+        "y": 1
+      }
+    },
+    {
+      "id": "dummy-01",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 5,
+        "y": 6
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "barrel-01",
+      "defId": "barrel",
+      "pos": {
+        "x": 4,
+        "y": 5
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 2,
+          "y": 5
+        },
+        {
+          "x": 3,
+          "y": 5
+        },
+        {
+          "x": 4,
+          "y": 5
+        }
+      ],
+      "surface": "oil"
+    }
+  ],
+  "order": [
+    "mage-01"
+  ]
+}

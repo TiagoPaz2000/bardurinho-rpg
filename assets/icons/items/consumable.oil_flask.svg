@@ -1,0 +1,22 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="items_consumable_oil_flask_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><clipPath id="items_consumable_oil_flask_clip1"><path d="M114,70 L142,70 L142,102 L198,202 Q204,220 184,220 L72,220 Q52,220 58,202 L114,102 Z"/></clipPath><linearGradient id="items_consumable_oil_flask_amber2" x1="0.5" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#FFE6A0"/><stop offset="0.5" stop-color="#E89A24"/><stop offset="1" stop-color="#8A4A0A"/></linearGradient><radialGradient id="items_consumable_oil_flask_gloss3" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="items_consumable_oil_flask_cream4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.5" stop-color="#FBEFD2"/><stop offset="1" stop-color="#DCC08A"/></linearGradient><linearGradient id="items_consumable_oil_flask_amber5" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFE6A0"/><stop offset="0.5" stop-color="#E89A24"/><stop offset="1" stop-color="#8A4A0A"/></linearGradient></defs>
+<ellipse cx="128" cy="238" rx="80" ry="9" fill="#1a0e24" opacity="0.28" filter="url(#items_consumable_oil_flask_blur0)"/>
+<path d="M110,68 L146,68 L146,100 L204,202 Q212,226 186,226 L70,226 Q44,226 52,202 L110,100 Z" fill="#E8F4FF" fill-opacity="0.35"/>
+<g clip-path="url(#items_consumable_oil_flask_clip1)">
+<path d="M0,150 Q64,142 128,150 T256,150 L256,256 L0,256 Z" fill="url(#items_consumable_oil_flask_amber2)"/>
+<path d="M0,150 Q64,142 128,150 T256,150" fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="5"/>
+<path d="M114,70 L142,70 L142,102 L198,202 Q204,220 184,220 L72,220 Q52,220 58,202 L114,102 Z" fill="url(#items_consumable_oil_flask_gloss3)" opacity="0.5"/>
+</g>
+<path d="M110,68 L146,68 L146,100 L204,202 Q212,226 186,226 L70,226 Q44,226 52,202 L110,100 Z" fill="none" stroke="#3A2440" stroke-width="5" stroke-linejoin="round"/>
+<path d="M76,196 L112,132" fill="none" stroke="#fff" stroke-width="7" stroke-linecap="round" opacity="0.75"/>
+<path d="M106,168 L150,168 Q158,168 158,176 L158,200 Q158,208 150,208 L106,208 Q98,208 98,200 L98,176 Q98,168 106,168 Z" fill="url(#items_consumable_oil_flask_cream4)" stroke="#7A5A2E" stroke-width="3" stroke-linejoin="round"/>
+<path d="M106,168 L150,168 Q158,168 158,176 L158,200 Q158,208 150,208 L106,208 Q98,208 98,200 L98,176 Q98,168 106,168 Z" fill="url(#items_consumable_oil_flask_gloss3)" opacity="0.3"/>
+<path d="M128,173 C130.8,179.8 136.3,185.8 136.3,192.8 C136.3,198.8 132.6,203 128,203 C123.4,203 119.8,198.8 119.8,192.8 C119.8,185.8 125.3,179.8 128,173 Z" fill="url(#items_consumable_oil_flask_amber5)" stroke="#4A2404" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M128,173 C130.8,179.8 136.3,185.8 136.3,192.8 C136.3,198.8 132.6,203 128,203 C123.4,203 119.8,198.8 119.8,192.8 C119.8,185.8 125.3,179.8 128,173 Z" fill="url(#items_consumable_oil_flask_gloss3)" opacity="0.6"/>
+<path d="M104,66 Q100,40 112,26 Q128,16 144,26 Q156,40 152,66 Z" fill="url(#items_consumable_oil_flask_cream4)" stroke="#7A5A2E" stroke-width="4" stroke-linejoin="round"/>
+<path d="M104,66 Q100,40 112,26 Q128,16 144,26 Q156,40 152,66 Z" fill="url(#items_consumable_oil_flask_gloss3)" opacity="0.4"/>
+<path d="M104,62 Q128,70 152,62" fill="none" stroke="#3E1E08" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M104,62 Q128,70 152,62" fill="none" stroke="#C88A4C" stroke-width="5" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M150,64 Q164,72 160,88" fill="none" stroke="#3E1E08" stroke-width="8" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M150,64 Q164,72 160,88" fill="none" stroke="#C88A4C" stroke-width="4" stroke-linecap="round" stroke-linejoin="round"/>
+</svg>

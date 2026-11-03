@@ -1,0 +1,47 @@
+{
+  "errors": 0,
+  "cells": [
+    {
+      "x": 2,
+      "y": 2,
+      "floor": 0,
+      "surface": "fire",
+      "expiresAtRound": 4
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "floor": 0,
+      "surface": "fire",
+      "expiresAtRound": 4
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "floor": 0,
+      "surface": "fire",
+      "expiresAtRound": 4
+    },
+    {
+      "x": 5,
+      "y": 3,
+      "floor": 0,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 3,
+      "y": 2,
+      "floor": 1,
+      "surface": "oil",
+      "expiresAtRound": null
+    }
+  ],
+  "events": [
+    "STIMULUS_EMITTED",
+    "REACTION_TRIGGERED",
+    "SURFACE_CREATED",
+    "SURFACE_CREATED",
+    "SURFACE_CREATED"
+  ]
+}

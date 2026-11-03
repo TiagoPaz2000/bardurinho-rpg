@@ -3,7 +3,9 @@
  * Contas de desenvolvimento do servidor: `jogador-a` / `jogador-b`, senha `dev`.
  * Resolve com a sala em que o jogador entrou (e o primeiro snapshot).
  */
+import { catalog } from '@bardurinho/content';
 import { joinMatch, listRooms, login, rememberRoom, saveSession, type Joined, type SavedSession } from '../network/connect.js';
+import { TeamPicker } from './matchSetup.js';
 
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 
@@ -23,18 +25,25 @@ export function showLobby(root: HTMLElement, o: LobbyOptions): Promise<Joined> {
   let session: SavedSession | null = null;
   let message = o.notice ?? '';
   let busy = false;
+  // Fase 4: formato da sala e escolha de personagens (o servidor valida; a equipe A/B é a do assento).
+  let teamSize = 1;
+  const picker = new TeamPicker(catalog, 'A', 1, 'Seus personagens', true);
 
   return new Promise<Joined>((resolve) => {
     const render = async () => {
       const rooms = session ? await listRooms(o.serverUrl).catch(() => null) : null;
       const open = (rooms ?? []).filter((r) => !r.private && r.metadata?.status === 'setup');
       box.innerHTML = `
-        <div class="hud-panel lobby-box">
+        <div class="hud-panel lobby-box ms-net">
           <div class="lobby-title">Bardurinho RPG — partida em rede</div>
           <div class="lobby-sub">Servidor <code>${esc(o.serverUrl)}</code></div>
           ${
             session
               ? `<div class="lobby-row">Conectado como <b>${esc(session.username)}</b> <button type="button" class="link" data-act="logout">trocar</button></div>
+                 <div class="ms-row ms-format"><span class="ms-label">Formato</span>${[1, 2]
+                   .map((n) => `<button type="button" class="ms-opt${n === teamSize ? ' on' : ''}" data-size="${n}">${n} × ${n}</button>`)
+                   .join('')}</div>
+                 ${picker.render()}
                  <button type="button" class="hud-button" data-act="quick" ${busy ? 'disabled' : ''}>Procurar partida</button>
                  <div class="lobby-rooms">${
                    rooms === null
@@ -43,7 +52,7 @@ export function showLobby(root: HTMLElement, o: LobbyOptions): Promise<Joined> {
                        ? open
                            .map(
                              (r) =>
-                               `<button type="button" class="ta-btn ok" data-room="${esc(r.roomId)}" ${busy ? 'disabled' : ''}><b>Sala ${esc(r.roomId)}</b><span class="cost">${(r.metadata?.seats ?? [])
+                               `<button type="button" class="ta-btn ok" data-room="${esc(r.roomId)}" ${busy ? 'disabled' : ''}><b>Sala ${esc(r.roomId)}${r.metadata?.teamSize ? ` · ${r.metadata.teamSize} × ${r.metadata.teamSize}` : ''}</b><span class="cost">${(r.metadata?.seats ?? [])
                                  .map((s) => (s.username ? `${esc(s.team)}: ${esc(s.username)}` : `${esc(s.team)}: livre`))
                                  .join(' · ')}</span></button>`,
                            )
@@ -68,7 +77,12 @@ export function showLobby(root: HTMLElement, o: LobbyOptions): Promise<Joined> {
       message = 'Entrando na sala…';
       await render();
       try {
-        const joined = await joinMatch(o.serverUrl, session.token, { ...(roomId ? { roomId } : {}), ...(o.seed ? { seed: o.seed } : {}), ...(o.turnSeconds ? { turnSeconds: o.turnSeconds } : {}) });
+        const joined = await joinMatch(o.serverUrl, session.token, {
+          ...(roomId ? { roomId } : { teamSize }),
+          team: picker.choices,
+          ...(o.seed ? { seed: o.seed } : {}),
+          ...(o.turnSeconds ? { turnSeconds: o.turnSeconds } : {}),
+        });
         rememberRoom(session, joined.room);
         box.remove();
         resolve(joined);
@@ -82,6 +96,12 @@ export function showLobby(root: HTMLElement, o: LobbyOptions): Promise<Joined> {
     box.addEventListener('click', (e) => {
       const el = (e.target as HTMLElement).closest('button');
       if (!el || busy) return;
+      if (el.dataset.size) {
+        teamSize = Number(el.dataset.size);
+        picker.setSize(teamSize);
+        return void render();
+      }
+      if (picker.handle(el)) return void render();
       const user = el.dataset.login;
       if (user) {
         busy = true;

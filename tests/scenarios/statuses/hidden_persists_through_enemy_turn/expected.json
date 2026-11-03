@@ -1,0 +1,20 @@
+{
+  "errors": 1,
+  "activeUnitId": "mage-01",
+  "units": {
+    "rogue-01": {
+      "hp": 90,
+      "statuses": [
+        "hidden"
+      ]
+    },
+    "mage-01": {
+      "focus": 10,
+      "ap": 2
+    }
+  },
+  "forbiddenEvents": [
+    "STATUS_REMOVED",
+    "DAMAGE_APPLIED"
+  ]
+}

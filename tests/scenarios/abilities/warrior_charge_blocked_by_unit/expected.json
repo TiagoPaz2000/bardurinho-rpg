@@ -1,0 +1,20 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "pos": {
+        "x": 1,
+        "y": 2
+      },
+      "ap": 2,
+      "focus": 8
+    },
+    "mage-01": {
+      "hp": 80
+    }
+  },
+  "forbiddenEvents": [
+    "ABILITY_USED",
+    "UNIT_MOVED"
+  ]
+}

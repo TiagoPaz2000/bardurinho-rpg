@@ -19,7 +19,9 @@ import {
   type MapObject,
   type Unit,
 } from '@bardurinho/domain';
+import { abilityCooldown } from '@bardurinho/domain';
 import type { MatchSummary } from '../game/matchSummary.js';
+import { abilityIcon, actionIcon, classIcon, iconImg, itemIcon, statusIcon } from './icons.js';
 
 export type Inspected = { kind: 'cell'; cell: Coord } | { kind: 'unit'; id: EntityId } | { kind: 'object'; id: EntityId };
 
@@ -296,6 +298,27 @@ export class Hud {
     return u.classId ? (this.catalog.classes[u.classId]?.name ?? u.classId) : 'boneco de teste';
   }
 
+  /** Estados com ícone e turnos restantes (Fase 4). */
+  private statusChips(u: Unit): string {
+    if (!u.statuses.length && !u.shield) return '';
+    const chips = u.statuses.map((st) => {
+      const def = this.catalog.statuses[st.statusId];
+      const turns = def && def.duration.kind !== 'manual' && st.remaining > 0 ? ` ${st.remaining}` : '';
+      return `<span class="st" data-status="${esc(st.statusId)}">${iconImg(statusIcon(st.statusId))}${esc(def?.name ?? st.statusId)}${turns}</span>`;
+    });
+    if (u.shield) chips.unshift(`<span class="st" data-status="barrier">${iconImg(statusIcon('barrier'))}Barreira ${u.shield.amount}</span>`);
+    return `<div class="hud-statuses">${chips.join('')}</div>`;
+  }
+
+  /** Habilidades em recarga (Fase 4): "⟳ N" = turnos próprios até voltar. */
+  private cooldownChips(u: Unit): string {
+    const chips = u.abilities
+      .map((id) => ({ id, cd: abilityCooldown(u, id, this.catalog) }))
+      .filter((x) => x.cd.turns > 0 || x.cd.usedThisTurn)
+      .map((x) => `<span class="cd" data-cooldown="${esc(x.id)}" title="${esc(this.catalog.abilities[x.id]?.name ?? x.id)}">${iconImg(abilityIcon(x.id))}${x.cd.turns > 0 ? `${iconImg(actionIcon('cooldown'))}${x.cd.turns}` : 'usada'}</span>`);
+    return chips.length ? `<div class="hud-cooldowns">${chips.join('')}</div>` : '';
+  }
+
   private resources(u: Unit): string {
     const shield = u.shield ? ` · barreira ${u.shield.amount}` : '';
     return `PV ${u.hp}/${u.maxHp} · PA ${u.ap}/${u.maxAp} · PM ${u.mp}/${u.maxMp} · Foco ${u.focus}/${u.maxFocus}${shield}`;
@@ -315,7 +338,7 @@ export class Hud {
       ${status ? `<div class="status">${status}</div>` : ''}
       ${row('Rodada', String(state.turn.round))}
       ${row('Vez de', activeHtml)}
-      ${active ? `<div class="resources">${this.resources(active)}</div>` : ''}
+      ${active ? `<div class="resources">${this.resources(active)}</div>${this.statusChips(active)}${this.cooldownChips(active)}` : ''}
       ${row('Andar visualizado', `${v.viewedFloor} — ${floorLabel(v.viewedFloor, v.floors)}${v.viewedFloor === v.floors - 1 ? ' (tudo visível)' : ''}`)}
       ${row('Câmera', `${v.orientation}° · ${v.radius.toFixed(0)} m${v.grid ? ' · grade' : ''}`)}`;
     if (html !== this.lastInfo) {
@@ -383,10 +406,19 @@ export class Hud {
     if (inspected.kind === 'unit') {
       const u = state.units[inspected.id];
       if (!u) return '';
-      const statuses = u.statuses.map((s) => esc(this.catalog.statuses[s.statusId]?.name ?? s.statusId)).join(', ');
+      const statuses = u.statuses.map((s) => `${iconImg(statusIcon(s.statusId), 'ms-icon-sm')}${esc(this.catalog.statuses[s.statusId]?.name ?? s.statusId)}${s.remaining > 0 ? ` (${s.remaining})` : ''}`).join(', ');
+      const kit = [
+        ...(u.accessoryId ? [`${iconImg(itemIcon(u.accessoryId), 'ms-icon-sm')}${esc(this.catalog.items[u.accessoryId]?.name ?? u.accessoryId)}`] : []),
+        ...u.consumables.map((c) => `${iconImg(itemIcon(c), 'ms-icon-sm')}${esc(this.catalog.items[c]?.name ?? c)}`),
+      ].join(' ');
+      const cds = u.abilities
+        .map((id) => ({ id, cd: abilityCooldown(u, id, this.catalog) }))
+        .filter((x) => x.cd.turns > 0)
+        .map((x) => `${iconImg(abilityIcon(x.id), 'ms-icon-sm')}${esc(this.catalog.abilities[x.id]?.name ?? x.id)} ${iconImg(actionIcon('cooldown'), 'ms-icon-sm')}${x.cd.turns}`)
+        .join(', ');
       const isActive = state.turn.activeUnitId === u.id;
       return `
-        <div class="title">${this.unitName(u)}${isActive ? ' <span class="tag">na vez</span>' : ''}${u.alive ? '' : ' <span class="tag dead">derrotado</span>'}</div>
+        <div class="title">${u.classId ? iconImg(classIcon(u.classId), 'ms-icon-sm') : ''}${this.unitName(u)}${isActive ? ' <span class="tag">na vez</span>' : ''}${u.alive ? '' : ' <span class="tag dead">derrotado</span>'}</div>
         ${row('Classe', esc(this.className(u)))}
         ${row('Equipe', `<span class="team-${esc(u.team)}">${esc(u.team)}</span>`)}
         ${row('PV', `${u.hp}/${u.maxHp}`)}
@@ -395,6 +427,9 @@ export class Hud {
         ${row('Foco', `${u.focus}/${u.maxFocus}`)}
         ${u.shield ? row('Barreira', String(u.shield.amount)) : ''}
         ${statuses ? row('Estados', statuses) : ''}
+        ${cds ? row('Recarga', cds) : ''}
+        ${row('Armadura', `${u.armor}${Object.entries(u.resistances).filter(([, v]) => v).map(([k, v]) => ` · resist. ${esc(k)} ${v}`).join('')}`)}
+        ${kit ? row('Itens', kit) : ''}
         ${row('Posição', where(u.pos))}`;
     }
     if (inspected.kind === 'object') {

@@ -1,0 +1,16 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "hp": 96
+    },
+    "mage-01": {
+      "ap": 0
+    }
+  },
+  "objects": {
+    "door-01": {
+      "state": "open"
+    }
+  }
+}

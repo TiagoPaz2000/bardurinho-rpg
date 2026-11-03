@@ -1,0 +1,42 @@
+{
+  "name": "Tiro preciso: 22 físico a distância (arco, 2 a 7 células)",
+  "description": "rogue.precise_shot a 4 células contra guerreiro (Cota reforçada, armadura 4): 22 − 4 = 18. Custo 1 PA + 3 Foco; recarga 1.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "rogue-01",
+    "warrior-01"
+  ]
+}

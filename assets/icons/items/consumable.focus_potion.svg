@@ -1,0 +1,23 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="items_consumable_focus_potion_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><clipPath id="items_consumable_focus_potion_clip1"><path d="M116,94 L116,62 L140,62 L140,94 Q168,100 168,128 L168,204 Q168,224 148,224 L108,224 Q88,224 88,204 L88,128 Q88,100 116,94 Z"/></clipPath><linearGradient id="items_consumable_focus_potion_blue2" x1="0.5" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#C8F2FF"/><stop offset="0.5" stop-color="#2E92EA"/><stop offset="1" stop-color="#103C88"/></linearGradient><radialGradient id="items_consumable_focus_potion_gloss3" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="items_consumable_focus_potion_gold4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.5" stop-color="#F4B43C"/><stop offset="1" stop-color="#B86A16"/></linearGradient><linearGradient id="items_consumable_focus_potion_wood5" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#E0A868"/><stop offset="0.5" stop-color="#A86A34"/><stop offset="1" stop-color="#663816"/></linearGradient><linearGradient id="items_consumable_focus_potion_blue6" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#C8F2FF"/><stop offset="0.5" stop-color="#2E92EA"/><stop offset="1" stop-color="#103C88"/></linearGradient></defs>
+<ellipse cx="128" cy="238" rx="56" ry="9" fill="#1a0e24" opacity="0.28" filter="url(#items_consumable_focus_potion_blur0)"/>
+<path d="M112,90 L112,60 L144,60 L144,90 Q174,96 174,128 L174,206 Q174,230 150,230 L106,230 Q82,230 82,206 L82,128 Q82,96 112,90 Z" fill="#E8F4FF" fill-opacity="0.35"/>
+<g clip-path="url(#items_consumable_focus_potion_clip1)">
+<path d="M0,120 Q64,112 128,120 T256,120 L256,256 L0,256 Z" fill="url(#items_consumable_focus_potion_blue2)"/>
+<path d="M0,120 Q64,112 128,120 T256,120" fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="5"/>
+<path d="M116,94 L116,62 L140,62 L140,94 Q168,100 168,128 L168,204 Q168,224 148,224 L108,224 Q88,224 88,204 L88,128 Q88,100 116,94 Z" fill="url(#items_consumable_focus_potion_gloss3)" opacity="0.5"/>
+</g>
+<path d="M112,90 L112,60 L144,60 L144,90 Q174,96 174,128 L174,206 Q174,230 150,230 L106,230 Q82,230 82,206 L82,128 Q82,96 112,90 Z" fill="none" stroke="#3A2440" stroke-width="5" stroke-linejoin="round"/>
+<path d="M116,161 L118.2,169.8 L127,172 L118.2,174.2 L116,183 L113.8,174.2 L105,172 L113.8,169.8 Z" fill="#E8FAFF"/>
+<path d="M148,193 L149.4,198.6 L155,200 L149.4,201.4 L148,207 L146.6,201.4 L141,200 L146.6,198.6 Z" fill="#E8FAFF" opacity="0.9"/>
+<path d="M150,140 L151.2,144.8 L156,146 L151.2,147.2 L150,152 L148.8,147.2 L144,146 L148.8,144.8 Z" fill="#E8FAFF" opacity="0.8"/>
+<path d="M96,200 L96,132 Q96,112 112,106" fill="none" stroke="#fff" stroke-width="8" stroke-linecap="round" opacity="0.8"/>
+<path d="M110,52 L146,52 Q152,52 152,58 L152,59 Q152,65 146,65 L110,65 Q104,65 104,59 L104,58 Q104,52 110,52 Z" fill="url(#items_consumable_focus_potion_gold4)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M110,52 L146,52 Q152,52 152,58 L152,59 Q152,65 146,65 L110,65 Q104,65 104,59 L104,58 Q104,52 110,52 Z" fill="url(#items_consumable_focus_potion_gloss3)" opacity="0.8"/>
+<path d="M121,22 L135,22 Q143,22 143,30 L143,48 Q143,56 135,56 L121,56 Q113,56 113,48 L113,30 Q113,22 121,22 Z" fill="url(#items_consumable_focus_potion_wood5)" stroke="#3E1E08" stroke-width="4" stroke-linejoin="round"/>
+<path d="M121,22 L135,22 Q143,22 143,30 L143,48 Q143,56 135,56 L121,56 Q113,56 113,48 L113,30 Q113,22 121,22 Z" fill="url(#items_consumable_focus_potion_gloss3)" opacity="0.5"/>
+<path d="M117.9,20 A10.2,10.2 0 1 0 138.2,20 A10.2,10.2 0 1 0 117.9,20 Z" fill="url(#items_consumable_focus_potion_gold4)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M117.9,20 A10.2,10.2 0 1 0 138.2,20 A10.2,10.2 0 1 0 117.9,20 Z" fill="url(#items_consumable_focus_potion_gloss3)" opacity="0.8"/>
+<path d="M121,20 A7,7 0 1 0 135,20 A7,7 0 1 0 121,20 Z" fill="url(#items_consumable_focus_potion_blue6)" stroke="#0A2050" stroke-width="1.5" stroke-linejoin="round"/>
+<ellipse cx="125.9" cy="17.6" rx="2.7" ry="1.5" transform="rotate(-35 125.9 17.6)" fill="#fff" opacity="0.9"/>
+</svg>

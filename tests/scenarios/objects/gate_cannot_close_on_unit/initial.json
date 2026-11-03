@@ -1,0 +1,60 @@
+{
+  "name": "Alavanca não fecha o portão com personagem na passagem",
+  "description": "Portão aberto com o ladino na passagem: acionar a alavanca é recusado (CELL_OCCUPIED, mesma regra da porta). Depois que o ladino sai, a alavanca fecha o portão.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "###.####",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 2,
+        "y": 2
+      }
+    },
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 1
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "gate-01",
+      "defId": "gate",
+      "pos": {
+        "x": 3,
+        "y": 1
+      },
+      "state": "open"
+    },
+    {
+      "id": "lever-01",
+      "defId": "lever",
+      "pos": {
+        "x": 1,
+        "y": 2
+      },
+      "linkedId": "gate-01",
+      "state": "open"
+    }
+  ],
+  "order": [
+    "warrior-01",
+    "rogue-01"
+  ]
+}

@@ -1,0 +1,59 @@
+{
+  "name": "Baú exige espaço: dois espaços e no máximo uma unidade de cada tipo",
+  "description": "Com dois consumíveis: INVENTORY_FULL. Com uma Poção de vida já carregada: INVENTORY_FULL (tipo repetido). O baú continua disponível.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-a",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      },
+      "consumables": [
+        "consumable.health_potion",
+        "consumable.focus_potion"
+      ]
+    },
+    {
+      "id": "warrior-b",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      },
+      "consumables": [
+        "consumable.health_potion"
+      ]
+    }
+  ],
+  "objects": [
+    {
+      "id": "chest-01",
+      "defId": "chest",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "warrior-a",
+    "warrior-b"
+  ]
+}

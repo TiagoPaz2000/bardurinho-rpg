@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="items_consumable_health_potion_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><clipPath id="items_consumable_health_potion_clip1"><path d="M112,100 L112,64 L144,64 L144,100 C176,110 196,136 196,164 C196,200 164,224 128,224 C92,224 60,200 60,164 C60,136 80,110 112,100 Z"/></clipPath><linearGradient id="items_consumable_health_potion_red2" x1="0.5" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#FFB0B8"/><stop offset="0.5" stop-color="#E8283E"/><stop offset="1" stop-color="#7E0A1E"/></linearGradient><radialGradient id="items_consumable_health_potion_gloss3" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="items_consumable_health_potion_gold4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.5" stop-color="#F4B43C"/><stop offset="1" stop-color="#B86A16"/></linearGradient><linearGradient id="items_consumable_health_potion_wood5" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#E0A868"/><stop offset="0.5" stop-color="#A86A34"/><stop offset="1" stop-color="#663816"/></linearGradient><linearGradient id="items_consumable_health_potion_white6" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.5" stop-color="#F2F6FA"/><stop offset="1" stop-color="#C8D2DE"/></linearGradient></defs>
+<ellipse cx="128" cy="238" rx="64" ry="9" fill="#1a0e24" opacity="0.28" filter="url(#items_consumable_health_potion_blur0)"/>
+<path d="M108,96 L108,62 L148,62 L148,96 C182,106 202,134 202,164 C202,204 168,230 128,230 C88,230 54,204 54,164 C54,134 74,106 108,96 Z" fill="#E8F4FF" fill-opacity="0.35"/>
+<g clip-path="url(#items_consumable_health_potion_clip1)">
+<path d="M0,128 Q64,120 128,128 T256,128 L256,256 L0,256 Z" fill="url(#items_consumable_health_potion_red2)"/>
+<path d="M0,128 Q64,120 128,128 T256,128" fill="none" stroke="#fff" stroke-opacity="0.55" stroke-width="5"/>
+<path d="M112,100 L112,64 L144,64 L144,100 C176,110 196,136 196,164 C196,200 164,224 128,224 C92,224 60,200 60,164 C60,136 80,110 112,100 Z" fill="url(#items_consumable_health_potion_gloss3)" opacity="0.5"/>
+</g>
+<path d="M108,96 L108,62 L148,62 L148,96 C182,106 202,134 202,164 C202,204 168,230 128,230 C88,230 54,204 54,164 C54,134 74,106 108,96 Z" fill="none" stroke="#3A2440" stroke-width="5" stroke-linejoin="round"/>
+<circle cx="150" cy="170" r="6" fill="none" stroke="#fff" stroke-width="2" opacity="0.7"/>
+<circle cx="104" cy="196" r="4" fill="none" stroke="#fff" stroke-width="2" opacity="0.7"/>
+<circle cx="160" cy="200" r="3.5" fill="none" stroke="#fff" stroke-width="2" opacity="0.7"/>
+<path d="M78,150 Q80,122 104,110" fill="none" stroke="#fff" stroke-width="9" stroke-linecap="round" opacity="0.8"/>
+<path d="M106,54 L150,54 Q156,54 156,60 L156,62 Q156,68 150,68 L106,68 Q100,68 100,62 L100,60 Q100,54 106,54 Z" fill="url(#items_consumable_health_potion_gold4)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M106,54 L150,54 Q156,54 156,60 L156,62 Q156,68 150,68 L106,68 Q100,68 100,62 L100,60 Q100,54 106,54 Z" fill="url(#items_consumable_health_potion_gloss3)" opacity="0.8"/>
+<path d="M118,22 L138,22 Q146,22 146,30 L146,50 Q146,58 138,58 L118,58 Q110,58 110,50 L110,30 Q110,22 118,22 Z" fill="url(#items_consumable_health_potion_wood5)" stroke="#3E1E08" stroke-width="4" stroke-linejoin="round"/>
+<path d="M118,22 L138,22 Q146,22 146,30 L146,50 Q146,58 138,58 L118,58 Q110,58 110,50 L110,30 Q110,22 118,22 Z" fill="url(#items_consumable_health_potion_gloss3)" opacity="0.5"/>
+<path d="M116,34 L140,34 M116,44 L140,44" fill="none" stroke="#3E1E08" stroke-width="2" stroke-linecap="round" stroke-linejoin="round" opacity="0.5"/>
+<path d="M128,163.3 C128,157.3 122.4,155 119.2,155 C114.4,155 111.2,158.8 111.2,164 C111.2,172.3 121.6,179 128,184.3 C134.4,179 144.8,172.3 144.8,164 C144.8,158.8 141.6,155 136.8,155 C133.6,155 128,157.3 128,163.3 Z" fill="url(#items_consumable_health_potion_white6)" stroke="#5A6474" stroke-width="2.5" stroke-linejoin="round" opacity="0.85"/>
+</svg>

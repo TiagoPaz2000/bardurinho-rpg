@@ -1,0 +1,14 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "hp": 110
+    }
+  },
+  "objects": {
+    "crate-01": {
+      "hp": 6,
+      "state": "normal"
+    }
+  }
+}

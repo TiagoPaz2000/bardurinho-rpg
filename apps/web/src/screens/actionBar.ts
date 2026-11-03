@@ -9,6 +9,16 @@
  */
 import { BASIC_ACTION_DESCRIPTIONS, describeDefinition } from '@bardurinho/content';
 import { listUnitActions, type ActionInfo, type Catalog, type GameState } from '@bardurinho/domain';
+import { actionIcon, iconForAction, iconImg } from './icons.js';
+
+/** Recarga da carta (Fase 4): "volta em N turnos" / "usada neste turno" / "recarga N". */
+export function cooldownText(x: ActionInfo): string | null {
+  const cd = x.cooldown;
+  if (!cd) return null;
+  if (cd.turns > 0) return `recarga: volta em ${cd.turns} turno${cd.turns > 1 ? 's' : ''} próprio${cd.turns > 1 ? 's' : ''}`;
+  if (cd.usedThisTurn) return 'já usada neste turno';
+  return null;
+}
 
 export interface ActionBarView {
   state: GameState;
@@ -49,6 +59,7 @@ export function actionTooltipHtml(catalog: Catalog, x: ActionInfo, hint = action
   return `
     <div class="tip-title">${esc(x.name)}<span class="tip-cost">${esc(x.cost)}</span></div>
     ${(d?.effects ?? []).map((t) => `<div class="tip-effect">• ${esc(t)}</div>`).join('')}
+    ${x.cooldown ? `<div class="tip-details">Recarga ${x.cooldown.recharge} · ${esc(cooldownText(x) ?? 'pronta')}</div>` : ''}
     ${d?.details.length ? `<div class="tip-details">${d.details.map((t) => `<div>${esc(t)}</div>`).join('')}</div>` : ''}
     ${x.available
       ? `<div class="tip-status ok">Disponível — ${esc(hint)}</div>`
@@ -137,12 +148,15 @@ export class ActionBar {
     const cards = this.actions.map((x, i) => {
       const state = !x.available ? 'blocked' : v.aimingKey === x.key ? 'aiming' : 'ok';
       const disabled = v.busy ? ' disabled' : '';
+      const cd = x.cooldown && x.cooldown.turns > 0 ? `<span class="ac-cd" title="${esc(cooldownText(x) ?? '')}">${iconImg(actionIcon('cooldown'), 'ac-cd-icon')}<b>${x.cooldown.turns}</b></span>` : '';
+      const uses = x.cooldown ? `<span class="ac-uses">recarga ${x.cooldown.recharge}${x.cooldown.usedThisTurn ? ' · usada' : ''}</span>` : '';
       return `
         <button type="button" class="action-card ${state} kind-${x.kind}${disabled}" data-index="${i}">
+          ${iconImg(iconForAction(x.kind, x.id), 'ac-icon')}${cd}
           <span class="ac-key">${i < 9 ? i + 1 : ''}</span>
           <span class="ac-kind">${KIND_LABEL[x.kind]}</span>
           <b class="ac-name">${esc(x.name.replace(/^Ataque: /, ''))}</b>
-          <span class="ac-cost">${esc(x.cost)}</span>
+          <span class="ac-cost">${esc(x.cost)}</span>${uses}
           <span class="ac-why">${x.available ? esc(v.aimingKey === x.key ? 'mirando — Esc cancela' : actionHint(x)) : esc(x.reason?.message ?? '')}</span>
         </button>`;
     });

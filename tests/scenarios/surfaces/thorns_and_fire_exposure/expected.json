@@ -1,0 +1,47 @@
+{
+  "errors": 0,
+  "units": {
+    "mage-01": {
+      "hp": 63,
+      "pos": {
+        "x": 4,
+        "y": 2
+      },
+      "mp": 5
+    }
+  },
+  "damage": [
+    {
+      "targetId": "mage-01",
+      "raw": 5,
+      "damageType": "physical",
+      "hpAfter": 75
+    },
+    {
+      "targetId": "mage-01",
+      "raw": 6,
+      "damageType": "fire",
+      "hpAfter": 69
+    },
+    {
+      "targetId": "mage-01",
+      "raw": 6,
+      "damageType": "fire",
+      "hpAfter": 63
+    }
+  ],
+  "events": [
+    "UNIT_MOVED",
+    "SURFACE_EXPOSURE",
+    "DAMAGE_APPLIED",
+    "UNIT_MOVED",
+    "SURFACE_EXPOSURE",
+    "DAMAGE_APPLIED",
+    "UNIT_MOVED",
+    "SURFACE_EXPOSURE",
+    "TURN_STARTED",
+    "TURN_STARTED",
+    "SURFACE_EXPOSURE",
+    "DAMAGE_APPLIED"
+  ]
+}

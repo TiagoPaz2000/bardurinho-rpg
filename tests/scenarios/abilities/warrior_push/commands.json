@@ -1,0 +1,11 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "warrior-01",
+    "abilityId": "warrior.push",
+    "target": {
+      "kind": "entity",
+      "id": "rogue-01"
+    }
+  }
+]

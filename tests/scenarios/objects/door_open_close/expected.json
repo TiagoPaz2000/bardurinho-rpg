@@ -1,0 +1,25 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "pos": {
+        "x": 3,
+        "y": 2
+      },
+      "ap": 0,
+      "mp": 3
+    }
+  },
+  "objects": {
+    "door-01": {
+      "state": "closed",
+      "hp": 30
+    }
+  },
+  "events": [
+    "OBJECT_STATE_CHANGED",
+    "UNIT_MOVED",
+    "UNIT_MOVED",
+    "OBJECT_STATE_CHANGED"
+  ]
+}

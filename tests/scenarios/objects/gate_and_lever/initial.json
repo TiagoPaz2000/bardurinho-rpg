@@ -1,0 +1,48 @@
+{
+  "name": "Portão central indestrutível controlado pela alavanca",
+  "description": "O portão não é interativo (NOT_INTERACTABLE) nem sofre dano; fechado bloqueia o caminho (NO_PATH). A alavanca adjacente (1 PA) abre o portão.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "###.####",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 2
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "gate-01",
+      "defId": "gate",
+      "pos": {
+        "x": 3,
+        "y": 1
+      }
+    },
+    {
+      "id": "lever-01",
+      "defId": "lever",
+      "pos": {
+        "x": 1,
+        "y": 2
+      },
+      "linkedId": "gate-01"
+    }
+  ],
+  "order": [
+    "warrior-01"
+  ]
+}

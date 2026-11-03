@@ -1,0 +1,48 @@
+{
+  "name": "Poção de Foco: recupera 4 Foco sem ultrapassar o máximo",
+  "description": "consumable.focus_potion (1d4+1, média 4): mago 3 → 7; ladino com Foco cheio (8/8) fica em 8.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      },
+      "consumables": [
+        "consumable.focus_potion"
+      ]
+    },
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "B",
+      "pos": {
+        "x": 6,
+        "y": 6
+      },
+      "consumables": [
+        "consumable.focus_potion"
+      ]
+    }
+  ],
+  "order": [
+    "mage-01",
+    "rogue-01"
+  ]
+}

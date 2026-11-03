@@ -1,0 +1,42 @@
+{
+  "name": "Chama concentrada: 18 de fogo e Queimando no alvo",
+  "description": "mage.flame contra um guerreiro (Defesa 14; d20 médio 11 + 5 = 16 acerta). 18 de fogo sem resistência; aplica Queimando; recarga 0 não inicia recarga.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

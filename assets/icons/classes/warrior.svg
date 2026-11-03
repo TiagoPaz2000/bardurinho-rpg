@@ -1,0 +1,39 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="classes_warrior_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><linearGradient id="classes_warrior_gold1" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.5" stop-color="#F4B43C"/><stop offset="1" stop-color="#B86A16"/></linearGradient><radialGradient id="classes_warrior_gloss2" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="classes_warrior_b_warrior3" x1="0.5" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#FF8A80"/><stop offset="0.5" stop-color="#C42424"/><stop offset="1" stop-color="#5E0A0A"/></linearGradient><linearGradient id="classes_warrior_wood4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#E0A868"/><stop offset="0.5" stop-color="#A86A34"/><stop offset="1" stop-color="#663816"/></linearGradient><linearGradient id="classes_warrior_steel5" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.5" stop-color="#C3CAD3"/><stop offset="1" stop-color="#7A8592"/></linearGradient><linearGradient id="classes_warrior_gem6" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#F4C2FF"/><stop offset="0.5" stop-color="#A63CD8"/><stop offset="1" stop-color="#4E0E78"/></linearGradient><linearGradient id="classes_warrior_leather7" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#D9A070"/><stop offset="0.5" stop-color="#99582E"/><stop offset="1" stop-color="#5A2E14"/></linearGradient></defs>
+<ellipse cx="128" cy="240" rx="66" ry="7" fill="#1a0e24" opacity="0.22" filter="url(#classes_warrior_blur0)"/>
+<path d="M58,36 L198,36 L198,224 L128,194 L58,224 Z" fill="url(#classes_warrior_gold1)" stroke="#6A3A0C" stroke-width="5" stroke-linejoin="round"/>
+<path d="M58,36 L198,36 L198,224 L128,194 L58,224 Z" fill="url(#classes_warrior_gloss2)" opacity="0.3"/>
+<path d="M70,44 L186,44 L186,206 L128,181 L70,206 Z" fill="url(#classes_warrior_b_warrior3)" stroke="#360404" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M70,44 L186,44 L186,206 L128,181 L70,206 Z" fill="url(#classes_warrior_gloss2)" opacity="0.55"/>
+<path d="M46,22 L210,22 Q220,22 220,32 L220,32 Q220,42 210,42 L46,42 Q36,42 36,32 L36,32 Q36,22 46,22 Z" fill="url(#classes_warrior_wood4)" stroke="#3E1E08" stroke-width="4" stroke-linejoin="round"/>
+<path d="M46,22 L210,22 Q220,22 220,32 L220,32 Q220,42 210,42 L46,42 Q36,42 36,32 L36,32 Q36,22 46,22 Z" fill="url(#classes_warrior_gloss2)" opacity="0.8"/>
+<path d="M23,32 A13,13 0 1 0 49,32 A13,13 0 1 0 23,32 Z" fill="url(#classes_warrior_gold1)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M23,32 A13,13 0 1 0 49,32 A13,13 0 1 0 23,32 Z" fill="url(#classes_warrior_gloss2)" opacity="0.8"/>
+<path d="M207,32 A13,13 0 1 0 233,32 A13,13 0 1 0 207,32 Z" fill="url(#classes_warrior_gold1)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M207,32 A13,13 0 1 0 233,32 A13,13 0 1 0 207,32 Z" fill="url(#classes_warrior_gloss2)" opacity="0.8"/>
+<g transform="translate(128 118) scale(0.68) translate(-128 -124)">
+<path d="M128,14 L143,34 L143,168 L113,168 L113,34 Z" fill="url(#classes_warrior_steel5)" stroke="#3C4450" stroke-width="4" stroke-linejoin="round"/>
+<path d="M128,14 L143,34 L143,168 L113,168 L113,34 Z" fill="url(#classes_warrior_gloss2)" opacity="0.8"/>
+<path d="M128,30 L128,160" fill="none" stroke="#7A8592" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+<path d="M121,38 L121,160" fill="none" stroke="#fff" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.75"/>
+<path d="M80,166 Q128,158 176,166 L172,186 Q128,180 84,186 Z" fill="url(#classes_warrior_gold1)" stroke="#6A3A0C" stroke-width="4" stroke-linejoin="round"/>
+<path d="M80,166 Q128,158 176,166 L172,186 Q128,180 84,186 Z" fill="url(#classes_warrior_gloss2)" opacity="0.8"/>
+<path d="M119.3,175 A8.7,8.7 0 1 0 136.7,175 A8.7,8.7 0 1 0 119.3,175 Z" fill="url(#classes_warrior_gold1)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M119.3,175 A8.7,8.7 0 1 0 136.7,175 A8.7,8.7 0 1 0 119.3,175 Z" fill="url(#classes_warrior_gloss2)" opacity="0.8"/>
+<path d="M122,175 A6,6 0 1 0 134,175 A6,6 0 1 0 122,175 Z" fill="url(#classes_warrior_gem6)" stroke="#2E0648" stroke-width="1.5" stroke-linejoin="round"/>
+<ellipse cx="126.2" cy="172.9" rx="2.3" ry="1.3" transform="rotate(-35 126.2 172.9)" fill="#fff" opacity="0.9"/>
+<path d="M124,184 L132,184 Q137,184 137,189 L137,215 Q137,220 132,220 L124,220 Q119,220 119,215 L119,189 Q119,184 124,184 Z" fill="url(#classes_warrior_leather7)" stroke="#3A1A08" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M124,184 L132,184 Q137,184 137,189 L137,215 Q137,220 132,220 L124,220 Q119,220 119,215 L119,189 Q119,184 124,184 Z" fill="url(#classes_warrior_gloss2)" opacity="0.3"/>
+<path d="M120,194 L136,190 M120,204 L136,200 M120,214 L136,210" fill="none" stroke="#3A1A08" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+<path d="M116,228 A12,12 0 1 0 140,228 A12,12 0 1 0 116,228 Z" fill="url(#classes_warrior_gold1)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M116,228 A12,12 0 1 0 140,228 A12,12 0 1 0 116,228 Z" fill="url(#classes_warrior_gloss2)" opacity="0.8"/>
+<path d="M122.5,228 A5.5,5.5 0 1 0 133.5,228 A5.5,5.5 0 1 0 122.5,228 Z" fill="url(#classes_warrior_gem6)" stroke="#2E0648" stroke-width="1.5" stroke-linejoin="round"/>
+</g>
+<path d="M92,156 A36,36 0 1 0 164,156 A36,36 0 1 0 92,156 Z" fill="url(#classes_warrior_gold1)" stroke="#6A3A0C" stroke-width="4.5" stroke-linejoin="round"/>
+<path d="M92,156 A36,36 0 1 0 164,156 A36,36 0 1 0 92,156 Z" fill="url(#classes_warrior_gloss2)" opacity="0.8"/>
+<path d="M101,156 A27,27 0 1 0 155,156 A27,27 0 1 0 101,156 Z" fill="url(#classes_warrior_steel5)" stroke="#3C4450" stroke-width="3" stroke-linejoin="round"/>
+<path d="M101,156 A27,27 0 1 0 155,156 A27,27 0 1 0 101,156 Z" fill="url(#classes_warrior_gloss2)" opacity="0.8"/>
+<path d="M118,156 A10,10 0 1 0 138,156 A10,10 0 1 0 118,156 Z" fill="url(#classes_warrior_gold1)" stroke="#6A3A0C" stroke-width="2.5" stroke-linejoin="round"/>
+<path d="M118,156 A10,10 0 1 0 138,156 A10,10 0 1 0 118,156 Z" fill="url(#classes_warrior_gloss2)" opacity="0.8"/>
+<path d="M123.5,156 A4.5,4.5 0 1 0 132.5,156 A4.5,4.5 0 1 0 123.5,156 Z" fill="url(#classes_warrior_gem6)" stroke="#2E0648" stroke-width="1.2" stroke-linejoin="round"/>
+</svg>

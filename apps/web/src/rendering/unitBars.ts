@@ -10,6 +10,7 @@ import { Vector3 } from '@babylonjs/core';
 import type { Catalog, GameState, Unit } from '@bardurinho/domain';
 import type { ArenaView } from './ArenaView.js';
 import type { WorldLabels } from './worldLabels.js';
+import { iconImg, statusIcon } from '../screens/icons.js';
 
 interface BarData {
   name: string;
@@ -17,7 +18,8 @@ interface BarData {
   hp: number;
   maxHp: number;
   shield: number;
-  statuses: string[];
+  /** Estados com ícone e turnos restantes (Fase 4: feedback de estados). */
+  statuses: Array<{ id: string; text: string }>;
   active: boolean;
 }
 
@@ -70,7 +72,7 @@ export class UnitStatusBars {
       statuses: u.statuses.map((s) => {
         const def = this.catalog.statuses[s.statusId];
         const turns = def?.duration.kind !== 'manual' && s.remaining > 0 ? ` ${s.remaining}` : '';
-        return `${def?.name ?? s.statusId}${turns}`;
+        return { id: s.statusId, text: `${def?.name ?? s.statusId}${turns}` };
       }),
       active,
     };
@@ -88,7 +90,7 @@ export class UnitStatusBars {
       <div class="ub-name team-${esc(d.team)}">${esc(d.name)}</div>
       <div class="ub-bar${low}"><div class="ub-hp" style="width:${hpPct.toFixed(1)}%"></div><div class="ub-shield" style="left:${hpPct.toFixed(1)}%;width:${shPct.toFixed(1)}%"></div></div>
       <div class="ub-text">${d.hp}/${d.maxHp}${d.shield ? ` <span class="ub-sh">+${d.shield}</span>` : ''}</div>
-      ${d.statuses.length ? `<div class="ub-status">${d.statuses.map((s) => `<span>${esc(s)}</span>`).join('')}</div>` : ''}`;
+      ${d.statuses.length || d.shield ? `<div class="ub-status">${d.shield ? `<span class="ub-st">${iconImg(statusIcon('barrier'), '', 'Barreira')}${d.shield}</span>` : ''}${d.statuses.map((s) => `<span class="ub-st" data-status="${esc(s.id)}">${iconImg(statusIcon(s.id), '', s.text)}${esc(s.text)}</span>`).join('')}</div>` : ''}`;
     this.labels.pinHtml(key(id), html, () => this.anchor(id), `unit-bar${d.active ? ' active' : ''}`);
   }
 

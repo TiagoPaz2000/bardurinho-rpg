@@ -1,0 +1,42 @@
+{
+  "name": "Adaga: 16 físico em alvo adjacente",
+  "description": "weapon.dagger contra guerreiro adjacente (armadura 4): 12. Contra célula a 3 de distância: OUT_OF_RANGE.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "rogue-01",
+    "warrior-01"
+  ]
+}

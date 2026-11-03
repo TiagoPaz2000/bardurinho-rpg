@@ -1,0 +1,39 @@
+{
+  "name": "Barril com dano menor que 8 não explode",
+  "description": "5 de dano físico deixam o barril com 3 PV, intacto e sem explosão.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "dummy-01",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "barrel-01",
+      "defId": "barrel",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    }
+  ]
+}

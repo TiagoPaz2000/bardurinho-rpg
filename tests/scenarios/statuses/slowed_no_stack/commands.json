@@ -1,0 +1,32 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "mage-01",
+    "abilityId": "mage.frost_ray",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  },
+  {
+    "type": "DEBUG_APPLY_EFFECTS",
+    "sourceId": "mage-01",
+    "target": {
+      "kind": "cell",
+      "x": 5,
+      "y": 3,
+      "floor": 0
+    },
+    "effects": [
+      {
+        "op": "applyStatus",
+        "selector": "targetCellOccupants",
+        "statusId": "slowed"
+      }
+    ]
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "mage-01"
+  }
+]

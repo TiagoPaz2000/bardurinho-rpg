@@ -1,0 +1,54 @@
+{
+  "name": "Empurrão não derruba personagens de plataformas",
+  "description": "warrior.push na plataforma (andar 1) com a borda a duas células: o alvo para na beira, sem cair no térreo.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ],
+      [
+        "________",
+        "________",
+        "________",
+        "......__",
+        "________",
+        "________",
+        "________",
+        "________"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3,
+        "floor": 1
+      }
+    },
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3,
+        "floor": 1
+      }
+    }
+  ],
+  "order": [
+    "warrior-01",
+    "rogue-01"
+  ]
+}

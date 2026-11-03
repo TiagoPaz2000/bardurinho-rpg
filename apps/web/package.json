@@ -13,7 +13,8 @@
     "@bardurinho/content": "*",
     "@bardurinho/domain": "*",
     "@colyseus/sdk": "^0.18.9",
-    "@bardurinho/protocol": "*"
+    "@bardurinho/protocol": "*",
+    "@bardurinho/assets-manifest": "*"
   },
   "devDependencies": {
     "meshoptimizer": "^1.2.0"

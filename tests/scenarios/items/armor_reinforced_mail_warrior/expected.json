@@ -1,0 +1,26 @@
+{
+  "errors": 0,
+  "units": {
+    "warrior-01": {
+      "hp": 84
+    }
+  },
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 16,
+      "damageType": "physical",
+      "mitigation": 4,
+      "hpDamage": 12,
+      "hpAfter": 98
+    },
+    {
+      "targetId": "warrior-01",
+      "raw": 14,
+      "damageType": "arcane",
+      "mitigation": 0,
+      "hpDamage": 14,
+      "hpAfter": 84
+    }
+  ]
+}

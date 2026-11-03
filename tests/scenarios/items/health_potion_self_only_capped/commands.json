@@ -1,0 +1,11 @@
+[
+  {
+    "type": "USE_ITEM",
+    "actorId": "warrior-01",
+    "itemId": "consumable.health_potion",
+    "target": {
+      "kind": "entity",
+      "id": "rogue-ally"
+    }
+  }
+]

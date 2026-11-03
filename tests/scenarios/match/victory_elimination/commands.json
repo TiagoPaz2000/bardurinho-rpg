@@ -1,0 +1,11 @@
+[
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "warrior-a",
+    "weaponId": "weapon.iron_sword",
+    "target": {
+      "kind": "entity",
+      "id": "mage-b"
+    }
+  }
+]

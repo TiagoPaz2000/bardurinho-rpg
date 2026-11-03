@@ -1,0 +1,73 @@
+{
+  "errors": 0,
+  "units": {
+    "dummy-01": {
+      "hp": 95
+    },
+    "druid-01": {
+      "focus": 7,
+      "ap": 1
+    }
+  },
+  "cells": [
+    {
+      "x": 4,
+      "y": 4,
+      "surface": "thorns",
+      "expiresAtRound": 4
+    },
+    {
+      "x": 4,
+      "y": 3,
+      "surface": "thorns",
+      "expiresAtRound": 4
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "surface": "thorns",
+      "expiresAtRound": 4
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "surface": "thorns",
+      "expiresAtRound": 4
+    },
+    {
+      "x": 3,
+      "y": 4,
+      "surface": "thorns",
+      "expiresAtRound": 4
+    },
+    {
+      "x": 5,
+      "y": 5,
+      "surface": null
+    },
+    {
+      "x": 4,
+      "y": 2,
+      "surface": null
+    }
+  ],
+  "damage": [
+    {
+      "targetId": "dummy-01",
+      "raw": 5,
+      "damageType": "physical",
+      "hpAfter": 95
+    }
+  ],
+  "events": [
+    "COOLDOWN_STARTED",
+    "ABILITY_USED",
+    "SURFACE_CREATED",
+    "SURFACE_EXPOSURE",
+    "DAMAGE_APPLIED",
+    "SURFACE_CREATED",
+    "SURFACE_CREATED",
+    "SURFACE_CREATED",
+    "SURFACE_CREATED"
+  ]
+}

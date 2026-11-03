@@ -1,0 +1,44 @@
+[
+  {
+    "type": "DEBUG_APPLY_EFFECTS",
+    "target": {
+      "kind": "cell",
+      "x": 4,
+      "y": 3,
+      "floor": 0
+    },
+    "effects": [
+      {
+        "op": "emitStimulus",
+        "selector": "targetCell",
+        "stimulus": "heat"
+      }
+    ]
+  },
+  {
+    "type": "DEBUG_APPLY_EFFECTS",
+    "target": {
+      "kind": "cell",
+      "x": 3,
+      "y": 4,
+      "floor": 0
+    },
+    "effects": [
+      {
+        "op": "applyStatus",
+        "selector": "targetCellOccupants",
+        "statusId": "burning"
+      }
+    ]
+  },
+  {
+    "type": "INTERACT",
+    "actorId": "warrior-01",
+    "objectId": "cistern-01"
+  },
+  {
+    "type": "INTERACT",
+    "actorId": "warrior-01",
+    "objectId": "cistern-01"
+  }
+]

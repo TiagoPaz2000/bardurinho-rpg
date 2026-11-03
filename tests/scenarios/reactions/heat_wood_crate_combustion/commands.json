@@ -1,0 +1,30 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "mage-01",
+    "abilityId": "mage.flame",
+    "target": {
+      "kind": "cell",
+      "x": 4,
+      "y": 3,
+      "floor": 0
+    }
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "mage-01"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-01"
+  },
+  {
+    "type": "MOVE",
+    "actorId": "mage-01",
+    "to": {
+      "x": 5,
+      "y": 3,
+      "floor": 0
+    }
+  }
+]

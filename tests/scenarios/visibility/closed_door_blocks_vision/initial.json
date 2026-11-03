@@ -1,0 +1,49 @@
+{
+  "name": "Porta fechada bloqueia a visão; aberta libera",
+  "description": "Varinha através da porta fechada: NO_LINE_OF_SIGHT. Depois de abrir a porta, acerta (14).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "###.####",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 0
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "door-01",
+      "defId": "door",
+      "pos": {
+        "x": 3,
+        "y": 1
+      }
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

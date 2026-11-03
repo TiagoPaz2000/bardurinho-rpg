@@ -1,0 +1,31 @@
+{
+  "errors": 0,
+  "objects": {
+    "barrel-01": {
+      "state": "destroyed"
+    }
+  },
+  "units": {
+    "dummy-01": {
+      "hp": 80
+    }
+  },
+  "damage": [
+    {
+      "targetId": "dummy-01",
+      "raw": 20,
+      "damageType": "fire",
+      "hpAfter": 80
+    }
+  ],
+  "events": [
+    "REACTION_TRIGGERED",
+    "SURFACE_CREATED",
+    "SURFACE_CREATED",
+    "SURFACE_CREATED",
+    "REACTION_TRIGGERED",
+    "OBJECT_DESTROYED",
+    "EXPLOSION",
+    "DAMAGE_APPLIED"
+  ]
+}

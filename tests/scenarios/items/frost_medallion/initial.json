@@ -1,0 +1,43 @@
+{
+  "name": "Medalhão da geada: resistência a frio 2",
+  "description": "accessory.frost_medallion: Raio de geada 14 − 2 = 12.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-a",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "mage-b",
+      "classId": "mage",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      },
+      "accessoryId": "accessory.frost_medallion"
+    }
+  ],
+  "order": [
+    "mage-a",
+    "mage-b"
+  ]
+}

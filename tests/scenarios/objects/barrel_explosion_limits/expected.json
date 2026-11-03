@@ -1,0 +1,38 @@
+{
+  "errors": 0,
+  "objects": {
+    "barrel-01": {
+      "state": "destroyed",
+      "hp": 0
+    }
+  },
+  "units": {
+    "dummy-hit": {
+      "hp": 80
+    },
+    "dummy-behind-walls": {
+      "hp": 100
+    },
+    "dummy-upstairs": {
+      "hp": 100
+    },
+    "mage-01": {
+      "hp": 80
+    }
+  },
+  "damage": [
+    {
+      "targetId": "dummy-hit",
+      "raw": 20,
+      "damageType": "fire",
+      "hpAfter": 80
+    }
+  ],
+  "events": [
+    "ATTACK_PERFORMED",
+    "OBJECT_DAMAGED",
+    "OBJECT_DESTROYED",
+    "EXPLOSION",
+    "DAMAGE_APPLIED"
+  ]
+}

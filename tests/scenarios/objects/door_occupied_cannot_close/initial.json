@@ -1,0 +1,40 @@
+{
+  "name": "Porta aberta com personagem na passagem não fecha",
+  "description": "Fechar a porta estando sobre ela: CELL_OCCUPIED. Depois de sair, fecha normalmente.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "###.####",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 1
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "door-01",
+      "defId": "door",
+      "pos": {
+        "x": 3,
+        "y": 1
+      },
+      "state": "open"
+    }
+  ],
+  "order": [
+    "warrior-01"
+  ]
+}

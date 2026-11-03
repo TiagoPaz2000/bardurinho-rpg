@@ -1,0 +1,11 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "rogue-01",
+    "abilityId": "rogue.precise_shot",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  }
+]

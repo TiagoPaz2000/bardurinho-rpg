@@ -1,0 +1,39 @@
+{
+  "name": "Porta: exige adjacência para interagir; 30 PV, destruída libera a passagem",
+  "description": "Interagir a 3 células: NOT_ADJACENT. Duas espadadas (18 + 18) destroem a porta (30 PV) e o guerreiro passa.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "###.####",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 0
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "door-01",
+      "defId": "door",
+      "pos": {
+        "x": 3,
+        "y": 1
+      }
+    }
+  ],
+  "order": [
+    "warrior-01"
+  ]
+}

@@ -1,0 +1,22 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "hp": 96
+    },
+    "mage-01": {
+      "ap": 1,
+      "focus": 10
+    }
+  },
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 14,
+      "damageType": "arcane",
+      "mitigation": 0,
+      "hpDamage": 14,
+      "hpAfter": 96
+    }
+  ]
+}

@@ -1,0 +1,42 @@
+{
+  "name": "Túnica (armadura 0) do mago",
+  "description": "armor.tunic: o mago não mitiga dano físico; a espada (18) tira 18 PV.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    },
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "warrior-01",
+    "mage-01"
+  ]
+}

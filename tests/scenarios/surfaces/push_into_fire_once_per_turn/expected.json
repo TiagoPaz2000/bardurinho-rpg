@@ -1,0 +1,32 @@
+{
+  "errors": 0,
+  "units": {
+    "rogue-01": {
+      "hp": 80,
+      "pos": {
+        "x": 6,
+        "y": 3
+      }
+    }
+  },
+  "damage": [
+    {
+      "targetId": "rogue-01",
+      "raw": 6,
+      "hpAfter": 86
+    },
+    {
+      "targetId": "rogue-01",
+      "raw": 6,
+      "damageType": "fire",
+      "hpAfter": 80
+    }
+  ],
+  "events": [
+    "FORCED_MOVE",
+    "SURFACE_EXPOSURE",
+    "DAMAGE_APPLIED",
+    "FORCED_MOVE",
+    "SURFACE_EXPOSURE"
+  ]
+}

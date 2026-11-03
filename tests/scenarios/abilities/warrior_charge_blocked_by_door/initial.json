@@ -1,0 +1,48 @@
+{
+  "name": "Investida não atravessa porta fechada",
+  "description": "warrior.charge com uma porta fechada no único corredor até o alvo: NO_PATH, sem gasto de recursos.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "########",
+        "#......#",
+        "########",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "id": "dummy-01",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 5,
+        "y": 2
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "door-01",
+      "defId": "door",
+      "pos": {
+        "x": 3,
+        "y": 2
+      }
+    }
+  ],
+  "order": [
+    "warrior-01"
+  ]
+}

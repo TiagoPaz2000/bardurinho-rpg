@@ -1,0 +1,63 @@
+{
+  "name": "Espada de ferro: corpo a corpo, mesmo andar",
+  "description": "weapon.iron_sword contra boneco no andar de cima (DIFFERENT_FLOOR) e depois contra boneco adjacente no mesmo andar (18 físico).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ],
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3,
+        "floor": 0
+      }
+    },
+    {
+      "id": "dummy-up",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 3,
+        "y": 3,
+        "floor": 1
+      }
+    },
+    {
+      "id": "dummy-01",
+      "type": "debug.test-dummy",
+      "preset": "dummy.default",
+      "pos": {
+        "x": 4,
+        "y": 3,
+        "floor": 0
+      }
+    }
+  ],
+  "order": [
+    "warrior-01"
+  ]
+}

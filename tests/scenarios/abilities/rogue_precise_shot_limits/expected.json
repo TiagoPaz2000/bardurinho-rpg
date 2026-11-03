@@ -1,0 +1,23 @@
+{
+  "errors": 3,
+  "units": {
+    "rogue-01": {
+      "ap": 2,
+      "focus": 8
+    },
+    "dummy-adjacent": {
+      "hp": 100
+    },
+    "dummy-far": {
+      "hp": 100
+    },
+    "dummy-behind-wall": {
+      "hp": 100
+    }
+  },
+  "forbiddenEvents": [
+    "ABILITY_USED",
+    "DAMAGE_APPLIED",
+    "RESOURCE_SPENT"
+  ]
+}

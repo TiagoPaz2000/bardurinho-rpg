@@ -1,0 +1,20 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "hp": 84,
+      "ap": 0
+    }
+  },
+  "objects": {
+    "chest-01": {
+      "state": "used"
+    }
+  },
+  "events": [
+    "CONSUMABLE_GRANTED",
+    "OBJECT_STATE_CHANGED",
+    "ITEM_USED",
+    "HEALED"
+  ]
+}

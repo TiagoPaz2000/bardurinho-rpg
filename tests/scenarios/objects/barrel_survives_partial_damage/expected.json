@@ -1,0 +1,17 @@
+{
+  "errors": 0,
+  "objects": {
+    "barrel-01": {
+      "state": "normal",
+      "hp": 3
+    }
+  },
+  "units": {
+    "dummy-01": {
+      "hp": 100
+    }
+  },
+  "forbiddenEvents": [
+    "EXPLOSION"
+  ]
+}

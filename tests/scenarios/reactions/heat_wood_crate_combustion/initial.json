@@ -1,0 +1,52 @@
+{
+  "name": "Calor + madeira: a caixa entra em combustão e queima até ser destruída",
+  "description": "Chama na caixa (20 PV): 18 de dano e combustão; no início da rodada 2, 6 de fogo destroem a caixa e liberam a célula.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 7,
+        "y": 7
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "crate-01",
+      "defId": "crate",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

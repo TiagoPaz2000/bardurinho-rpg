@@ -1,0 +1,56 @@
+{
+  "name": "Calor + espinhos: destrói os espinhos e cria fogo por 2 rodadas (e alcança óleo vizinho)",
+  "description": "Chama sobre espinhos: a célula vira fogo até o início da rodada 3; o óleo vizinho incendeia (3 rodadas, hipótese registrada).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 4
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 4,
+          "y": 4
+        }
+      ],
+      "surface": "thorns"
+    },
+    {
+      "cells": [
+        {
+          "x": 5,
+          "y": 4
+        },
+        {
+          "x": 6,
+          "y": 4
+        }
+      ],
+      "surface": "oil"
+    }
+  ],
+  "order": [
+    "mage-01"
+  ]
+}

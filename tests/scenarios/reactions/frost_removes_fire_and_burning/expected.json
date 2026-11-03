@@ -1,0 +1,33 @@
+{
+  "errors": 0,
+  "units": {
+    "warrior-01": {
+      "hp": 78,
+      "statuses": [
+        "slowed"
+      ]
+    },
+    "mage-01": {
+      "ap": 0,
+      "focus": 6
+    }
+  },
+  "cells": [
+    {
+      "x": 5,
+      "y": 3,
+      "surface": null
+    }
+  ],
+  "events": [
+    "STATUS_APPLIED",
+    "ABILITY_USED",
+    "DAMAGE_APPLIED",
+    "STATUS_APPLIED",
+    "STIMULUS_EMITTED",
+    "SURFACE_REMOVED",
+    "REACTION_TRIGGERED",
+    "STATUS_REMOVED",
+    "REACTION_TRIGGERED"
+  ]
+}

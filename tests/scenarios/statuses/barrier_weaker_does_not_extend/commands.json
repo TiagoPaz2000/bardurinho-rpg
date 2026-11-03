@@ -1,0 +1,44 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "mage-01",
+    "abilityId": "mage.arcane_barrier",
+    "target": {
+      "kind": "self"
+    }
+  },
+  {
+    "type": "DEBUG_APPLY_EFFECTS",
+    "sourceId": "mage-01",
+    "target": {
+      "kind": "cell",
+      "x": 1,
+      "y": 1,
+      "floor": 0
+    },
+    "effects": [
+      {
+        "op": "grantShield",
+        "selector": "self",
+        "amount": 6,
+        "ownTurns": 5
+      }
+    ]
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "mage-01"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-01"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "mage-01"
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "warrior-01"
+  }
+]

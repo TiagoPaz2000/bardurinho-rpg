@@ -1,0 +1,38 @@
+{
+  "errors": 0,
+  "status": "finished",
+  "result": {
+    "kind": "victory",
+    "winnerTeam": "B",
+    "reason": "elimination"
+  },
+  "units": {
+    "warrior-01": {
+      "alive": false,
+      "pos": {
+        "x": 3,
+        "y": 2
+      }
+    },
+    "rogue-01": {
+      "hp": 90
+    }
+  },
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 6,
+      "damageType": "fire",
+      "hpAfter": 0
+    }
+  ],
+  "events": [
+    "ABILITY_USED",
+    "UNIT_MOVED",
+    "UNIT_MOVED",
+    "SURFACE_EXPOSURE",
+    "DAMAGE_APPLIED",
+    "UNIT_DEFEATED",
+    "MATCH_ENDED"
+  ]
+}

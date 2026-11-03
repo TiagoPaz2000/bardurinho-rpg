@@ -1,0 +1,42 @@
+[
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "rogue-01",
+    "weaponId": "weapon.short_bow",
+    "target": {
+      "kind": "entity",
+      "id": "warrior-01"
+    }
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "rogue-01",
+    "weaponId": "weapon.short_bow",
+    "target": {
+      "kind": "entity",
+      "id": "dummy-adjacent"
+    }
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "rogue-01",
+    "weaponId": "weapon.short_bow",
+    "target": {
+      "kind": "cell",
+      "x": 1,
+      "y": 0,
+      "floor": 0
+    }
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "actorId": "rogue-01",
+    "weaponId": "weapon.short_bow",
+    "target": {
+      "kind": "cell",
+      "x": 7,
+      "y": 4,
+      "floor": 0
+    }
+  }
+]

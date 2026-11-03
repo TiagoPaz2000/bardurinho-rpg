@@ -1,0 +1,43 @@
+{
+  "name": "Empate ao fim do limite de rodadas",
+  "description": "Com limite de 2 rodadas, ninguém vence: empate por limite de rodadas.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-a",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      }
+    },
+    {
+      "id": "rogue-b",
+      "classId": "rogue",
+      "team": "B",
+      "pos": {
+        "x": 6,
+        "y": 6
+      }
+    }
+  ],
+  "order": [
+    "warrior-a",
+    "rogue-b"
+  ],
+  "maxRounds": 2
+}

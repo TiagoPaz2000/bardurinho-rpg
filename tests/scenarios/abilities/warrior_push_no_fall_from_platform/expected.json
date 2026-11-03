@@ -1,0 +1,18 @@
+{
+  "errors": 0,
+  "units": {
+    "rogue-01": {
+      "hp": 86,
+      "pos": {
+        "x": 5,
+        "y": 3,
+        "floor": 1
+      }
+    }
+  },
+  "events": [
+    "DAMAGE_APPLIED",
+    "FORCED_MOVE",
+    "MOVE_BLOCKED"
+  ]
+}

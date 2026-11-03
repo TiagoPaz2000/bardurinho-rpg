@@ -1,0 +1,38 @@
+{
+  "errors": 0,
+  "units": {
+    "rogue-01": {
+      "hp": 86,
+      "pos": {
+        "x": 6,
+        "y": 3
+      }
+    },
+    "warrior-01": {
+      "pos": {
+        "x": 3,
+        "y": 3
+      },
+      "focus": 6,
+      "ap": 1
+    }
+  },
+  "damage": [
+    {
+      "targetId": "rogue-01",
+      "raw": 6,
+      "damageType": "physical",
+      "mitigation": 2,
+      "hpDamage": 4,
+      "hpAfter": 86
+    }
+  ],
+  "events": [
+    "COOLDOWN_STARTED",
+    "ABILITY_USED",
+    "ATTACK_ROLLED",
+    "DAMAGE_APPLIED",
+    "FORCED_MOVE",
+    "FORCED_MOVE"
+  ]
+}

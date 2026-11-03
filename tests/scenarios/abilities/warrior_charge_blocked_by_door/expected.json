@@ -1,0 +1,26 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "pos": {
+        "x": 1,
+        "y": 2
+      },
+      "ap": 2,
+      "focus": 8
+    },
+    "dummy-01": {
+      "hp": 100
+    }
+  },
+  "objects": {
+    "door-01": {
+      "state": "closed",
+      "hp": 30
+    }
+  },
+  "forbiddenEvents": [
+    "ABILITY_USED",
+    "UNIT_MOVED"
+  ]
+}

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="classes_mage_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><linearGradient id="classes_mage_gold1" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.5" stop-color="#F4B43C"/><stop offset="1" stop-color="#B86A16"/></linearGradient><radialGradient id="classes_mage_gloss2" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="classes_mage_b_mage3" x1="0.5" y1="0" x2="0.5" y2="1"><stop offset="0" stop-color="#8EA4FF"/><stop offset="0.5" stop-color="#3448C8"/><stop offset="1" stop-color="#141C6A"/></linearGradient><linearGradient id="classes_mage_wood4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#E0A868"/><stop offset="0.5" stop-color="#A86A34"/><stop offset="1" stop-color="#663816"/></linearGradient><filter id="classes_mage_blur5" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="6"/></filter><linearGradient id="classes_mage_gem6" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#F4C2FF"/><stop offset="0.5" stop-color="#A63CD8"/><stop offset="1" stop-color="#4E0E78"/></linearGradient><linearGradient id="classes_mage_cloth7" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#B9A0FF"/><stop offset="0.5" stop-color="#6A48D8"/><stop offset="1" stop-color="#2E1C80"/></linearGradient></defs>
+<ellipse cx="128" cy="240" rx="66" ry="7" fill="#1a0e24" opacity="0.22" filter="url(#classes_mage_blur0)"/>
+<path d="M58,36 L198,36 L198,224 L128,194 L58,224 Z" fill="url(#classes_mage_gold1)" stroke="#6A3A0C" stroke-width="5" stroke-linejoin="round"/>
+<path d="M58,36 L198,36 L198,224 L128,194 L58,224 Z" fill="url(#classes_mage_gloss2)" opacity="0.3"/>
+<path d="M70,44 L186,44 L186,206 L128,181 L70,206 Z" fill="url(#classes_mage_b_mage3)" stroke="#0A0E3C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M70,44 L186,44 L186,206 L128,181 L70,206 Z" fill="url(#classes_mage_gloss2)" opacity="0.55"/>
+<path d="M46,22 L210,22 Q220,22 220,32 L220,32 Q220,42 210,42 L46,42 Q36,42 36,32 L36,32 Q36,22 46,22 Z" fill="url(#classes_mage_wood4)" stroke="#3E1E08" stroke-width="4" stroke-linejoin="round"/>
+<path d="M46,22 L210,22 Q220,22 220,32 L220,32 Q220,42 210,42 L46,42 Q36,42 36,32 L36,32 Q36,22 46,22 Z" fill="url(#classes_mage_gloss2)" opacity="0.8"/>
+<path d="M23,32 A13,13 0 1 0 49,32 A13,13 0 1 0 23,32 Z" fill="url(#classes_mage_gold1)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M23,32 A13,13 0 1 0 49,32 A13,13 0 1 0 23,32 Z" fill="url(#classes_mage_gloss2)" opacity="0.8"/>
+<path d="M207,32 A13,13 0 1 0 233,32 A13,13 0 1 0 207,32 Z" fill="url(#classes_mage_gold1)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M207,32 A13,13 0 1 0 233,32 A13,13 0 1 0 207,32 Z" fill="url(#classes_mage_gloss2)" opacity="0.8"/>
+<path d="M74,196 L170,70" fill="none" stroke="#3E1E08" stroke-width="16" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M74,196 L170,70" fill="none" stroke="#B07038" stroke-width="10" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M72,194 L168,68" fill="none" stroke="#F0C890" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+<path d="M152,62 A24,24 0 1 0 200,62 A24,24 0 1 0 152,62 Z" fill="#D890FF" opacity="0.8" filter="url(#classes_mage_blur5)"/>
+<path d="M160,62 A16,16 0 1 0 192,62 A16,16 0 1 0 160,62 Z" fill="url(#classes_mage_gem6)" stroke="#2E0648" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M160,62 A16,16 0 1 0 192,62 A16,16 0 1 0 160,62 Z" fill="url(#classes_mage_gloss2)" opacity="0.4"/>
+<ellipse cx="171" cy="56" rx="5" ry="3" transform="rotate(-35 171 56)" fill="#fff" opacity="0.85"/>
+<path d="M118,54 Q132,48 140,62 L162,150 L84,150 L110,74 Q104,62 96,62 Q104,52 118,54 Z" fill="url(#classes_mage_cloth7)" stroke="#1C0E50" stroke-width="4.5" stroke-linejoin="round"/>
+<path d="M118,54 Q132,48 140,62 L162,150 L84,150 L110,74 Q104,62 96,62 Q104,52 118,54 Z" fill="url(#classes_mage_gloss2)" opacity="0.8"/>
+<path d="M56,156 A66,16 0 1 0 188,156 A66,16 0 1 0 56,156 Z" fill="url(#classes_mage_cloth7)" stroke="#1C0E50" stroke-width="4.5" stroke-linejoin="round"/>
+<path d="M56,156 A66,16 0 1 0 188,156 A66,16 0 1 0 56,156 Z" fill="url(#classes_mage_gloss2)" opacity="0.4"/>
+<path d="M88,134 Q124,146 160,134 L162,150 Q124,162 86,150 Z" fill="url(#classes_mage_gold1)" stroke="#6A3A0C" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M88,134 Q124,146 160,134 L162,150 Q124,162 86,150 Z" fill="url(#classes_mage_gloss2)" opacity="0.8"/>
+<path d="M118,92 L120.9,100 L129.4,100.3 L122.8,105.5 L125.1,113.7 L118,109 L110.9,113.7 L113.2,105.5 L106.6,100.3 L115.1,100 Z" fill="url(#classes_mage_gold1)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M140,77 L141.8,81.6 L146.7,81.8 L142.9,84.9 L144.1,89.7 L140,87 L135.9,89.7 L137.1,84.9 L133.3,81.8 L138.2,81.6 Z" fill="url(#classes_mage_gold1)" stroke="#6A3A0C" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>

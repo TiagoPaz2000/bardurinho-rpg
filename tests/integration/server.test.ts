@@ -37,16 +37,17 @@ function capture(room: import('@colyseus/sdk').Room, raw: Raw) {
   for (const t of ['snapshot', 'update', 'result', 'presence'] as Array<keyof ServerMessages>) room.onMessage(t, (msg: unknown) => raw.push({ type: t, msg }));
 }
 
-async function pair(opts: { seed?: number; turnSeconds?: number } = {}) {
+type TeamChoice = Array<{ classId: string; accessoryId?: string | null; consumables?: string[] }>;
+async function pair(opts: { seed?: number; turnSeconds?: number; teamSize?: number; teamA?: TeamChoice; teamB?: TeamChoice } = {}) {
   const ta = (await login(gs.url, 'jogador-a', 'dev')).token;
   const tb = (await login(gs.url, 'jogador-b', 'dev')).token;
   const rawA: Raw = [];
   const rawB: Raw = [];
-  const A = await joinMatch(gs.url, ta, { create: true, seed: opts.seed ?? 11, ...(opts.turnSeconds ? { turnSeconds: opts.turnSeconds } : {}) });
+  const A = await joinMatch(gs.url, ta, { create: true, seed: opts.seed ?? 11, ...(opts.turnSeconds ? { turnSeconds: opts.turnSeconds } : {}), ...(opts.teamSize ? { teamSize: opts.teamSize } : {}), ...(opts.teamA ? { team: opts.teamA } : {}) });
   rawA.push({ type: 'snapshot', msg: A.snapshot });
   const a = new NetworkMatch(catalog, A.room, A.snapshot);
   capture(A.room, rawA);
-  const B = await joinMatch(gs.url, tb, { roomId: A.room.roomId });
+  const B = await joinMatch(gs.url, tb, { roomId: A.room.roomId, ...(opts.teamB ? { team: opts.teamB } : {}) });
   rawB.push({ type: 'snapshot', msg: B.snapshot });
   const b = new NetworkMatch(catalog, B.room, B.snapshot);
   capture(B.room, rawB);
@@ -275,6 +276,38 @@ describe('servidor autoritativo (Colyseus + PGlite)', () => {
     expect(rows[0]!.n).toBeGreaterThanOrEqual(2);
     expect(stateHash(p.a.state)).toBe(projHash(p.session, 'A'));
     p.session.dispose();
+    await p.A.room.leave();
+    await p.B.room.leave();
+  });
+});
+
+describe('escolha de personagens em rede (Fase 4)', () => {
+  it('2 × 2: cada assento escolhe classes/acessório/consumíveis; o servidor valida, monta e persiste o snapshot 0', async () => {
+    const p = await pair({
+      seed: 41,
+      teamSize: 2,
+      teamA: [{ classId: 'rogue', accessoryId: 'accessory.vitality_amulet', consumables: ['consumable.oil_flask'] }, { classId: 'druid' }],
+      // Inválidos: classe desconhecida (vira a padrão da posição), item repetido e acessório errado.
+      teamB: [{ classId: 'warrior', accessoryId: 'weapon.dagger', consumables: ['consumable.health_potion', 'consumable.health_potion'] }, { classId: 'paladino' }, { classId: 'mage' }],
+    });
+    const units = p.session.state.units;
+    expect(Object.keys(units).sort()).toEqual(['druid-01', 'druid-02', 'rogue-01', 'warrior-01']);
+    expect(units['rogue-01']).toMatchObject({ team: 'A', maxHp: 98, consumables: ['consumable.oil_flask'] });
+    expect(units['warrior-01']).toMatchObject({ team: 'B', accessoryId: null, consumables: ['consumable.health_potion'] });
+    expect(units['druid-02']!.team).toBe('B');
+    // Cada cliente só controla e só recebe (no início) a própria equipe.
+    await p.synced();
+    expect(Object.keys(p.a.state.units).sort()).toEqual(['druid-01', 'rogue-01']);
+    expect(Object.keys(p.b.state.units).sort()).toEqual(['druid-02', 'warrior-01']);
+    expect(p.a.canControl('rogue-01') && !p.a.canControl('warrior-01')).toBe(true);
+    // Snapshot 0 = montagem final (o replay parte dele).
+    const loser = p.active();
+    expect((await loser.execute({ type: 'SURRENDER', actorId: loser.state.turn.activeUnitId! })).ok).toBe(true);
+    await waitFor(() => p.session.state.status === 'finished', 5000, 'fim');
+    const report = await verifyMatchReplay(gs.services.matches, catalog, p.session.id);
+    expect(report.ok).toBe(true);
+    const initial = await gs.services.matches.snapshot(p.session.id, 0);
+    expect(Object.keys(initial!.state.units).sort()).toEqual(['druid-01', 'druid-02', 'rogue-01', 'warrior-01']);
     await p.A.room.leave();
     await p.B.room.leave();
   });

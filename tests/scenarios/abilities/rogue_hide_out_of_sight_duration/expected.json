@@ -1,0 +1,17 @@
+{
+  "errors": 0,
+  "units": {
+    "rogue-01": {
+      "statuses": []
+    }
+  },
+  "events": [
+    "STATUS_APPLIED",
+    "TURN_ENDED",
+    "TURN_STARTED",
+    "TURN_ENDED",
+    "TURN_STARTED",
+    "STATUS_EXPIRED",
+    "TURN_ENDED"
+  ]
+}

@@ -1,0 +1,24 @@
+{
+  "errors": 0,
+  "units": {
+    "mage-01": {
+      "hp": 80,
+      "shield": 0,
+      "ap": 0
+    }
+  },
+  "damage": [
+    {
+      "targetId": "mage-01",
+      "raw": 18,
+      "shieldAbsorbed": 18,
+      "hpDamage": 0,
+      "hpAfter": 80
+    }
+  ],
+  "events": [
+    "SHIELD_GRANTED",
+    "SHIELD_GRANTED",
+    "DAMAGE_APPLIED"
+  ]
+}

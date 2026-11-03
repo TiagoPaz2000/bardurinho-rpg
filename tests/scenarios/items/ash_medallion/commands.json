@@ -1,0 +1,15 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "mage-a",
+    "abilityId": "mage.flame",
+    "target": {
+      "kind": "entity",
+      "id": "mage-b"
+    }
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "mage-a"
+  }
+]

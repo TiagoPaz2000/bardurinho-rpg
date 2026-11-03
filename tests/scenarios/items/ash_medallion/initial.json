@@ -1,0 +1,43 @@
+{
+  "name": "Medalhão das cinzas: resistência a fogo 2 (impacto e Queimando)",
+  "description": "accessory.ash_medallion: Chama concentrada 18 − 2 = 16; o tick de Queimando 4 − 2 = 2.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-a",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "mage-b",
+      "classId": "mage",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      },
+      "accessoryId": "accessory.ash_medallion"
+    }
+  ],
+  "order": [
+    "mage-a",
+    "mage-b"
+  ]
+}

@@ -1,0 +1,21 @@
+{
+  "errors": 0,
+  "units": {
+    "mage-b": {
+      "hp": 68,
+      "statuses": [
+        "slowed"
+      ]
+    }
+  },
+  "damage": [
+    {
+      "targetId": "mage-b",
+      "raw": 14,
+      "damageType": "cold",
+      "mitigation": 2,
+      "hpDamage": 12,
+      "hpAfter": 68
+    }
+  ]
+}

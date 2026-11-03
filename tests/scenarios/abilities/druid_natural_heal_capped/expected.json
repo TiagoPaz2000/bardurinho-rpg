@@ -1,0 +1,12 @@
+{
+  "errors": 0,
+  "units": {
+    "druid-01": {
+      "hp": 95
+    }
+  },
+  "events": [
+    "ABILITY_USED",
+    "HEALED"
+  ]
+}

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="items_armor_leather_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><linearGradient id="items_armor_leather_leather1" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#D9A070"/><stop offset="0.5" stop-color="#99582E"/><stop offset="1" stop-color="#5A2E14"/></linearGradient><radialGradient id="items_armor_leather_gloss2" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="items_armor_leather_leatherDark3" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#B07048"/><stop offset="0.5" stop-color="#6E3A1C"/><stop offset="1" stop-color="#3E1C0A"/></linearGradient><linearGradient id="items_armor_leather_gold4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.5" stop-color="#F4B43C"/><stop offset="1" stop-color="#B86A16"/></linearGradient></defs>
+<ellipse cx="128" cy="238" rx="76" ry="9" fill="#1a0e24" opacity="0.28" filter="url(#items_armor_leather_blur0)"/>
+<path d="M86,42 Q128,70 170,42 L196,62 L202,200 Q128,228 54,200 L60,62 Z" fill="url(#items_armor_leather_leather1)" stroke="#3A1A08" stroke-width="5" stroke-linejoin="round"/>
+<path d="M86,42 Q128,70 170,42 L196,62 L202,200 Q128,228 54,200 L60,62 Z" fill="url(#items_armor_leather_gloss2)" opacity="0.8"/>
+<path d="M70,70 L66,196 M186,70 L190,196" fill="none" stroke="#FFD8A8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.6" stroke-dasharray="6 6"/>
+<path d="M128,72 L128,218" fill="none" stroke="#3A1A08" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.6"/>
+<path d="M118,84 L138,100 M138,84 L118,100 M118,108 L138,124 M138,108 L118,124" fill="none" stroke="#F2D9B0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+<path d="M28,66 A34,24 0 1 0 96,66 A34,24 0 1 0 28,66 Z" fill="url(#items_armor_leather_leatherDark3)" stroke="#2A1006" stroke-width="4.5" stroke-linejoin="round"/>
+<path d="M28,66 A34,24 0 1 0 96,66 A34,24 0 1 0 28,66 Z" fill="url(#items_armor_leather_gloss2)" opacity="0.8"/>
+<path d="M38,70 Q62,50 86,70" fill="none" stroke="#FFD8A8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55" stroke-dasharray="5 5"/>
+<path d="M57,62 A5,5 0 1 0 67,62 A5,5 0 1 0 57,62 Z" fill="url(#items_armor_leather_gold4)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M58.8,60.5 A1.8,1.8 0 1 0 62.3,60.5 A1.8,1.8 0 1 0 58.8,60.5 Z" fill="#fff" opacity="0.85"/>
+<path d="M160,66 A34,24 0 1 0 228,66 A34,24 0 1 0 160,66 Z" fill="url(#items_armor_leather_leatherDark3)" stroke="#2A1006" stroke-width="4.5" stroke-linejoin="round"/>
+<path d="M160,66 A34,24 0 1 0 228,66 A34,24 0 1 0 160,66 Z" fill="url(#items_armor_leather_gloss2)" opacity="0.8"/>
+<path d="M170,70 Q194,50 218,70" fill="none" stroke="#FFD8A8" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.55" stroke-dasharray="5 5"/>
+<path d="M189,62 A5,5 0 1 0 199,62 A5,5 0 1 0 189,62 Z" fill="url(#items_armor_leather_gold4)" stroke="#6A3A0C" stroke-width="2" stroke-linejoin="round"/>
+<path d="M190.8,60.5 A1.8,1.8 0 1 0 194.3,60.5 A1.8,1.8 0 1 0 190.8,60.5 Z" fill="#fff" opacity="0.85"/>
+<path d="M58,146 Q128,160 200,146 L200,164 Q128,178 58,164 Z" fill="url(#items_armor_leather_leatherDark3)" stroke="#2A1006" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M58,146 Q128,160 200,146 L200,164 Q128,178 58,164 Z" fill="url(#items_armor_leather_gloss2)" opacity="0.3"/>
+<path d="M88,147 L106,147 Q110,147 110,151 L110,165 Q110,169 106,169 L88,169 Q84,169 84,165 L84,151 Q84,147 88,147 Z" fill="url(#items_armor_leather_gold4)" stroke="#6A3A0C" stroke-width="3" stroke-linejoin="round"/>
+<path d="M88,147 L106,147 Q110,147 110,151 L110,165 Q110,169 106,169 L88,169 Q84,169 84,165 L84,151 Q84,147 88,147 Z" fill="url(#items_armor_leather_gloss2)" opacity="0.8"/>
+<path d="M93,153 L101,153 Q103,153 103,155 L103,161 Q103,163 101,163 L93,163 Q91,163 91,161 L91,155 Q91,153 93,153 Z" fill="url(#items_armor_leather_leatherDark3)" stroke="#2A1006" stroke-width="1.5" stroke-linejoin="round"/>
+<path d="M58,182 Q128,196 200,182 L200,200 Q128,214 58,200 Z" fill="url(#items_armor_leather_leatherDark3)" stroke="#2A1006" stroke-width="3.5" stroke-linejoin="round"/>
+<path d="M58,182 Q128,196 200,182 L200,200 Q128,214 58,200 Z" fill="url(#items_armor_leather_gloss2)" opacity="0.3"/>
+<path d="M88,183 L106,183 Q110,183 110,187 L110,201 Q110,205 106,205 L88,205 Q84,205 84,201 L84,187 Q84,183 88,183 Z" fill="url(#items_armor_leather_gold4)" stroke="#6A3A0C" stroke-width="3" stroke-linejoin="round"/>
+<path d="M88,183 L106,183 Q110,183 110,187 L110,201 Q110,205 106,205 L88,205 Q84,205 84,201 L84,187 Q84,183 88,183 Z" fill="url(#items_armor_leather_gloss2)" opacity="0.8"/>
+<path d="M93,189 L101,189 Q103,189 103,191 L103,197 Q103,199 101,199 L93,199 Q91,199 91,197 L91,191 Q91,189 93,189 Z" fill="url(#items_armor_leather_leatherDark3)" stroke="#2A1006" stroke-width="1.5" stroke-linejoin="round"/>
+</svg>

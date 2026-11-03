@@ -1,0 +1,47 @@
+{
+  "name": "Poção de vida: só no próprio personagem e sem ultrapassar o máximo",
+  "description": "consumable.health_potion com 100/110 PV, mesmo indicando um aliado como alvo: cura o próprio usuário até 110; o aliado não muda.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 1
+      },
+      "hp": 100,
+      "consumables": [
+        "consumable.health_potion"
+      ]
+    },
+    {
+      "id": "rogue-ally",
+      "classId": "rogue",
+      "team": "A",
+      "pos": {
+        "x": 2,
+        "y": 1
+      },
+      "hp": 40
+    }
+  ],
+  "order": [
+    "warrior-01",
+    "rogue-ally"
+  ]
+}

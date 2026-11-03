@@ -1,0 +1,21 @@
+[
+  {
+    "type": "INTERACT",
+    "actorId": "warrior-01",
+    "objectId": "door-01"
+  },
+  {
+    "type": "MOVE",
+    "actorId": "warrior-01",
+    "to": {
+      "x": 3,
+      "y": 0,
+      "floor": 0
+    }
+  },
+  {
+    "type": "INTERACT",
+    "actorId": "warrior-01",
+    "objectId": "door-01"
+  }
+]

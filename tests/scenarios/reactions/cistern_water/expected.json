@@ -1,0 +1,42 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "statuses": [],
+      "ap": 1
+    }
+  },
+  "objects": {
+    "cistern-01": {
+      "state": "used"
+    },
+    "crate-01": {
+      "burning": false,
+      "hp": 20
+    }
+  },
+  "cells": [
+    {
+      "x": 3,
+      "y": 2,
+      "surface": null
+    },
+    {
+      "x": 2,
+      "y": 3,
+      "surface": null
+    },
+    {
+      "x": 3,
+      "y": 1,
+      "surface": "fire"
+    }
+  ],
+  "events": [
+    "OBJECT_IGNITED",
+    "STATUS_APPLIED",
+    "STIMULUS_EMITTED",
+    "OBJECT_EXTINGUISHED",
+    "OBJECT_STATE_CHANGED"
+  ]
+}

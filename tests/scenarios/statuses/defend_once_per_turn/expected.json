@@ -1,0 +1,15 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-a": {
+      "shield": 0,
+      "ap": 2
+    }
+  },
+  "events": [
+    "SHIELD_GRANTED",
+    "TURN_STARTED",
+    "TURN_STARTED",
+    "SHIELD_EXPIRED"
+  ]
+}

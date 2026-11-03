@@ -36,6 +36,7 @@ import {
   type UpdateMessage,
 } from '@bardurinho/protocol';
 import type { Account, MatchesRepository } from '../../db/repositories.js';
+import { normalizeTeam, scenarioFromSetup, type CharacterChoice, type MapDefinition, type TeamId } from '@bardurinho/content';
 
 export interface SeatState {
   seat: number;
@@ -59,6 +60,13 @@ export interface MatchSessionOptions {
   roomId: string;
   mapId: string;
   scenario: ScenarioInitial;
+  /**
+   * Fase 4: escolha de personagens. Com `teamSize` (1 ou 2) a partida é montada a partir do
+   * mapa (`setupMap`) com a escolha de cada assento (`claimSeat(conta, escolha)`); sem ele, o
+   * cenário fixo (`scenario`) é usado como na Fase 3.
+   */
+  teamSize?: number;
+  setupMap?: MapDefinition;
   catalog: Catalog;
   repo: MatchesRepository;
   seed: number;
@@ -84,10 +92,12 @@ export class MatchSession {
   private timer: { turnId: number; deadline: number; handle: { clear(): void } } | null = null;
   private disposed = false;
   readonly ready: Promise<void>;
+  /** Escolha de personagens por assento (Fase 4). */
+  private readonly loadouts = new Map<number, CharacterChoice[]>();
 
   constructor(private readonly o: MatchSessionOptions) {
     this.id = o.id ?? randomUUID();
-    this.official = buildScenario(o.catalog, { ...o.scenario, dice: 'random', seed: o.seed, autoStart: false });
+    this.official = buildScenario(o.catalog, { ...this.initialScenario(), dice: 'random', seed: o.seed, autoStart: false });
     const teams = [...new Set(Object.values(this.official.units).filter((u) => !u.flags.isDummy).map((u) => u.team))].sort();
     this.seats = teams.map((team, seat) => ({ seat, team, account: null, connected: false, sent: null, ack: null, sentHashes: new Map(), divergences: [], history: [] }));
     this.ready = o.repo.create({ id: this.id, roomId: o.roomId, mapId: o.mapId, state: this.official, seed: o.seed, turnSeconds: o.turnSeconds, hash: stateHash(this.official) });
@@ -97,6 +107,32 @@ export class MatchSession {
 
   get state(): GameState {
     return this.official;
+  }
+
+  get teamSize(): number | null {
+    return this.o.teamSize ?? null;
+  }
+
+  /** Cenário inicial: fixo (Fase 3) ou montado com a escolha de cada assento (Fase 4). */
+  private initialScenario(): ScenarioInitial {
+    const size = this.o.teamSize;
+    if (!size || !this.o.setupMap) return this.o.scenario;
+    const team = (t: TeamId, seat: number) => normalizeTeam(this.o.catalog, t, this.loadouts.get(seat) ?? [], size);
+    return scenarioFromSetup(this.o.setupMap, this.o.catalog, { teams: { A: team('A', 0), B: team('B', 1) } });
+  }
+
+  /** Escolha do assento (antes do início): remonta o estado inicial e o snapshot 0. */
+  private async configureSeat(seat: SeatState, choice: unknown): Promise<void> {
+    if (!this.o.teamSize || !this.o.setupMap || this.ver !== 0 || this.official.status !== 'setup') return;
+    if (!Array.isArray(choice) || choice.length === 0) return;
+    this.loadouts.set(seat.seat, normalizeTeam(this.o.catalog, seat.team as TeamId, choice, this.o.teamSize));
+    this.official = buildScenario(this.o.catalog, { ...this.initialScenario(), dice: 'random', seed: this.o.seed, autoStart: false });
+    await this.o.repo.replaceInitialSnapshot(this.id, this.official, stateHash(this.official));
+  }
+
+  /** Personagens escolhidos por assento (lista de salas / lobby). */
+  loadoutOf(seat: number): CharacterChoice[] | null {
+    return this.loadouts.get(seat) ?? null;
   }
   get version(): number {
     return this.ver;
@@ -117,7 +153,7 @@ export class MatchSession {
   }
 
   /** Assento do jogador: o que já é dele ou o próximo livre. */
-  async claimSeat(account: Account): Promise<SeatState | null> {
+  async claimSeat(account: Account, choice?: unknown): Promise<SeatState | null> {
     await this.ready;
     const own = this.seatOf(account.id);
     if (own) return own;
@@ -125,6 +161,8 @@ export class MatchSession {
     if (!free) return null;
     free.account = account;
     await this.o.repo.addPlayer(this.id, free.seat, free.team, account.id);
+    // Na fila da partida: nada é processado enquanto a montagem muda.
+    await this.enqueue(() => this.configureSeat(free, choice));
     return free;
   }
 

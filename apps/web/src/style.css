@@ -195,3 +195,46 @@ button.link { background: none; border: 0; color: #74c0fc; cursor: pointer; font
 .hud-net .bad { color: #ff6b6b; }
 .hud-net button.link { margin-top: 6px; }
 .hud-net-banner { position: absolute; top: 48px; left: 50%; transform: translateX(-50%); background: rgba(20, 21, 23, 0.9); border: 1px solid #ff6b6b; color: #ffc9c9; border-radius: 6px; padding: 5px 14px; font-size: 13px; white-space: nowrap; }
+
+/* Fase 4 — escolha de personagens (local e rede), ícones, recargas, estados, som */
+.match-setup .ms-box { width: min(980px, calc(100vw - 40px)); max-height: calc(100vh - 40px); overflow: auto; }
+.lobby-box.ms-net { width: min(560px, calc(100vw - 40px)); max-height: calc(100vh - 40px); overflow: auto; }
+.ms-teams { display: flex; gap: 12px; flex-wrap: wrap; }
+.ms-team { flex: 1; min-width: 400px; display: flex; flex-direction: column; gap: 8px; }
+.ms-team-title { font-size: 14px; font-weight: 700; }
+.ms-slot { border: 1px solid #2c2e33; border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 5px; background: rgba(37, 38, 43, 0.6); }
+.ms-row { display: flex; flex-wrap: wrap; gap: 4px; align-items: center; }
+.ms-label { color: #868e96; font-size: 11px; margin-right: 4px; }
+.ms-opt { display: inline-flex; align-items: center; gap: 4px; font: 12px system-ui, sans-serif; color: #dee2e6; background: #25262b; border: 1px solid #3d4047; border-radius: 4px; padding: 3px 7px; cursor: pointer; }
+.ms-opt:hover { border-color: #ffd43b; }
+.ms-opt.on { background: #1c3d6e; border-color: #4dabf7; color: #fff; }
+.ms-classes .ms-opt { flex-direction: column; width: 88px; padding: 4px; font-weight: 600; }
+.ms-icon { width: 44px; height: 44px; }
+.ms-icon-sm { width: 20px; height: 20px; }
+.ms-stats { font: 11px ui-monospace, monospace; color: #ced4da; }
+.ms-chip { display: inline-flex; align-items: center; gap: 3px; font-size: 11px; color: #ced4da; background: #1a1b1e; border-radius: 3px; padding: 1px 5px 1px 2px; }
+.ms-start { margin-top: 4px; }
+.action-card { padding-left: 42px; }
+.action-card .ac-icon { position: absolute; left: 5px; top: 8px; width: 32px; height: 32px; }
+.action-card .ac-cd { position: absolute; left: 5px; top: 8px; width: 32px; height: 32px; display: flex; align-items: center; justify-content: center; font: 700 15px ui-monospace, monospace; color: #fff; background: rgba(0, 0, 0, 0.6); border-radius: 50%; text-shadow: 0 1px 2px #000; }
+.action-card .ac-uses { font-size: 9px; color: #adb5bd; }
+.unit-bar .ub-status span.ub-st { display: inline-flex; align-items: center; gap: 1px; padding: 0 3px 0 1px; }
+.unit-bar .ub-status img { width: 13px; height: 13px; }
+.hud-statuses { display: flex; flex-wrap: wrap; gap: 3px; margin: 2px 0; }
+.hud-statuses .st { display: inline-flex; align-items: center; gap: 2px; font-size: 11px; background: rgba(95, 61, 196, 0.5); border-radius: 3px; padding: 0 4px 0 1px; }
+.hud-statuses img { width: 16px; height: 16px; }
+.hud-cooldowns { display: flex; flex-wrap: wrap; gap: 3px; margin: 2px 0; }
+.hud-cooldowns .cd { display: inline-flex; align-items: center; gap: 2px; font: 11px ui-monospace, monospace; color: #ffd8a8; background: rgba(0, 0, 0, 0.45); border-radius: 3px; padding: 0 4px 0 1px; }
+.hud-cooldowns img { width: 16px; height: 16px; filter: grayscale(0.6); }
+.world-label.reaction { color: #ffa94d; font-size: 14px; }
+.world-label.resource { color: #74c0fc; font-size: 16px; }
+.world-label.loot { color: #ffe066; font-size: 14px; }
+.world-label.status-end { color: #adb5bd; font-size: 13px; }
+.world-label .fl-icon { width: 22px; height: 22px; vertical-align: middle; margin-right: 3px; }
+.ms-auto { width: 44px; height: 44px; display: inline-flex; align-items: center; justify-content: center; font-size: 26px; color: #ffd43b; }
+.action-card { width: 136px; }
+.action-card .ac-kind { padding-right: 16px; }
+.lobby-box a { color: #74c0fc; }
+.action-card .ac-cd { gap: 0; font-size: 14px; }
+.action-card .ac-cd .ac-cd-icon { position: absolute; width: 30px; height: 30px; opacity: 0.55; }
+.action-card .ac-cd b { position: relative; }

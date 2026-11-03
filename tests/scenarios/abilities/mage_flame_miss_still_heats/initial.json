@@ -1,0 +1,57 @@
+{
+  "name": "Chama concentrada errada: sem dano nem Queimando, mas o calor incendeia o óleo",
+  "description": "d20 forçado em 1 (erro). O alvo não recebe os 18 de fogo nem Queimando; o calor na célula incendeia a mancha de óleo (fogo por 3 rodadas) e o fogo criado sob o alvo causa 6 de fogo (exposição inicial).",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 5,
+          "y": 3
+        },
+        {
+          "x": 5,
+          "y": 4
+        }
+      ],
+      "surface": "oil"
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

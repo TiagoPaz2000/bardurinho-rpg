@@ -1,0 +1,52 @@
+{
+  "name": "Cota reforçada (armadura 4) do guerreiro: reduz só dano físico",
+  "description": "armor.reinforced_mail: adaga (16) tira 12; a varinha arcana (14) não é reduzida pela armadura.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    },
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 4,
+        "y": 6
+      }
+    }
+  ],
+  "order": [
+    "rogue-01",
+    "mage-01",
+    "warrior-01"
+  ]
+}

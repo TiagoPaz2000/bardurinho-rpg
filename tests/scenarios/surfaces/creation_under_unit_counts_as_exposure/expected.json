@@ -1,0 +1,34 @@
+{
+  "errors": 0,
+  "units": {
+    "warrior-01": {
+      "hp": 108
+    }
+  },
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 5,
+      "damageType": "physical",
+      "mitigation": 4,
+      "hpDamage": 1,
+      "hpAfter": 109
+    },
+    {
+      "targetId": "warrior-01",
+      "raw": 5,
+      "damageType": "physical",
+      "mitigation": 4,
+      "hpDamage": 1,
+      "hpAfter": 108
+    }
+  ],
+  "events": [
+    "SURFACE_CREATED",
+    "SURFACE_EXPOSURE",
+    "DAMAGE_APPLIED",
+    "TURN_STARTED",
+    "SURFACE_EXPOSURE",
+    "DAMAGE_APPLIED"
+  ]
+}

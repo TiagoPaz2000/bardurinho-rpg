@@ -1,0 +1,24 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="abilities_precise_shot_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><linearGradient id="abilities_precise_shot_gold1" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFF0B0"/><stop offset="0.5" stop-color="#F4B43C"/><stop offset="1" stop-color="#B86A16"/></linearGradient><radialGradient id="abilities_precise_shot_gloss2" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><linearGradient id="abilities_precise_shot_cream3" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.5" stop-color="#FBEFD2"/><stop offset="1" stop-color="#DCC08A"/></linearGradient><linearGradient id="abilities_precise_shot_red4" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFB0B8"/><stop offset="0.5" stop-color="#E8283E"/><stop offset="1" stop-color="#7E0A1E"/></linearGradient><linearGradient id="abilities_precise_shot_gem5" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#F4C2FF"/><stop offset="0.5" stop-color="#A63CD8"/><stop offset="1" stop-color="#4E0E78"/></linearGradient><linearGradient id="abilities_precise_shot_steel6" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.5" stop-color="#C3CAD3"/><stop offset="1" stop-color="#7A8592"/></linearGradient></defs>
+<ellipse cx="116" cy="238" rx="74" ry="9" fill="#1a0e24" opacity="0.25" filter="url(#abilities_precise_shot_blur0)"/>
+<path d="M22,140 A90,90 0 1 0 202,140 A90,90 0 1 0 22,140 Z" fill="url(#abilities_precise_shot_gold1)" stroke="#6A3A0C" stroke-width="4.5" stroke-linejoin="round"/>
+<path d="M22,140 A90,90 0 1 0 202,140 A90,90 0 1 0 22,140 Z" fill="url(#abilities_precise_shot_gloss2)" opacity="0.8"/>
+<path d="M34,140 A78,78 0 1 0 190,140 A78,78 0 1 0 34,140 Z" fill="url(#abilities_precise_shot_cream3)" stroke="#7A5A2E" stroke-width="3" stroke-linejoin="round"/>
+<path d="M52,140 A60,60 0 1 0 172,140 A60,60 0 1 0 52,140 Z" fill="url(#abilities_precise_shot_red4)" stroke="#4A0610" stroke-width="3" stroke-linejoin="round"/>
+<path d="M70,140 A42,42 0 1 0 154,140 A42,42 0 1 0 70,140 Z" fill="url(#abilities_precise_shot_cream3)" stroke="#7A5A2E" stroke-width="3" stroke-linejoin="round"/>
+<path d="M88,140 A24,24 0 1 0 136,140 A24,24 0 1 0 88,140 Z" fill="url(#abilities_precise_shot_red4)" stroke="#4A0610" stroke-width="3" stroke-linejoin="round"/>
+<path d="M22,140 A90,90 0 1 0 202,140 A90,90 0 1 0 22,140 Z" fill="url(#abilities_precise_shot_gloss2)" opacity="0.6"/>
+<path d="M106,138 L118,142 M110,148 L115,132" fill="none" stroke="#4A0610" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.8"/>
+<path d="M112,140 L214,38" fill="none" stroke="#3E1E08" stroke-width="15" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M112,140 L214,38" fill="none" stroke="#C88A4C" stroke-width="9" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M118,131 L208,36" fill="none" stroke="#FFE0B0" stroke-width="2.5" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+<path d="M198,54 L228,20 L240,24 L212,58 Z" fill="url(#abilities_precise_shot_gem5)" stroke="#2E0648" stroke-width="3" stroke-linejoin="round"/>
+<path d="M198,54 L228,20 L240,24 L212,58 Z" fill="url(#abilities_precise_shot_gloss2)" opacity="0.5"/>
+<path d="M198,54 L232,24 L228,12 L194,40 Z" fill="url(#abilities_precise_shot_gem5)" stroke="#2E0648" stroke-width="3" stroke-linejoin="round"/>
+<path d="M198,54 L232,24 L228,12 L194,40 Z" fill="url(#abilities_precise_shot_gloss2)" opacity="0.5"/>
+<path d="M186,66 L216,32 L228,36 L200,70 Z" fill="url(#abilities_precise_shot_gem5)" stroke="#2E0648" stroke-width="3" stroke-linejoin="round"/>
+<path d="M186,66 L216,32 L228,36 L200,70 Z" fill="url(#abilities_precise_shot_gloss2)" opacity="0.5"/>
+<path d="M186,66 L220,36 L216,24 L182,52 Z" fill="url(#abilities_precise_shot_gem5)" stroke="#2E0648" stroke-width="3" stroke-linejoin="round"/>
+<path d="M186,66 L220,36 L216,24 L182,52 Z" fill="url(#abilities_precise_shot_gloss2)" opacity="0.5"/>
+<path d="M105,140 A7,7 0 1 0 119,140 A7,7 0 1 0 105,140 Z" fill="url(#abilities_precise_shot_steel6)" stroke="#3C4450" stroke-width="2.5" stroke-linejoin="round"/>
+</svg>

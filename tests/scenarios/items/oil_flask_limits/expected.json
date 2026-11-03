@@ -1,0 +1,24 @@
+{
+  "errors": 2,
+  "units": {
+    "mage-01": {
+      "ap": 2
+    }
+  },
+  "cells": [
+    {
+      "x": 5,
+      "y": 1,
+      "surface": null
+    },
+    {
+      "x": 1,
+      "y": 6,
+      "surface": null
+    }
+  ],
+  "forbiddenEvents": [
+    "ITEM_USED",
+    "SURFACE_CREATED"
+  ]
+}

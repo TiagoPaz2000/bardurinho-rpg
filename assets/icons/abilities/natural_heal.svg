@@ -1,0 +1,21 @@
+<svg xmlns="http://www.w3.org/2000/svg" width="256" height="256" viewBox="0 0 256 256">
+<defs><filter id="abilities_natural_heal_blur0" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="5"/></filter><filter id="abilities_natural_heal_blur1" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="14"/></filter><linearGradient id="abilities_natural_heal_leaf2" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#E6FFB0"/><stop offset="0.5" stop-color="#7ACC40"/><stop offset="1" stop-color="#2E7A1E"/></linearGradient><radialGradient id="abilities_natural_heal_gloss3" cx="0.34" cy="0.26" r="0.62"><stop offset="0" stop-color="#fff" stop-opacity="0.9"/><stop offset="0.42" stop-color="#fff" stop-opacity="0.22"/><stop offset="1" stop-color="#fff" stop-opacity="0"/></radialGradient><filter id="abilities_natural_heal_blur4" x="-50%" y="-50%" width="200%" height="200%"><feGaussianBlur stdDeviation="8"/></filter><linearGradient id="abilities_natural_heal_green5" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#D8FFA0"/><stop offset="0.5" stop-color="#5EC03A"/><stop offset="1" stop-color="#21661C"/></linearGradient><linearGradient id="abilities_natural_heal_white6" x1="0.15" y1="0" x2="0.85" y2="1"><stop offset="0" stop-color="#FFFFFF"/><stop offset="0.5" stop-color="#F2F6FA"/><stop offset="1" stop-color="#C8D2DE"/></linearGradient></defs>
+<ellipse cx="128" cy="238" rx="70" ry="8" fill="#1a0e24" opacity="0.22" filter="url(#abilities_natural_heal_blur0)"/>
+<path d="M38,120 A90,90 0 1 0 218,120 A90,90 0 1 0 38,120 Z" fill="#9CFF6A" opacity="0.4" filter="url(#abilities_natural_heal_blur1)"/>
+<g transform="rotate(-38 108 112)">
+<path d="M108,12 C156.4,50 159.5,152 108,212 C56.5,152 59.6,50 108,12 Z" fill="url(#abilities_natural_heal_leaf2)" stroke="#14420C" stroke-width="5" stroke-linejoin="round"/>
+<path d="M108,12 C156.4,50 159.5,152 108,212 C56.5,152 59.6,50 108,12 Z" fill="url(#abilities_natural_heal_gloss3)" opacity="0.8"/>
+<path d="M108,24 L108,204" fill="none" stroke="#E8FFC0" stroke-width="4" stroke-linecap="round" stroke-linejoin="round" opacity="0.9"/>
+<path d="M108,78 Q80,64 62,52 M108,78 Q136,64 154,52 M108,112 Q80,98 62,86 M108,112 Q136,98 154,86 M108,146 Q80,132 62,120 M108,146 Q136,132 154,120 M108,180 Q80,166 62,154 M108,180 Q136,166 154,154 " fill="none" stroke="#E8FFC0" stroke-width="3" stroke-linecap="round" stroke-linejoin="round" opacity="0.7"/>
+<path d="M108,204 L108,232" fill="none" stroke="#3E1E08" stroke-width="12" stroke-linecap="round" stroke-linejoin="round"/>
+<path d="M108,204 L108,232" fill="none" stroke="#7A4A1E" stroke-width="7" stroke-linecap="round" stroke-linejoin="round"/>
+</g>
+<path d="M159,128 L193,128 L193,161 L226,161 L226,195 L193,195 L193,228 L159,228 L159,195 L126,195 L126,161 L159,161 Z" fill="#CFFF9A" opacity="0.9" filter="url(#abilities_natural_heal_blur4)"/>
+<path d="M161.7,136 L190.3,136 L190.3,163.7 L218,163.7 L218,192.3 L190.3,192.3 L190.3,220 L161.7,220 L161.7,192.3 L134,192.3 L134,163.7 L161.7,163.7 Z" fill="url(#abilities_natural_heal_green5)" stroke="#123A0E" stroke-width="5" stroke-linejoin="round"/>
+<path d="M161.7,136 L190.3,136 L190.3,163.7 L218,163.7 L218,192.3 L190.3,192.3 L190.3,220 L161.7,220 L161.7,192.3 L134,192.3 L134,163.7 L161.7,163.7 Z" fill="url(#abilities_natural_heal_gloss3)" opacity="0.8"/>
+<path d="M165.2,150 L182.8,150 L182.8,167.2 L200,167.2 L200,184.8 L182.8,184.8 L182.8,202 L165.2,202 L165.2,184.8 L148,184.8 L148,167.2 L165.2,167.2 Z" fill="url(#abilities_natural_heal_white6)" stroke="#5A6474" stroke-width="0" stroke-linejoin="round"/>
+<path d="M165.2,150 L182.8,150 L182.8,167.2 L200,167.2 L200,184.8 L182.8,184.8 L182.8,202 L165.2,202 L165.2,184.8 L148,184.8 L148,167.2 L165.2,167.2 Z" fill="url(#abilities_natural_heal_gloss3)" opacity="0.6"/>
+<path d="M210,91 L212.6,101.4 L223,104 L212.6,106.6 L210,117 L207.4,106.6 L197,104 L207.4,101.4 Z" fill="#fff"/>
+<path d="M126,215 L127.8,222.2 L135,224 L127.8,225.8 L126,233 L124.2,225.8 L117,224 L124.2,222.2 Z" fill="#E8FFC0"/>
+<path d="M52,186 L54,194 L62,196 L54,198 L52,206 L50,198 L42,196 L50,194 Z" fill="#E8FFC0"/>
+</svg>

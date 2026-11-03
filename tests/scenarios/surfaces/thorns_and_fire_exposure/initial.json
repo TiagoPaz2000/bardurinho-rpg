@@ -1,0 +1,63 @@
+{
+  "name": "Espinhos (custo 2, 5 físico) e fogo (6 ao entrar e ao iniciar o turno), uma vez por categoria por turno global",
+  "description": "Mago atravessa espinhos (5) e duas células de fogo (6 só na primeira). No início do próximo turno próprio, parado no fogo, recebe 6 de novo.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "########",
+        "#......#",
+        "########",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 2
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 6,
+        "y": 0
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 2,
+          "y": 2
+        }
+      ],
+      "surface": "thorns"
+    },
+    {
+      "cells": [
+        {
+          "x": 3,
+          "y": 2
+        },
+        {
+          "x": 4,
+          "y": 2
+        }
+      ],
+      "surface": "fire"
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

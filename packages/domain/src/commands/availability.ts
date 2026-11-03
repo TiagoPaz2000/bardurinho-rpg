@@ -42,6 +42,23 @@ export interface ActionInfo {
   command: Command | null;
   /** Para ações com alvo: quantas células/alvos válidos existem agora. */
   validTargets?: number;
+  /**
+   * Habilidades (Fase 4, recargas na interface): `turns` = turnos próprios até voltar a ficar
+   * disponível (0 = livre; 1 = no próximo turno próprio); `usedThisTurn` = já atingiu o limite
+   * de usos neste turno; `recharge` = recarga da definição.
+   */
+  cooldown?: { turns: number; usedThisTurn: boolean; recharge: number };
+}
+
+/** Recarga de uma habilidade para um personagem (só leitura do estado; regra em `checkAbility`). */
+export function abilityCooldown(unit: Unit, abilityId: string, catalog: Catalog): { turns: number; usedThisTurn: boolean; recharge: number } {
+  const ab = catalog.abilities[abilityId];
+  const availableFrom = unit.availableFromOwnTurn[abilityId] ?? 0;
+  return {
+    turns: Math.max(0, availableFrom - unit.ownTurnsStarted),
+    usedThisTurn: !!ab && (unit.usesThisTurn[abilityId] ?? 0) >= ab.maxUsesPerTurn,
+    recharge: ab?.blockedOwnTurnsAfterUse ?? 0,
+  };
 }
 
 const fmtCost = (c: Cost): string => `${c.ap} PA${c.focus ? ` + ${c.focus} Foco` : ''}`;
@@ -116,6 +133,7 @@ export function listUnitActions(state: GameState, catalog: Catalog, unitId: Enti
       key: `ability:${ab.id}`, kind: 'ability', id: ab.id, name: ab.name, cost: fmtCost(ab.cost),
       target: self ? 'self' : ab.target.kind, reason, command: self ? build({ kind: 'self' }) : null,
       ...(validTargets !== undefined ? { validTargets } : {}),
+      cooldown: abilityCooldown(actor, ab.id, catalog),
     });
   }
 

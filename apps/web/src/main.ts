@@ -14,6 +14,7 @@ import { NetworkMatch } from './network/NetworkMatch.js';
 import { pace } from './rendering/anim.js';
 import { startArenaScreen, type ArenaScreen } from './screens/arenaScreen.js';
 import { showLobby } from './screens/lobby.js';
+import { encodeSetup, showLocalSetup } from './screens/matchSetup.js';
 import './style.css';
 
 const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
@@ -81,6 +82,15 @@ if (mode === 'rede') {
     box.className = 'hud-panel hud-error';
     box.textContent = `Falha no modo em rede: ${String(err)}`;
     hudRoot.append(box);
+  });
+} else if (!params.has('setup') && !params.has('seed') && !params.has('units')) {
+  // Fase 4: abrir sem parâmetros mostra a escolha de personagens; a partida começa com
+  // `?setup=…&seed=…` (o mesmo caminho de "Reiniciar"/"Jogar novamente", que mantêm a escolha).
+  document.body.dataset.setup = '1';
+  void showLocalSetup(hudRoot, catalog).then((setup) => {
+    params.set('setup', encodeSetup(setup));
+    params.set('seed', String(1 + Math.floor(Math.random() * (2 ** 31 - 1))));
+    location.search = params.toString();
   });
 } else {
   expose(startArenaScreen(canvas, hudRoot, catalog, patioDasRuinas));

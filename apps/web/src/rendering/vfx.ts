@@ -408,8 +408,27 @@ export class CombatVfx {
         await this.restore(String(p.unitId), event.cause.definitionId === 'consumable.health_potion' ? 'item.health' : 'heal.nature');
         return;
       case 'RESOURCE_RESTORED':
-        if (event.cause.definitionId === 'consumable.focus_potion' && Number(p.after) > Number(p.before)) await this.restore(String(p.unitId), 'item.focus');
+        // Poção de Foco e Altar de Foco (Fase 4: o altar também mostra o brilho azul).
+        if (Number(p.after) > Number(p.before)) await this.restore(String(p.unitId), 'item.focus');
         return;
+      case 'CONSUMABLE_GRANTED': {
+        // Baú: brilho dourado subindo e o frasco da poção sobre quem pegou.
+        const view = this.arena.unitView(String(p.unitId));
+        if (!view) return;
+        this.arena.particles.burst('rise', view.root.position.add(new Vector3(0, 0.2, 0)), Color3.FromHexString('#ffd43b'), 26);
+        await this.burstGlb(String(p.itemId) === 'consumable.focus_potion' ? 'item.focus' : 'item.health', view.root.position.add(new Vector3(0, 1.6, 0)), 0.8, 0.55);
+        return;
+      }
+      case 'STIMULUS_EMITTED': {
+        // Fase 4: água da cisterna (respingo azul por célula) e frio (cristais de gelo).
+        const at = point(p.cell as Coord, 0.3);
+        if (p.stimulus === 'water') {
+          this.arena.particles.burst('rise', at, Color3.FromHexString('#4dabf7'), 22, (ps) => ps.gravity.set(0, -6, 0));
+          this.arena.particles.burst('smoke', at.add(new Vector3(0, 0.3, 0)), Color3.FromHexString('#a5d8ff'), 5);
+          await wait(this.scene, 0.04);
+        } else if (p.stimulus === 'cold') this.arena.particles.burst('frost', at, FX_COLORS.frost, 14);
+        return;
+      }
       case 'SHIELD_GRANTED': {
         if (!p.applied) return;
         const id = String(p.unitId);

@@ -1,0 +1,10 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "rogue-01",
+    "abilityId": "rogue.hide",
+    "target": {
+      "kind": "self"
+    }
+  }
+]

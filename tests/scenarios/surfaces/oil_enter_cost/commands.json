@@ -1,0 +1,20 @@
+[
+  {
+    "type": "MOVE",
+    "actorId": "warrior-01",
+    "to": {
+      "x": 4,
+      "y": 2,
+      "floor": 0
+    }
+  },
+  {
+    "type": "MOVE",
+    "actorId": "warrior-01",
+    "to": {
+      "x": 6,
+      "y": 2,
+      "floor": 0
+    }
+  }
+]

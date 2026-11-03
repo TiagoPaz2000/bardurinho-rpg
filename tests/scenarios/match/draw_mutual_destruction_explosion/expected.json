@@ -1,0 +1,22 @@
+{
+  "errors": 0,
+  "status": "finished",
+  "result": {
+    "kind": "draw",
+    "reason": "mutualDestruction"
+  },
+  "units": {
+    "mage-a": {
+      "alive": false
+    },
+    "warrior-b": {
+      "alive": false
+    }
+  },
+  "events": [
+    "EXPLOSION",
+    "UNIT_DEFEATED",
+    "UNIT_DEFEATED",
+    "MATCH_ENDED"
+  ]
+}

@@ -1,0 +1,47 @@
+{
+  "errors": 0,
+  "units": {
+    "warrior-01": {
+      "hp": 104,
+      "statuses": []
+    },
+    "mage-01": {
+      "ap": 1,
+      "focus": 8
+    }
+  },
+  "cells": [
+    {
+      "x": 5,
+      "y": 3,
+      "surface": "fire",
+      "expiresAtRound": 4
+    },
+    {
+      "x": 5,
+      "y": 4,
+      "surface": "fire",
+      "expiresAtRound": 4
+    }
+  ],
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 6,
+      "damageType": "fire",
+      "hpAfter": 104
+    }
+  ],
+  "events": [
+    "ABILITY_USED",
+    "ATTACK_ROLLED",
+    "STIMULUS_EMITTED",
+    "REACTION_TRIGGERED",
+    "SURFACE_CREATED",
+    "SURFACE_EXPOSURE",
+    "DAMAGE_APPLIED"
+  ],
+  "forbiddenEvents": [
+    "STATUS_APPLIED"
+  ]
+}

@@ -44,7 +44,8 @@ export async function createGameServer(overrides: Partial<ServerConfig> = {}): P
     gracefullyShutdown: false,
     express: (app) => registerRoutes(app, services),
   });
-  server.define(MATCH_ROOM, MatchRoom);
+  // Fase 4: "Procurar partida" só junta salas do mesmo formato (1 × 1 / 2 × 2).
+  server.define(MATCH_ROOM, MatchRoom).filterBy(['teamSize']);
   await server.listen(config.port, config.host);
   const http = (transport as unknown as { server: import('node:http').Server }).server;
   const port = (http.address() as AddressInfo).port;

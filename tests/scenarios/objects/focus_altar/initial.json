@@ -1,0 +1,42 @@
+{
+  "name": "Altar de Foco: recupera 4 Foco, um uso por partida",
+  "description": "Mago com 2 Foco usa o altar adjacente (1d4+1, média 4): 6. Segundo uso: NO_USES_LEFT.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "altar-01",
+      "defId": "focus_altar",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "mage-01"
+  ]
+}

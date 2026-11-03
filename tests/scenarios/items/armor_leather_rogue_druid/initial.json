@@ -1,0 +1,52 @@
+{
+  "name": "Armadura de couro (armadura 2) do ladino e do druida",
+  "description": "armor.leather: espada (18) contra ladino e druida, 18 − 2 = 16 em cada.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 3,
+        "y": 3
+      }
+    },
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "B",
+      "pos": {
+        "x": 4,
+        "y": 3
+      }
+    },
+    {
+      "id": "druid-01",
+      "classId": "druid",
+      "team": "B",
+      "pos": {
+        "x": 2,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "warrior-01",
+    "rogue-01",
+    "druid-01"
+  ]
+}

@@ -1,0 +1,32 @@
+[
+  {
+    "type": "USE_ABILITY",
+    "actorId": "rogue-01",
+    "abilityId": "rogue.hide",
+    "target": {
+      "kind": "self"
+    }
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "rogue-01"
+  },
+  {
+    "type": "MOVE",
+    "actorId": "warrior-01",
+    "to": {
+      "x": 3,
+      "y": 3,
+      "floor": 0
+    }
+  },
+  {
+    "type": "MOVE",
+    "actorId": "warrior-01",
+    "to": {
+      "x": 2,
+      "y": 3,
+      "floor": 0
+    }
+  }
+]

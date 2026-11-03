@@ -1,0 +1,42 @@
+{
+  "name": "Queimando: 4 de fogo nos dois próximos inícios de turno do alvo",
+  "description": "Chama aplica burning; o guerreiro recebe 4 de fogo no início dos turnos 1 e 2 dele; no turno 3 não há mais tick.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "mage-01",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "mage-01",
+    "warrior-01"
+  ]
+}

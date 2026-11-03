@@ -1,0 +1,21 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": {
+      "hp": 98
+    },
+    "rogue-01": {
+      "ap": 1
+    }
+  },
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 16,
+      "damageType": "physical",
+      "mitigation": 4,
+      "hpDamage": 12,
+      "hpAfter": 98
+    }
+  ]
+}

@@ -1,0 +1,39 @@
+{
+  "name": "Caixa: 20 PV, bloqueia a passagem; destruída libera a célula",
+  "description": "Caixa no corredor: NO_PATH. Duas espadadas (18 + 18) a destroem e o caminho fica livre.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "########",
+        "#......#",
+        "########",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 2,
+        "y": 2
+      }
+    }
+  ],
+  "objects": [
+    {
+      "id": "crate-01",
+      "defId": "crate",
+      "pos": {
+        "x": 3,
+        "y": 2
+      }
+    }
+  ],
+  "order": [
+    "warrior-01"
+  ]
+}

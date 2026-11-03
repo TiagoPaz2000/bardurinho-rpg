@@ -4,6 +4,7 @@
  * - Câmera automática: Alta / Reduzida / Desativada (`CameraEventQueue.preference`);
  * - Ritmo das animações: Normal / Rápido (mesmo que a tecla T);
  * - Sensibilidade da câmera, inverter arrasto, inverter zoom, tremor nas explosões;
+ * - Fase 4: volume dos efeitos sonoros (0 = mudo);
  * - Reiniciar a partida (mesma semente) / nova partida (semente nova).
  *
  * Guardado no navegador (settings.ts). Enquanto aberta, a partida não recebe teclas nem
@@ -27,6 +28,8 @@ const AUTO_CAMERA: Array<{ value: AutoCameraPreference; label: string; hint: str
   { value: 'reduced', label: 'Reduzida', hint: 'só momentos importantes (explosões, derrotas); retorno só se a câmera saiu' },
   { value: 'off', label: 'Desativada', hint: 'a câmera só se move pelos seus comandos' },
 ];
+
+const volumeText = (v: number) => (v <= 0 ? 'mudo' : `${Math.round(v * 100)}%`);
 
 export class OptionsMenu {
   readonly root: HTMLDivElement;
@@ -122,6 +125,13 @@ export class OptionsMenu {
 
   private onInput(e: Event): void {
     const el = e.target as HTMLInputElement;
+    if (el.dataset.opt === 'sfxVolume') {
+      this.settings = { ...this.settings, sfxVolume: Number(el.value) / 100 };
+      this.handlers.change(this.settings);
+      const out = this.root.querySelector('[data-vol-value]');
+      if (out) out.textContent = volumeText(this.settings.sfxVolume);
+      return;
+    }
     if (el.dataset.opt !== 'sensitivity') return;
     this.settings = { ...this.settings, cameraSensitivity: Number(el.value) };
     this.handlers.change(this.settings);
@@ -153,6 +163,10 @@ export class OptionsMenu {
         <div class="opt-row">
           <div class="opt-label">Sensibilidade da câmera <span data-sens-value>${s.cameraSensitivity.toFixed(1)}×</span></div>
           <input type="range" min="0.5" max="2" step="0.1" value="${s.cameraSensitivity}" data-opt="sensitivity" aria-label="Sensibilidade da câmera" />
+        </div>
+        <div class="opt-row">
+          <div class="opt-label">Volume dos efeitos sonoros <span data-vol-value>${volumeText(s.sfxVolume)}</span></div>
+          <input type="range" min="0" max="100" step="5" value="${Math.round(s.sfxVolume * 100)}" data-opt="sfxVolume" aria-label="Volume dos efeitos sonoros" />
         </div>
         <div class="opt-row opt-checks">
           ${check('invertDrag', 'Inverter arrasto da câmera', s.invertDrag)}

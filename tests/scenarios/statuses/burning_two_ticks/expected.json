@@ -1,0 +1,38 @@
+{
+  "errors": 0,
+  "activeUnitId": "warrior-01",
+  "round": 3,
+  "units": {
+    "warrior-01": {
+      "hp": 84,
+      "statuses": []
+    }
+  },
+  "damage": [
+    {
+      "targetId": "warrior-01",
+      "raw": 18,
+      "hpAfter": 92
+    },
+    {
+      "targetId": "warrior-01",
+      "raw": 4,
+      "damageType": "fire",
+      "hpAfter": 88
+    },
+    {
+      "targetId": "warrior-01",
+      "raw": 4,
+      "damageType": "fire",
+      "hpAfter": 84
+    }
+  ],
+  "events": [
+    "STATUS_APPLIED",
+    "STATUS_TICK",
+    "DAMAGE_APPLIED",
+    "STATUS_TICK",
+    "DAMAGE_APPLIED",
+    "STATUS_EXPIRED"
+  ]
+}

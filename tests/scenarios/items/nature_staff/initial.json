@@ -1,0 +1,42 @@
+{
+  "name": "Cajado natural: 12 de natureza até 4 células",
+  "description": "weapon.nature_staff contra guerreiro a 4 células: 12 de natureza. Célula a 5: OUT_OF_RANGE.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "druid-01",
+      "classId": "druid",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 3
+      }
+    },
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 5,
+        "y": 3
+      }
+    }
+  ],
+  "order": [
+    "druid-01",
+    "warrior-01"
+  ]
+}

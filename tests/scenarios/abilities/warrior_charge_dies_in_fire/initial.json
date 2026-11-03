@@ -1,0 +1,51 @@
+{
+  "name": "Investida através do fogo: o guerreiro morre antes de concluir o ataque",
+  "description": "warrior.charge num corredor com fogo no caminho; com 6 PV, o guerreiro morre ao entrar no fogo (6 de fogo). O ataque não acontece e a outra equipe vence.",
+  "map": {
+    "floors": [
+      [
+        "........",
+        "########",
+        "#......#",
+        "########",
+        "........"
+      ]
+    ]
+  },
+  "units": [
+    {
+      "id": "warrior-01",
+      "classId": "warrior",
+      "team": "A",
+      "pos": {
+        "x": 1,
+        "y": 2
+      },
+      "hp": 6
+    },
+    {
+      "id": "rogue-01",
+      "classId": "rogue",
+      "team": "B",
+      "pos": {
+        "x": 6,
+        "y": 2
+      }
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 3,
+          "y": 2
+        }
+      ],
+      "surface": "fire"
+    }
+  ],
+  "order": [
+    "warrior-01",
+    "rogue-01"
+  ]
+}
