@@ -16,6 +16,7 @@
     "validate-content": "tsx tools/validate-content/index.ts",
     "icons": "tsx tools/icons/resize.ts",
     "lab": "npm run dev -w @bardurinho/combat-debug-lab",
+    "web": "npm run dev -w @bardurinho/web",
     "optimize-models": "tsx tools/models/optimize.ts"
   },
   "devDependencies": {

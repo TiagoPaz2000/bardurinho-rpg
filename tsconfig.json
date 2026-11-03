@@ -6,6 +6,7 @@
     { "path": "packages/assets-manifest" },
     { "path": "packages/content" },
     { "path": "apps/combat-debug-lab" },
+    { "path": "apps/web" },
     { "path": "tests" }
   ]
 }
