@@ -1,0 +1,57 @@
+{
+  "models": [
+    {
+      "id": "ornate_circular_base_plate",
+      "file": "ornate_circular_base_plate.glb",
+      "source": {
+        "originalFile": "Ornate French circular base plate.glb",
+        "generator": "Tripo (glTF 2.0, asset.generator = \"Tripo\")",
+        "sha256": "f01c41b264e32a3381e8c07087a8a5f2a75b88b6ff676745ffb0c6e9ffb44091",
+        "fileSizeBytes": 48138672,
+        "modified": false
+      },
+      "dimensionsMeters": {
+        "diameterX": 3.921,
+        "diameterZ": 3.921,
+        "height": 0.650,
+        "plateauHeight": 0.5,
+        "centralBossRadius": 0.43,
+        "bounds": {
+          "min": [-1.9606, 0.0, -1.9607],
+          "max": [1.9606, 0.6497, 1.9607]
+        },
+        "upAxis": "+Y",
+        "pivot": "base center (y = 0, XZ centered; node translation ~0.0001 m)",
+        "footprintCells": "2 x 2 at native scale (4 x 4 m); 1 x 1 at scale 0.5 (1.96 m)"
+      },
+      "triangles": 1948544,
+      "vertices": 1031465,
+      "meshes": 1,
+      "nodes": 1,
+      "attributes": ["POSITION", "NORMAL"],
+      "indexType": "uint32",
+      "materials": [],
+      "textures": [],
+      "skins": 0,
+      "animations": 0,
+      "suggestedUses": [
+        {
+          "use": "focus_altar base (pedestal under the Focus Altar)",
+          "scale": 0.5,
+          "result": "1.96 m diameter x 0.325 m tall, fits one 2 x 2 m cell; matches the single-cell, STONE, movement-blocking focus_altar object"
+        },
+        {
+          "use": "decorative central dais / landmark (visual only)",
+          "scale": 1.0,
+          "result": "3.92 m diameter x 0.65 m tall, covers a 2 x 2 cell block; not a walkable level (rules only know ground and 4 m platforms)"
+        }
+      ],
+      "notes": [
+        "About 1300x over the 1.5k-triangle object budget in docs/fase-02-modelos-3d.md; needs a decimated derivative (e.g. 1.5k-5k tris) before use in a match. Keep this file as the source/high-poly reference.",
+        "No material, no UVs and no textures: renders with the engine default material. Assign a stone material in the loader; texturing requires UV unwrapping in a derived file.",
+        "Radially symmetric, so front (+Z) orientation is irrelevant.",
+        "Scale and any offset should be applied in the loader (root transform), not by editing the GLB."
+      ]
+    }
+  ]
+}
