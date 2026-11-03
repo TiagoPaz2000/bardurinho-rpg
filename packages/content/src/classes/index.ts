@@ -4,7 +4,7 @@ import type { ClassDefinition } from '@bardurinho/domain';
 export const classes: ClassDefinition[] = [
   {
     kind: 'class', id: 'mage', version: 1, name: 'Mago', tags: ['caster'],
-    hp: 80, ap: 2, mp: 5, maxFocus: 10,
+    hp: 80, ap: 2, mp: 5, maxFocus: 10, defense: 11, attackBonus: 5,
     loadout: {
       weapons: ['weapon.arcane_wand'],
       armor: 'armor.tunic',
@@ -13,7 +13,7 @@ export const classes: ClassDefinition[] = [
   },
   {
     kind: 'class', id: 'rogue', version: 1, name: 'Ladino', tags: ['skirmisher'],
-    hp: 90, ap: 2, mp: 6, maxFocus: 8,
+    hp: 90, ap: 2, mp: 6, maxFocus: 8, defense: 13, attackBonus: 6,
     loadout: {
       weapons: ['weapon.dagger', 'weapon.short_bow'],
       armor: 'armor.leather',
@@ -22,7 +22,7 @@ export const classes: ClassDefinition[] = [
   },
   {
     kind: 'class', id: 'warrior', version: 1, name: 'Guerreiro', tags: ['melee'],
-    hp: 110, ap: 2, mp: 5, maxFocus: 8,
+    hp: 110, ap: 2, mp: 5, maxFocus: 8, defense: 14, attackBonus: 5,
     loadout: {
       weapons: ['weapon.iron_sword'],
       armor: 'armor.reinforced_mail',
@@ -31,7 +31,7 @@ export const classes: ClassDefinition[] = [
   },
   {
     kind: 'class', id: 'druid', version: 1, name: 'Druida', tags: ['caster', 'support'],
-    hp: 95, ap: 2, mp: 5, maxFocus: 10,
+    hp: 95, ap: 2, mp: 5, maxFocus: 10, defense: 12, attackBonus: 5,
     loadout: {
       weapons: ['weapon.nature_staff'],
       armor: 'armor.leather',

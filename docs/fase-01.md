@@ -69,7 +69,7 @@ No laboratório:
 | Timeline de eventos | ✅ | Log global com causa, definição, payload e State Diff |
 | Modo STEP | ✅ | Por comando e **por evento**: snapshot do estado após cada evento (`captureEventSnapshots`, só debug); botões ◀ evento / evento ▶, atalhos `,` e `.` |
 | Replay de comandos | ✅ | Reexecuta do zero e confirma determinismo |
-| Testes automatizados | ✅ | 67 testes, incluindo 5 cenários JSON |
+| Testes automatizados | ✅ | 77 testes, incluindo 5 cenários JSON |
 | Geração de screenshots | ✅ | `npm run screenshots` (ou `npm run test:screenshots` / `SCREENSHOTS=1 npm test`) renderiza cada cenário com o renderer do Debug Lab via `@napi-rs/canvas`: `before.png`, `after_command_<n>.png`, `final.png` em `tests/output/<categoria>/<nome>/` + galeria `tests/output/index.html` |
 | Exportação de cenário | ✅ | Exportar e importar `initial.json` |
 | Criar teste a partir de cenário | ✅ | GERAR TESTE; coberto por `tests/unit/lab-session.test.ts` |
@@ -84,6 +84,47 @@ No laboratório:
 
 - **Filtragem de eventos por equipe**: a projeção já remove unidades não detectadas do estado; filtrar os eventos entra com o servidor (Fase 3).
 - Modos **AI** e **NETWORK** do laboratório: estrutura prevista, implementação junto das Fases 3 e 4.
+
+## Dados (RNG) no combate
+
+Decisão posterior ao plano original (que previa combate sem aleatoriedade no MVP):
+
+| Regra | Definição |
+|---|---|
+| Dados | d4, d6, d8, d10, d12, d20; fórmulas como `2d6+10` |
+| Gerador | Semente + contador no estado da partida: mesma semente e mesmos comandos = mesmas rolagens (replay, testes, servidor) |
+| Jogada de ataque | d20 + bônus de ataque ≥ Defesa do alvo. 1 natural erra sempre; 20 natural é crítico (dados de dano em dobro, bônus uma vez) |
+| Quem rola ataque | Ataques com arma e habilidades com `attackRoll` (Chama, Geada, Tiro preciso, Investida, Empurrão, Enraizar) contra personagens |
+| Objetos | Atingidos automaticamente (barris, portas, caixas) |
+| Erro | O personagem errado não recebe dano nem estados; efeitos na célula (calor, superfícies) acontecem mesmo assim |
+| Curas | Cura natural e Poção de vida `4d6+8`; Poção de Foco e altar `1d4+1` |
+| Iniciativa | d20 por personagem no início (`initiative: 'roll'`); empate mantém a ordem original; bonecos no fim |
+| Modo "média fixa" | Cada dado vale a média arredondada para cima (d4=3 … d20=11); padrão dos cenários de teste, para testar regras sem sorte |
+| Debug | `DEBUG_SET_RNG`: modo, semente e próximos resultados forçados (barra "Dados" do lab) |
+
+Valores iniciais (hipóteses de balanceamento):
+
+| Classe | Defesa | Bônus de ataque |
+|---|---:|---:|
+| Mago | 11 | +5 |
+| Ladino | 13 | +6 |
+| Guerreiro | 14 | +5 |
+| Druida | 12 | +5 |
+
+| Ataque | Fórmula | Média | Antes (fixo) |
+|---|---|---:|---:|
+| Espada de ferro | 1d8+13 | 17,5 | 18 |
+| Adaga | 1d6+12 | 15,5 | 16 |
+| Arco curto / Varinha | 1d6+10 | 13,5 | 14 |
+| Cajado | 1d4+9 | 11,5 | 12 |
+| Chama concentrada | 2d6+10 | 17 | 18 |
+| Raio de geada | 1d8+9 | 13,5 | 14 |
+| Tiro preciso | 1d12+15 | 21,5 | 22 |
+| Investida | 1d8+11 | 15,5 | 16 |
+| Empurrão | 1d4+3 | 5,5 | 6 |
+| Enraizar | 1d6+4 | 7,5 | 8 |
+
+Com acerto de ~55–75%, o dano médio por ataque cai em relação ao combate sem dados — rever PV e custos na Fase 6 (balanceamento).
 
 ## Hipóteses assumidas (não definidas no plano)
 

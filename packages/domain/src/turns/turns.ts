@@ -7,6 +7,7 @@ import { onStatusesTurnEnd, onStatusesTurnStart, mpModifier } from '../effects/s
 import { exposeUnitToSurface, expireSurfaces } from '../effects/surfaces.js';
 import { tickObjectCombustion } from '../effects/reactions.js';
 import type { Unit } from '../state/types.js';
+import { rollDie } from '../core/dice.js';
 
 /** Foco recuperado no início de cada turno próprio (seção 2.1). */
 export const FOCUS_REGEN_PER_TURN = 2;
@@ -17,9 +18,25 @@ export function startMatch(ctx: ResolutionContext): void {
   state.status = 'active';
   state.turn.round = 1;
   state.turn.activeIndex = -1;
+  if (state.initiative === 'roll') rollInitiative(ctx);
   emit(ctx, 'MATCH_STARTED', { order: state.turn.order, rulesVersion: state.rulesVersion, contentVersion: state.contentVersion });
   emit(ctx, 'ROUND_STARTED', { round: 1 });
   advanceToNextUnit(ctx);
+}
+
+/**
+ * Iniciativa: cada personagem rola d20; a ordem é do maior para o menor. Empates mantêm a
+ * ordem original (determinístico). Bonecos de teste não rolam e ficam no fim.
+ */
+function rollInitiative(ctx: ResolutionContext): void {
+  const { state } = ctx;
+  const ids = state.turn.order.filter((id) => state.units[id]);
+  const rolls = ids
+    .filter((id) => !state.units[id]!.flags.isDummy)
+    .map((id, index) => ({ id, index, roll: rollDie(state.rng, 20) }));
+  const sorted = [...rolls].sort((a, b) => b.roll - a.roll || a.index - b.index).map((r) => r.id);
+  state.turn.order = [...sorted, ...ids.filter((id) => state.units[id]!.flags.isDummy)];
+  emit(ctx, 'INITIATIVE_ROLLED', { rolls: rolls.map(({ id, roll }) => ({ unitId: id, roll })), order: state.turn.order });
 }
 
 /** Encerra o turno da unidade ativa e passa a vez. */

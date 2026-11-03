@@ -89,6 +89,8 @@ export const patioDasRuinas: MapDefinition = {
       { cells: [{ x: 11, y: 9 }, { x: 11, y: 10 }, { x: 11, y: 11 }], surface: 'oil' },
     ],
     order: ['warrior-01', 'mage-01'],
+    // Ordem de turnos decidida por d20 no início da partida.
+    initiative: 'roll',
   },
 };
 

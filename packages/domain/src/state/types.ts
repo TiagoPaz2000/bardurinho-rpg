@@ -1,4 +1,5 @@
 import type { Coord, EntityId, Resistances } from '../core/types.js';
+import type { RngState } from '../core/dice.js';
 import type { GameMap } from '../map/grid.js';
 import type { ObjectStateKind } from '../rules/definitions.js';
 
@@ -59,6 +60,10 @@ export interface Unit {
   focus: number;
   maxFocus: number;
   armor: number;
+  /** Defesa contra jogadas de ataque. */
+  defense: number;
+  /** Bônus de ataque (d20 + bônus). */
+  attackBonus: number;
   resistances: Resistances;
   shield: Shield | null;
 
@@ -118,6 +123,10 @@ export interface GameState {
   status: 'setup' | 'active' | 'finished';
   result: MatchResult | null;
   maxRounds: number;
+  /** Gerador de dados da partida (semente + contador): determinístico. */
+  rng: RngState;
+  /** `roll`: iniciativa por d20 no início; `fixed`: usa `turn.order` como está. */
+  initiative: 'roll' | 'fixed';
   /** unitId -> categorias de superfície que já causaram dano neste turno global. */
   surfaceHitsThisTurn: Record<EntityId, string[]>;
   nextEventSeq: number;

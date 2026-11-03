@@ -5,31 +5,31 @@ export const items: ItemDefinition[] = [
   // --- Armas: todos os ataques básicos custam 1 PA e nenhum Foco ---
   {
     kind: 'weapon', id: 'weapon.iron_sword', version: 1, name: 'Espada de ferro', tags: ['sword', 'melee'],
-    classIds: ['warrior'], cost: { ap: 1 }, damage: 18, damageType: 'physical',
+    classIds: ['warrior'], cost: { ap: 1 }, damage: '1d8+13', damageType: 'physical',
     target: { kind: 'cell', range: 1, sameFloor: true },
     presentation: { iconId: 'icon.weapon.iron_sword', animationId: 'melee', vfxId: 'impact.physical' },
   },
   {
     kind: 'weapon', id: 'weapon.dagger', version: 1, name: 'Adaga', tags: ['dagger', 'melee'],
-    classIds: ['rogue'], cost: { ap: 1 }, damage: 16, damageType: 'physical',
+    classIds: ['rogue'], cost: { ap: 1 }, damage: '1d6+12', damageType: 'physical',
     target: { kind: 'cell', range: 1, sameFloor: true },
     presentation: { iconId: 'icon.weapon.dagger', animationId: 'melee', vfxId: 'impact.physical' },
   },
   {
     kind: 'weapon', id: 'weapon.short_bow', version: 1, name: 'Arco curto', tags: ['bow', 'ranged'],
-    classIds: ['rogue'], cost: { ap: 1 }, damage: 14, damageType: 'physical',
+    classIds: ['rogue'], cost: { ap: 1 }, damage: '1d6+10', damageType: 'physical',
     target: { kind: 'cell', minRange: 2, range: 6, requiresLineOfSight: true },
     presentation: { iconId: 'icon.weapon.short_bow', animationId: 'shoot', vfxId: 'trail.arrow' },
   },
   {
     kind: 'weapon', id: 'weapon.arcane_wand', version: 1, name: 'Varinha arcana', tags: ['wand', 'ranged'],
-    classIds: ['mage'], cost: { ap: 1 }, damage: 14, damageType: 'arcane',
+    classIds: ['mage'], cost: { ap: 1 }, damage: '1d6+10', damageType: 'arcane',
     target: { kind: 'cell', range: 5, requiresLineOfSight: true },
     presentation: { iconId: 'icon.weapon.arcane_wand', animationId: 'cast_forward', vfxId: 'projectile.arcane' },
   },
   {
     kind: 'weapon', id: 'weapon.nature_staff', version: 1, name: 'Cajado natural', tags: ['staff', 'ranged'],
-    classIds: ['druid'], cost: { ap: 1 }, damage: 12, damageType: 'nature',
+    classIds: ['druid'], cost: { ap: 1 }, damage: '1d4+9', damageType: 'nature',
     target: { kind: 'cell', range: 4, requiresLineOfSight: true },
     presentation: { iconId: 'icon.weapon.nature_staff', animationId: 'cast_forward', vfxId: 'projectile.nature' },
   },
@@ -48,12 +48,12 @@ export const items: ItemDefinition[] = [
   {
     kind: 'consumable', id: 'consumable.health_potion', version: 1, name: 'Poção de vida', tags: ['HEAL', 'SELF'],
     cost: { ap: 1 }, target: { kind: 'self' },
-    effects: [{ op: 'heal', selector: 'self', amount: 24 }],
+    effects: [{ op: 'heal', selector: 'self', amount: '4d6+8' }],
   },
   {
     kind: 'consumable', id: 'consumable.focus_potion', version: 1, name: 'Poção de Foco', tags: ['FOCUS', 'SELF'],
     cost: { ap: 1 }, target: { kind: 'self' },
-    effects: [{ op: 'restoreResource', selector: 'self', resource: 'focus', amount: 4 }],
+    effects: [{ op: 'restoreResource', selector: 'self', resource: 'focus', amount: '1d4+1' }],
   },
   {
     kind: 'consumable', id: 'consumable.oil_flask', version: 1, name: 'Frasco de óleo', tags: ['OIL', 'SURFACE', 'AREA'],

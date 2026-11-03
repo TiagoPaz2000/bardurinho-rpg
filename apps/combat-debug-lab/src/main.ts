@@ -1,6 +1,6 @@
 import './style.css';
 import './actions.css';
-import { catalog, maps } from '@bardurinho/content';
+import { BASIC_ACTION_DESCRIPTIONS, catalog, describeDefinition, maps } from '@bardurinho/content';
 import { assetUrl, itemIconPath } from '@bardurinho/assets-manifest';
 import {
   DAMAGE_TYPES,
@@ -30,6 +30,8 @@ import {
   type SurfaceKind,
   type Terrain,
   type Unit,
+  type ScenarioInitial,
+  formatDice,
 } from '@bardurinho/domain';
 import { defaultScenario } from './defaultScenario.js';
 import { download, fmtCoord, h } from './dom.js';
@@ -67,7 +69,7 @@ const EXEC_OPTIONS: Record<ExecMode, ExecutionOptions> = {
 };
 
 const ui = {
-  session: new LabSession(catalog, defaultScenario),
+  session: newSession(defaultScenario),
   floor: 0,
   execMode: 'normal' as ExecMode,
   layers: {
@@ -94,6 +96,11 @@ const ui = {
   form: { amount: 20, damageType: 'physical' as DamageType, ignoreArmor: false, statusId: 'burning', team: 'A' },
   message: null as { text: string; kind: 'ok' | 'error' } | null,
 };
+
+/** Nova sessão do laboratório: dados aleatórios com semente nova, salvo se o cenário fixar outra. */
+function newSession(scenario: ScenarioInitial): LabSession {
+  return new LabSession(catalog, { ...scenario, dice: scenario.dice ?? 'random', seed: scenario.seed ?? Math.floor(Math.random() * 2 ** 31) });
+}
 
 const state = (): GameState =>
   (ui.eventViewSeq !== null ? ui.session.snapshotAfterEvent(ui.eventViewSeq) : null) ?? ui.session.state;
@@ -353,6 +360,17 @@ function renderToolbar(): void {
       ? h('span', { class: 'group' }, 'Andar:', ...Array.from({ length: s.map.floors }, (_, f) =>
           h('button', { class: ui.floor === f ? 'on' : '', onclick: () => { ui.floor = f; refresh(); } }, String(f))))
       : null,
+    h('span', { class: 'group' }, 'Dados:',
+      ...(['random', 'average'] as const).map((m) =>
+        h('button', { class: s.rng.mode === m ? 'on' : '', title: m === 'random' ? 'Rolagens pela semente' : 'Cada dado vale a média arredondada para cima (testes/balanceamento)',
+          onclick: () => { exec({ type: 'DEBUG_SET_RNG', mode: m }); refresh(); } }, m === 'random' ? 'Aleatório' : 'Média fixa')),
+      h('span', { class: 'pill', title: 'Semente e rolagens já feitas nesta partida' }, `semente ${s.rng.seed} · ${s.rng.draws} rolagens`),
+      h('input', { class: 'forced', placeholder: 'forçar: 20, 6, 6', title: 'Próximos resultados de dados, em ordem (ex.: 20 = crítico no d20, 1 = erro)', value: s.rng.forced.join(', '),
+        onchange: (e: Event) => {
+          const forced = (e.target as HTMLInputElement).value.split(/[\s,;]+/).filter(Boolean).map(Number).filter((n) => Number.isFinite(n));
+          exec({ type: 'DEBUG_SET_RNG', forced });
+          refresh();
+        } })),
     h('span', { class: 'group' }, 'Visão:',
       ...[null, ...teamsInMatch()].map((t) =>
         h('button', { class: ui.visionTeam === t ? 'on' : '', title: t ? `Mostra apenas o que a equipe ${t} vê` : 'Estado oficial completo',
@@ -420,7 +438,7 @@ function sidebarCategories(): Array<{ key: string; title: string; entries: Entry
       entries: [
         ...items.filter((i) => i.kind === 'weapon').map((w) => ({
           id: w.id, name: w.name, version: w.version, tags: w.tags, classIds: w.classIds,
-          meta: `${w.damage} ${w.damageType} · ${w.cost.ap} PA · alcance ${w.target.minRange ?? 1}–${w.target.range}`,
+          meta: `${formatDice(w.damage)} ${w.damageType} · ${w.cost.ap} PA · alcance ${w.target.minRange ?? 1}–${w.target.range}`,
           arm: (): Armed => ({ kind: 'attack', weaponId: w.id, label: `Ataque: ${w.name}` }),
         })),
         {
@@ -530,7 +548,7 @@ function sidebarCategories(): Array<{ key: string; title: string; entries: Entry
       key: 'maps', title: 'Mapas',
       entries: maps.map((m): Entry => ({
         id: m.id, name: m.name, version: m.version, tags: m.tags, meta: m.description,
-        arm: () => { ui.session = new LabSession(catalog, m.scenario); ui.floor = 0; ui.selectedUnitId = Object.keys(state().units)[0] ?? null; ui.message = { text: `Mapa carregado: ${m.name}`, kind: 'ok' }; },
+        arm: () => { ui.session = newSession(m.scenario); ui.floor = 0; ui.selectedUnitId = Object.keys(state().units)[0] ?? null; ui.message = { text: `Mapa carregado: ${m.name}`, kind: 'ok' }; },
       })),
     },
     {
@@ -645,7 +663,7 @@ function renderUnitInspector(u: Unit): HTMLElement[] {
     kv('Equipe', u.team), kv('Posição', fmtCoord(u.pos)), kv('Vivo', u.alive),
     kv('Visto por', seenBy(u)), kv('Oculto', isHidden(u) ? 'sim' : 'não'),
     kv('PV', `${u.hp} / ${u.maxHp}`), kv('PA', `${u.ap} / ${u.maxAp}`), kv('PM', `${u.mp} / ${u.maxMp}`), kv('Foco', `${u.focus} / ${u.maxFocus}`),
-    kv('Armadura', u.armor), kv('Resistências', u.resistances), kv('Barreira', u.shield ? `${u.shield.amount} (expira no turno próprio ${u.shield.expiresAtOwnTurn})` : 0),
+    kv('Armadura', u.armor), kv('Defesa', u.defense), kv('Bônus de ataque', u.flags.isDummy ? '—' : `+${u.attackBonus}`), kv('Resistências', u.resistances), kv('Barreira', u.shield ? `${u.shield.amount} (expira no turno próprio ${u.shield.expiresAtOwnTurn})` : 0),
     kv('Turnos próprios', u.ownTurnsStarted),
     kv('Estados', u.statuses.map((s) => `${s.statusId}(${s.remaining}${s.pendingStart ? ', pendente' : ''})`).join(', ') || '—'),
     kv('Recargas', Object.entries(u.availableFromOwnTurn).filter(([, t]) => t > u.ownTurnsStarted).map(([id, t]) => `${id} → turno ${t}`).join(', ') || '—'),
@@ -839,10 +857,30 @@ function renderEventLog(): HTMLElement {
   const selected = events.find((e) => e.seq === ui.selectedEventSeq);
   const list = h('div', { class: 'events' }, ...events.slice(-200).map((e) =>
     h('div', { class: `ev ${e.seq === ui.selectedEventSeq ? 'sel' : ''}`, onclick: () => { ui.selectedEventSeq = e.seq; ui.eventViewSeq = e.seq; refresh(); } },
-      `#${String(e.seq).padStart(3, '0')} R${e.round} ${e.type}`)));
+      `#${String(e.seq).padStart(3, '0')} R${e.round} ${e.type}${eventSummary(e)}`)));
   queueMicrotask(() => { list.scrollTop = list.scrollHeight; });
   const detail = selected ? eventDetail(selected) : null;
   return h('div', {}, h('h4', {}, `GLOBAL EVENT LOG (${events.length})`), list, detail);
+}
+
+/** Resumo curto para o log global (rolagens e dano). */
+function eventSummary(e: GameEvent): string {
+  const p = e.payload as Record<string, unknown>;
+  switch (e.type) {
+    case 'ATTACK_ROLLED':
+      return `  ${p.attackerId}→${p.targetId}: d20=${p.natural}+${p.bonus}=${p.total} vs Def ${p.defense} ${p.critical ? 'CRÍTICO' : p.hit ? 'ACERTO' : 'ERRO'}`;
+    case 'DICE_ROLLED': {
+      const rolls = (p.rolls as Array<{ value: number }>).map((r) => r.value).join(',');
+      const bonus = Number(p.bonus);
+      return `  ${p.purpose} ${p.critical ? '(crítico) ' : ''}${p.formula}: [${rolls}]${bonus ? (bonus > 0 ? '+' : '') + bonus : ''} = ${p.total}`;
+    }
+    case 'INITIATIVE_ROLLED':
+      return `  ${(p.rolls as Array<{ unitId: string; roll: number }>).map((r) => `${r.unitId}:${r.roll}`).join(' ')}`;
+    case 'DAMAGE_APPLIED':
+      return `  ${p.targetId} −${p.hpDamage} PV`;
+    default:
+      return '';
+  }
 }
 
 function eventDetail(e: GameEvent): HTMLElement {
@@ -931,14 +969,14 @@ function renderTimeline(): void {
           refresh();
         },
       }, 'GERAR TESTE'),
-      h('button', { onclick: () => { ui.session = new LabSession(catalog, defaultScenario); ui.message = null; refresh(); } }, 'Reiniciar cenário'),
+      h('button', { onclick: () => { ui.session = newSession(defaultScenario); ui.message = null; refresh(); } }, 'Reiniciar cenário'),
       h('label', { class: 'btn' }, 'Importar initial.json', h('input', {
         type: 'file', accept: '.json', style: 'display:none',
         onchange: async (e: Event) => {
           const file = (e.target as HTMLInputElement).files?.[0];
           if (!file) return;
           try {
-            ui.session = new LabSession(catalog, JSON.parse(await file.text()));
+            ui.session = new LabSession(catalog, JSON.parse(await file.text())); // mantém dados/semente do arquivo
             ui.message = { text: `Cenário ${file.name} carregado`, kind: 'ok' };
           } catch (err) {
             ui.message = { text: String(err), kind: 'error' };
@@ -986,24 +1024,71 @@ function renderActionsPanel(): HTMLElement[] {
 function actionSection(title: string, actions: ActionInfo[], targetId: string | null): HTMLElement {
   const available = actions.filter((x) => x.available);
   const unavailable = actions.filter((x) => !x.available);
-  const card = (x: ActionInfo) =>
-    h('button', {
-      class: `action ${x.available ? 'ok' : 'blocked'}`,
-      disabled: !x.available,
-      title: x.reason ? `${x.reason.code}: ${x.reason.message}` : x.id,
-      onclick: () => runAction(x),
+  const card = (x: ActionInfo) => {
+    const hint = x.command ? (targetId ? 'clique para executar' : 'executa agora') : `escolha o alvo${x.validTargets !== undefined ? ` · ${x.validTargets} válidos` : ''}`;
+    // O wrapper recebe o hover: botões desabilitados não disparam eventos de mouse.
+    return h('div', {
+      class: 'action-wrap',
+      onmouseenter: (e: MouseEvent) => showTooltip(actionTooltip(x, hint), e),
+      onmousemove: (e: MouseEvent) => moveTooltip(e),
+      onmouseleave: () => hideTooltip(),
     },
-      h('b', {}, x.name),
-      h('span', { class: 'cost' }, x.cost),
-      x.available
-        ? h('span', { class: 'hint' }, x.command ? (targetId ? 'clique para executar' : 'executa agora') : `escolha o alvo${x.validTargets !== undefined ? ` · ${x.validTargets} válidos` : ''}`)
-        : h('span', { class: 'why' }, x.reason?.message ?? ''));
+      h('button', {
+        class: `action ${x.available ? 'ok' : 'blocked'}`,
+        disabled: !x.available,
+        onclick: () => { hideTooltip(); runAction(x); },
+      },
+        h('b', {}, x.name),
+        h('span', { class: 'cost' }, x.cost),
+        x.available ? h('span', { class: 'hint' }, hint) : h('span', { class: 'why' }, x.reason?.message ?? '')));
+  };
   return h('div', { class: 'action-section' },
     h('h4', {}, title),
     actions.length === 0 ? h('div', { class: 'meta' }, 'Nenhuma ação.') : null,
     available.length ? h('div', { class: 'action-group' }, h('span', { class: 'group-label ok' }, `Disponíveis (${available.length})`), ...available.map(card)) : null,
     unavailable.length ? h('div', { class: 'action-group' }, h('span', { class: 'group-label blocked' }, `Indisponíveis (${unavailable.length})`), ...unavailable.map(card)) : null,
   );
+}
+
+// ---------------------------------------------------------------------------
+// Tooltip das ações (texto gerado a partir do catálogo)
+// ---------------------------------------------------------------------------
+
+const tooltip = h('div', { class: 'tooltip' });
+document.body.append(tooltip);
+
+function actionTooltip(x: ActionInfo, hint: string): HTMLElement {
+  const d = describeDefinition(catalog, x.id) ?? BASIC_ACTION_DESCRIPTIONS[x.id];
+  return h('div', {},
+    h('div', { class: 'tip-title' }, x.name, h('span', { class: 'tip-id' }, x.id)),
+    ...(d?.effects ?? []).map((t) => h('div', { class: 'tip-effect' }, '• ', t)),
+    d?.details.length ? h('div', { class: 'tip-details' }, ...d.details.map((t) => h('div', {}, t))) : null,
+    x.available
+      ? h('div', { class: 'tip-status ok' }, `Disponível — ${hint}`)
+      : h('div', { class: 'tip-status blocked' }, `Indisponível: ${x.reason?.message ?? ''}`, h('span', { class: 'tip-id' }, x.reason?.code ?? '')),
+  );
+}
+
+function showTooltip(content: HTMLElement, e: MouseEvent): void {
+  tooltip.replaceChildren(content);
+  tooltip.style.display = 'block';
+  moveTooltip(e);
+}
+
+function moveTooltip(e: MouseEvent): void {
+  const pad = 14;
+  const { offsetWidth: w, offsetHeight: hgt } = tooltip;
+  // Acima do cursor (a aba de ações fica na parte de baixo da tela), limitado à janela.
+  let x = e.clientX + pad;
+  let y = e.clientY - hgt - pad;
+  if (x + w > window.innerWidth - 4) x = window.innerWidth - w - 4;
+  if (y < 4) y = e.clientY + pad;
+  tooltip.style.left = `${x}px`;
+  tooltip.style.top = `${y}px`;
+}
+
+function hideTooltip(): void {
+  tooltip.style.display = 'none';
 }
 
 function runAction(x: ActionInfo): void {

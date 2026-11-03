@@ -1,6 +1,7 @@
 import type { Coord, EntityId, Resistances } from '../core/types.js';
 import { RULES_VERSION } from '../core/types.js';
 import type { GameMap } from '../map/grid.js';
+import { createRng, type RngState } from '../core/dice.js';
 import type { Catalog } from '../rules/definitions.js';
 import type { GameState, MapObject, Unit } from './types.js';
 
@@ -9,7 +10,16 @@ export const DEFAULT_MAX_ROUNDS = 20;
 export function createGameState(
   catalog: Catalog,
   map: GameMap,
-  options: { units?: Unit[]; objects?: MapObject[]; order?: EntityId[]; maxRounds?: number } = {},
+  options: {
+    units?: Unit[];
+    objects?: MapObject[];
+    order?: EntityId[];
+    maxRounds?: number;
+    /** Semente e modo dos dados (padrão: aleatório, semente 1). */
+    seed?: number;
+    dice?: RngState['mode'];
+    initiative?: GameState['initiative'];
+  } = {},
 ): GameState {
   const units = Object.fromEntries((options.units ?? []).map((u) => [u.id, u]));
   const objects = Object.fromEntries((options.objects ?? []).map((o) => [o.id, o]));
@@ -29,6 +39,8 @@ export function createGameState(
     status: 'setup',
     result: null,
     maxRounds: options.maxRounds ?? DEFAULT_MAX_ROUNDS,
+    rng: createRng(options.seed ?? 1, options.dice ?? 'random'),
+    initiative: options.initiative ?? 'roll',
     surfaceHitsThisTurn: {},
     nextEventSeq: 1,
     nextCommandSeq: 1,
@@ -66,6 +78,8 @@ function blankUnit(id: EntityId, team: string, pos: Coord): Unit {
     availableFromOwnTurn: {},
     usesThisTurn: {},
     defendedThisTurn: false,
+    defense: 10,
+    attackBonus: 0,
     flags: {},
   };
 }
@@ -110,6 +124,8 @@ export function createUnitFromClass(catalog: Catalog, spec: UnitSpec): Unit {
     focus: cls.maxFocus,
     maxFocus: cls.maxFocus,
     armor: armor?.kind === 'armor' ? armor.armor : 0,
+    defense: cls.defense,
+    attackBonus: cls.attackBonus,
     resistances,
     weapons: [...cls.loadout.weapons],
     armorId: cls.loadout.armor,
@@ -125,7 +141,7 @@ export interface DummySpec {
   pos: Coord;
   name?: string;
   team?: string;
-  overrides?: Partial<Pick<Unit, 'hp' | 'maxHp' | 'armor' | 'resistances'>> & { immortal?: boolean; canMove?: boolean };
+  overrides?: Partial<Pick<Unit, 'hp' | 'maxHp' | 'armor' | 'defense' | 'resistances'>> & { immortal?: boolean; canMove?: boolean };
 }
 
 /** Boneco de teste instrumentado (`debug.test-dummy`). Não faz parte do conteúdo do jogo. */
@@ -142,6 +158,7 @@ export function createDummy(catalog: Catalog, spec: DummySpec): Unit {
     hp: o.hp ?? maxHp,
     maxHp,
     armor: o.armor ?? preset.armor,
+    defense: o.defense ?? preset.defense,
     resistances: { ...preset.resistances, ...o.resistances },
     flags: { isDummy: true, immortal: o.immortal ?? preset.immortal, canMove: o.canMove ?? preset.canMove },
   };

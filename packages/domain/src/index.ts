@@ -4,6 +4,7 @@
  */
 export * from './core/types.js';
 export * from './core/coords.js';
+export * from './core/dice.js';
 export * from './map/grid.js';
 export * from './map/lineOfSight.js';
 export * from './map/pathfinding.js';
@@ -14,6 +15,7 @@ export * from './state/context.js';
 export * from './state/queries.js';
 export * from './state/factory.js';
 export * from './combat/damage.js';
+export * from './combat/rolls.js';
 export * from './effects/ops.js';
 export * from './effects/statuses.js';
 export * from './effects/surfaces.js';

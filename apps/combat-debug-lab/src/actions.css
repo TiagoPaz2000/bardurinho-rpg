@@ -31,3 +31,17 @@ button.remove:hover { background: #3b1219; }
 button.star { margin-left: auto; padding: 0 5px; background: none; border: none; color: #868e96; font-size: 14px; }
 button.star.on { color: #ffd43b; }
 .dummy-flags { display: flex; flex-direction: column; gap: 3px; }
+
+/* Tooltip das ações */
+.action-wrap { display: flex; }
+.tooltip { display: none; position: fixed; z-index: 100; max-width: 340px; pointer-events: none;
+  background: #101113; border: 1px solid #3d4047; border-radius: 6px; padding: 8px 10px; box-shadow: 0 6px 20px rgba(0,0,0,0.5); font-size: 12px; }
+.tip-title { font-weight: 700; color: #ffd43b; margin-bottom: 4px; display: flex; justify-content: space-between; gap: 10px; }
+.tip-id { font-weight: 400; font-family: monospace; font-size: 10px; color: #74c0fc; margin-left: 8px; }
+.tip-effect { color: #e9ecef; margin: 2px 0; }
+.tip-details { color: #adb5bd; font-size: 11px; margin-top: 6px; border-top: 1px solid #25262b; padding-top: 4px; }
+.tip-status { margin-top: 6px; font-size: 11px; }
+.tip-status.ok { color: #8ce99a; }
+.tip-status.blocked { color: #ffa8a8; }
+
+.toolbar input.forced { width: 110px; }

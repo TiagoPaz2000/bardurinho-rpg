@@ -37,6 +37,7 @@ export type ScenarioUnit =
       hp?: number;
       maxHp?: number;
       armor?: number;
+      defense?: number;
       resistances?: Resistances;
       immortal?: boolean;
     };
@@ -50,6 +51,11 @@ export interface ScenarioInitial {
   surfaces?: Array<{ cells: ScenarioPos[]; surface: SurfaceKind; durationRounds?: number | null }>;
   order?: EntityId[];
   maxRounds?: number;
+  /** Dados: `average` (padrão em cenários de teste: cada dado vale a média arredondada para cima) ou `random`. */
+  dice?: 'random' | 'average';
+  seed?: number;
+  /** Iniciativa: `fixed` (padrão em cenários: usa `order`) ou `roll` (d20). */
+  initiative?: 'roll' | 'fixed';
   /** Inicia a partida automaticamente (padrão: true). */
   autoStart?: boolean;
 }
@@ -90,6 +96,7 @@ export function buildScenario(catalog: Catalog, initial: ScenarioInitial): GameS
           ...(spec.hp !== undefined ? { hp: spec.hp } : {}),
           ...(spec.maxHp !== undefined ? { maxHp: spec.maxHp } : {}),
           ...(spec.armor !== undefined ? { armor: spec.armor } : {}),
+          ...(spec.defense !== undefined ? { defense: spec.defense } : {}),
           ...(spec.resistances ? { resistances: spec.resistances } : {}),
           ...(spec.immortal !== undefined ? { immortal: spec.immortal } : {}),
         },
@@ -115,6 +122,9 @@ export function buildScenario(catalog: Catalog, initial: ScenarioInitial): GameS
     objects,
     ...(initial.order ? { order: initial.order } : {}),
     ...(initial.maxRounds ? { maxRounds: initial.maxRounds } : {}),
+    dice: initial.dice ?? 'average',
+    seed: initial.seed ?? 1,
+    initiative: initial.initiative ?? 'fixed',
   });
   for (const s of initial.surfaces ?? []) {
     for (const p of s.cells) {
@@ -247,6 +257,7 @@ export function exportScenario(state: GameState, name?: string): ScenarioInitial
           hp: u.hp,
           maxHp: u.maxHp,
           armor: u.armor,
+          defense: u.defense,
           resistances: u.resistances,
           immortal: !!u.flags.immortal,
         }
@@ -280,6 +291,9 @@ export function exportScenario(state: GameState, name?: string): ScenarioInitial
     surfaces,
     order: state.turn.order,
     maxRounds: state.maxRounds,
+    dice: state.rng.mode,
+    seed: state.rng.seed,
+    initiative: state.initiative,
   };
 }
 

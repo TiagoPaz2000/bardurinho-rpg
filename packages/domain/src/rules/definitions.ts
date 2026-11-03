@@ -1,4 +1,5 @@
 import type { DamageType, Resistances } from '../core/types.js';
+import type { DiceExpr } from '../core/dice.js';
 import type { SurfaceKind } from '../map/grid.js';
 
 /** Metadados comuns a toda definição de conteúdo (seção 8.1 — camada "Definição"). */
@@ -41,13 +42,14 @@ export type ResourceKind = 'hp' | 'ap' | 'mp' | 'focus';
 export type ObjectStateKind = 'normal' | 'open' | 'closed' | 'destroyed' | 'used';
 
 export type EffectOp =
-  | { op: 'damage'; selector: EntitySelector; amount: number; damageType: DamageType; ignoreArmor?: boolean }
-  | { op: 'heal'; selector: EntitySelector; amount: number }
+  /** `amount`: valor fixo ou fórmula de dados (ex.: `2d6+10`). */
+  | { op: 'damage'; selector: EntitySelector; amount: DiceExpr; damageType: DamageType; ignoreArmor?: boolean }
+  | { op: 'heal'; selector: EntitySelector; amount: DiceExpr }
   | { op: 'applyStatus'; selector: EntitySelector; statusId: string }
   | { op: 'removeStatus'; selector: EntitySelector; statusId: string; reason?: string }
   /** `ownTurns`: a barreira expira no início do N-ésimo turno próprio seguinte do alvo. */
   | { op: 'grantShield'; selector: EntitySelector; amount: number; ownTurns: number }
-  | { op: 'restoreResource'; selector: EntitySelector; resource: ResourceKind; amount: number }
+  | { op: 'restoreResource'; selector: EntitySelector; resource: ResourceKind; amount: DiceExpr }
   | { op: 'forceMove'; selector: EntitySelector; distance: number; direction: 'awayFromSource' }
   /** Desloca o executor até uma célula adjacente ao alvo (Investida), sem gastar PM. */
   | { op: 'dashToTarget'; maxCost: number }
@@ -96,6 +98,8 @@ export interface AbilityDefinition extends DefinitionBase {
   requiresWeaponTag?: string;
   /** Condição especial de ativação (ex.: Ocultação: fora da visão inimiga ou em área escura). */
   condition?: 'canHide';
+  /** Exige jogada de ataque (d20 + bônus contra a Defesa) contra o personagem alvo. */
+  attackRoll?: boolean;
   effects: EffectOp[];
   presentation?: Presentation;
 }
@@ -108,7 +112,8 @@ export interface WeaponDefinition extends DefinitionBase {
   kind: 'weapon';
   classIds: string[];
   cost: Cost;
-  damage: number;
+  /** Fórmula de dano. Ataques com arma sempre exigem jogada de ataque. */
+  damage: DiceExpr;
   damageType: DamageType;
   target: TargetingRule;
   presentation?: Presentation;
@@ -146,6 +151,10 @@ export interface ClassDefinition extends DefinitionBase {
   ap: number;
   mp: number;
   maxFocus: number;
+  /** Defesa: valor que a jogada de ataque inimiga precisa igualar ou superar. */
+  defense: number;
+  /** Bônus somado ao d20 nas jogadas de ataque. */
+  attackBonus: number;
   loadout: {
     weapons: string[];
     armor: string;
@@ -198,7 +207,7 @@ export type ObjectInteraction =
   | { kind: 'toggleDoor' }
   | { kind: 'toggleLinked' }
   | { kind: 'grantConsumable'; itemId: string }
-  | { kind: 'restoreFocus'; amount: number }
+  | { kind: 'restoreFocus'; amount: DiceExpr }
   | { kind: 'emitWater' };
 
 export interface MapObjectDefinition extends DefinitionBase {
@@ -227,6 +236,7 @@ export interface DummyPresetDefinition extends DefinitionBase {
   kind: 'dummy';
   hp: number;
   armor: number;
+  defense: number;
   resistances: Resistances;
   immortal: boolean;
   canMove: boolean;

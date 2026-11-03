@@ -1,6 +1,7 @@
 import {
   CELL_SELECTORS,
   EFFECT_OP_NAMES,
+  isValidDice,
   ENTITY_SELECTORS,
   type Catalog,
   type EffectOp,
@@ -30,8 +31,8 @@ export function validateCatalog(catalog: Catalog): ValidationIssue[] {
       if (op.op === 'createSurface' && !catalog.surfaces[op.surface]) {
         issue(ownerId, `efeito #${i}: superfície inexistente '${op.surface}'`);
       }
-      if ('amount' in op && (typeof op.amount !== 'number' || op.amount < 0)) {
-        issue(ownerId, `efeito #${i}: valor inválido`);
+      if ('amount' in op && (typeof op.amount === 'number' ? op.amount < 0 : !isValidDice(op.amount))) {
+        issue(ownerId, `efeito #${i}: valor ou fórmula de dados inválida (${String(op.amount)})`);
       }
     });
   };
@@ -66,6 +67,7 @@ export function validateCatalog(catalog: Catalog): ValidationIssue[] {
 
   for (const item of Object.values(catalog.items)) {
     if (item.kind === 'consumable') checkEffects(item.id, item.effects);
+    if (item.kind === 'weapon' && !isValidDice(item.damage)) issue(item.id, `fórmula de dano inválida: ${item.damage}`);
     if ((item.kind === 'weapon' || item.kind === 'armor') && item.classIds.some((c) => !catalog.classes[c])) {
       issue(item.id, 'classe inexistente em classIds');
     }

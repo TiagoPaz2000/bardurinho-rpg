@@ -54,17 +54,17 @@ export const objects: MapObjectDefinition[] = [
     hp: null, material: 'stone', initialState: 'normal',
     blocksMovementIn: ['normal', 'used'], blocksVisionIn: [],
     flammable: false,
-    interaction: { kind: 'restoreFocus', amount: 4 }, maxUses: 1,
+    interaction: { kind: 'restoreFocus', amount: '1d4+1' }, maxUses: 1,
   },
 ];
 
 /** Presets do Test Dummy (Combat Debug Lab). Não fazem parte do conteúdo do jogo. */
 export const dummies: DummyPresetDefinition[] = [
-  { kind: 'dummy', id: 'dummy.default', version: 1, name: 'Test Dummy — Padrão', tags: ['debug'], hp: 100, armor: 0, resistances: {}, immortal: false, canMove: false },
-  { kind: 'dummy', id: 'dummy.armored', version: 1, name: 'Test Dummy — Armadura Alta', tags: ['debug'], hp: 100, armor: 10, resistances: {}, immortal: false, canMove: false },
-  { kind: 'dummy', id: 'dummy.fire_resistant', version: 1, name: 'Test Dummy — Resistente a Fogo', tags: ['debug', 'FIRE'], hp: 100, armor: 0, resistances: { fire: 10 }, immortal: false, canMove: false },
-  { kind: 'dummy', id: 'dummy.cold_resistant', version: 1, name: 'Test Dummy — Resistente a Frio', tags: ['debug', 'COLD'], hp: 100, armor: 0, resistances: { cold: 10 }, immortal: false, canMove: false },
-  { kind: 'dummy', id: 'dummy.fragile', version: 1, name: 'Test Dummy — Frágil', tags: ['debug'], hp: 50, armor: 0, resistances: {}, immortal: false, canMove: false },
-  { kind: 'dummy', id: 'dummy.immortal', version: 1, name: 'Test Dummy — Imortal', tags: ['debug'], hp: 100, armor: 0, resistances: {}, immortal: true, canMove: false },
-  { kind: 'dummy', id: 'dummy.environmental', version: 1, name: 'Test Dummy — Ambiental', tags: ['debug'], hp: 100, armor: 0, resistances: {}, immortal: false, canMove: false },
+  { kind: 'dummy', id: 'dummy.default', version: 1, name: 'Test Dummy — Padrão', tags: ['debug'], hp: 100, armor: 0, defense: 10, resistances: {}, immortal: false, canMove: false },
+  { kind: 'dummy', id: 'dummy.armored', version: 1, name: 'Test Dummy — Armadura Alta', tags: ['debug'], hp: 100, armor: 10, defense: 15, resistances: {}, immortal: false, canMove: false },
+  { kind: 'dummy', id: 'dummy.fire_resistant', version: 1, name: 'Test Dummy — Resistente a Fogo', tags: ['debug', 'FIRE'], hp: 100, armor: 0, defense: 10, resistances: { fire: 10 }, immortal: false, canMove: false },
+  { kind: 'dummy', id: 'dummy.cold_resistant', version: 1, name: 'Test Dummy — Resistente a Frio', tags: ['debug', 'COLD'], hp: 100, armor: 0, defense: 10, resistances: { cold: 10 }, immortal: false, canMove: false },
+  { kind: 'dummy', id: 'dummy.fragile', version: 1, name: 'Test Dummy — Frágil', tags: ['debug'], hp: 50, armor: 0, defense: 10, resistances: {}, immortal: false, canMove: false },
+  { kind: 'dummy', id: 'dummy.immortal', version: 1, name: 'Test Dummy — Imortal', tags: ['debug'], hp: 100, armor: 0, defense: 10, resistances: {}, immortal: true, canMove: false },
+  { kind: 'dummy', id: 'dummy.environmental', version: 1, name: 'Test Dummy — Ambiental', tags: ['debug'], hp: 100, armor: 0, defense: 10, resistances: {}, immortal: false, canMove: false },
 ];

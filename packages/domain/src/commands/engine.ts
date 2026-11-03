@@ -6,6 +6,7 @@
 import { distance, sameCoord } from '../core/coords.js';
 import type { Coord } from '../core/types.js';
 import { grantShield, healUnit } from '../combat/damage.js';
+import { rollAmount, rollAttack } from '../combat/rolls.js';
 import { getCell } from '../map/grid.js';
 import { hasLineOfSight } from '../map/lineOfSight.js';
 import { findPath } from '../map/pathfinding.js';
@@ -149,7 +150,7 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
       const effects: EffectOp[] = [
         { op: 'damage', selector: 'targetCellOccupants', amount: weapon.damage, damageType: weapon.damageType },
       ];
-      executeAttack(ctx, actor, effects, target, weapon.id);
+      executeAttack(ctx, actor, effects, target, weapon.id, true);
       return;
     }
     case 'USE_ABILITY': {
@@ -174,7 +175,7 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
         });
       }
       emit(ctx, 'ABILITY_USED', { actorId: actor.id, abilityId: ability.id, version: ability.version, target: target.cell });
-      if (ability.effects.some((e) => e.op === 'damage')) executeAttack(ctx, actor, ability.effects, target, ability.id);
+      if (ability.attackRoll || ability.effects.some((e) => e.op === 'damage')) executeAttack(ctx, actor, ability.effects, target, ability.id, !!ability.attackRoll);
       else executeEffects(ctx, ability.effects, createScope(actor, target, ability.id));
       return;
     }
@@ -256,8 +257,18 @@ function resolveTarget(ctx: ResolutionContext, actor: Unit, target: CommandTarge
  * Ataque (arma ou habilidade com dano). Se o atacante estava Oculto, o primeiro ataque
  * recebe +4 de dano bruto e encerra a Ocultação (seção 4).
  */
-function executeAttack(ctx: ResolutionContext, actor: Unit, effects: EffectOp[], target: EffectTarget, definitionId: string): void {
+function executeAttack(ctx: ResolutionContext, actor: Unit, effects: EffectOp[], target: EffectTarget, definitionId: string, attackRoll: boolean): void {
   const scope = createScope(actor, target, definitionId);
+  // Jogada de ataque contra o personagem alvo. Objetos são atingidos automaticamente; efeitos
+  // na célula (calor, superfícies) acontecem mesmo em caso de erro.
+  if (attackRoll) {
+    const victim = target.entity?.entity === 'unit' ? target.entity : unitAt(ctx.state, target.cell);
+    if (victim && victim.alive && victim.id !== actor.id) {
+      const roll = rollAttack(ctx, actor, victim);
+      if (!roll.hit) scope.missedUnits = new Set([victim.id]);
+      else if (roll.critical) scope.criticalUnits = new Set([victim.id]);
+    }
+  }
   const fromHiding = isHidden(actor);
   if (fromHiding) scope.rawDamageBonus = VISIBILITY_TUNING.hiddenAttackBonus;
   executeEffects(ctx, effects, scope);
@@ -323,7 +334,7 @@ function handleInteract(ctx: ResolutionContext, actor: Unit, objectId: string, o
       emit(ctx, 'CONSUMABLE_GRANTED', { unitId: actor.id, itemId: interaction.itemId, objectId: obj.id });
       break;
     case 'restoreFocus':
-      restoreResource(ctx, actor, 'focus', interaction.amount);
+      restoreResource(ctx, actor, 'focus', rollAmount(ctx, interaction.amount, 'restore_focus', { targetId: actor.id }));
       break;
     case 'emitWater':
       for (const c of [obj.pos, ...neighborsOf(obj.pos)]) emitStimulus(ctx, c, 'water', { sourceId: actor.id, definitionId: def.id });
@@ -372,6 +383,16 @@ function handleDebug(ctx: ResolutionContext, command: Extract<Command, { type: `
       const unit = ctx.state.units[command.unitId];
       if (!unit) return reject('UNKNOWN_ACTOR', `Personagem desconhecido: ${command.unitId}`);
       resetDummy(ctx.catalog, unit);
+      return;
+    }
+    case 'DEBUG_SET_RNG': {
+      const rng = ctx.state.rng;
+      if (command.mode) rng.mode = command.mode;
+      if (command.seed !== undefined) {
+        rng.seed = command.seed >>> 0;
+        rng.draws = 0;
+      }
+      if (command.forced) rng.forced = [...command.forced];
       return;
     }
     case 'DEBUG_REMOVE_ENTITY': {

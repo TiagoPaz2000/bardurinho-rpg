@@ -35,7 +35,9 @@ export type DebugCommand =
   | { type: 'DEBUG_SET_UNIT'; unitId: EntityId; patch: Partial<Record<'hp' | 'maxHp' | 'ap' | 'mp' | 'focus' | 'armor', number>> & { flags?: Partial<UnitFlags> } }
   | { type: 'DEBUG_RESET_DUMMY'; unitId: EntityId }
   /** Remove um personagem ou objeto do cenário (registrado na timeline). */
-  | { type: 'DEBUG_REMOVE_ENTITY'; entityId: EntityId };
+  | { type: 'DEBUG_REMOVE_ENTITY'; entityId: EntityId }
+  /** Debug: modo/semente dos dados e próximos resultados forçados (ex.: [20] = crítico). */
+  | { type: 'DEBUG_SET_RNG'; mode?: 'random' | 'average'; seed?: number; forced?: number[] };
 
 export type Command = GameplayCommand | DebugCommand;
 

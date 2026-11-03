@@ -10,6 +10,7 @@ import { emit, withCause, type ResolutionContext } from '../state/context.js';
 import { entitiesAt } from '../state/queries.js';
 import type { Entity, MapObject, Unit } from '../state/types.js';
 import { forceMove } from './movement.js';
+import { rollAmount } from '../combat/rolls.js';
 import { executeDash, planDash } from './dash.js';
 import { emitStimulus } from './reactions.js';
 import { applyStatus, removeStatus } from './statuses.js';
@@ -31,6 +32,10 @@ export interface EffectScope {
   rawDamageBonus?: number;
   /** Interrompe as operações restantes (ex.: atacante morreu durante a Investida). */
   aborted?: boolean;
+  /** Personagens que a jogada de ataque errou: ficam fora dos seletores de entidade. */
+  missedUnits?: Set<EntityId>;
+  /** Personagens atingidos por crítico: dados de dano rolados em dobro. */
+  criticalUnits?: Set<EntityId>;
 }
 
 export function createScope(
@@ -44,6 +49,12 @@ export function createScope(
 const isLive = (e: Entity) => (e.entity === 'unit' ? e.alive : e.state !== 'destroyed');
 
 export function selectEntities(ctx: ResolutionContext, scope: EffectScope, selector: EntitySelector): Entity[] {
+  const missed = scope.missedUnits;
+  const all = selectEntitiesRaw(ctx, scope, selector);
+  return missed?.size ? all.filter((e) => !missed.has(e.id)) : all;
+}
+
+function selectEntitiesRaw(ctx: ResolutionContext, scope: EffectScope, selector: EntitySelector): Entity[] {
   switch (selector) {
     case 'self':
       return scope.actor && scope.actor.alive ? [scope.actor] : [];
@@ -86,7 +97,8 @@ export function executeOp(ctx: ResolutionContext, op: EffectOp, scope: EffectSco
   switch (op.op) {
     case 'damage': {
       for (const e of selectEntities(ctx, scope, op.selector)) {
-        const r = damageEntity(ctx, e, op.amount + (scope.rawDamageBonus ?? 0), op.damageType, {
+        const amount = rollAmount(ctx, op.amount, 'damage', { critical: scope.criticalUnits?.has(e.id) ?? false, targetId: e.id });
+        const r = damageEntity(ctx, e, amount + (scope.rawDamageBonus ?? 0), op.damageType, {
           ignoreArmor: op.ignoreArmor ?? false,
           via: scope.definitionId ?? undefined,
         });
@@ -95,7 +107,7 @@ export function executeOp(ctx: ResolutionContext, op: EffectOp, scope: EffectSco
       return;
     }
     case 'heal':
-      for (const u of unitsOf(selectEntities(ctx, scope, op.selector))) healUnit(ctx, u, op.amount);
+      for (const u of unitsOf(selectEntities(ctx, scope, op.selector))) healUnit(ctx, u, rollAmount(ctx, op.amount, 'heal', { targetId: u.id }));
       return;
     case 'applyStatus':
       for (const u of unitsOf(selectEntities(ctx, scope, op.selector))) {
@@ -113,7 +125,9 @@ export function executeOp(ctx: ResolutionContext, op: EffectOp, scope: EffectSco
       }
       return;
     case 'restoreResource':
-      for (const u of unitsOf(selectEntities(ctx, scope, op.selector))) restoreResource(ctx, u, op.resource, op.amount);
+      for (const u of unitsOf(selectEntities(ctx, scope, op.selector))) {
+        restoreResource(ctx, u, op.resource, rollAmount(ctx, op.amount, `restore_${op.resource}`, { targetId: u.id }));
+      }
       return;
     case 'dashToTarget': {
       if (!scope.actor) return;

@@ -40,7 +40,10 @@ export type GameEventType =
   | 'EXPLOSION'
   | 'CONSUMABLE_GRANTED'
   | 'ENTITY_REMOVED'
-  | 'EFFECT_IGNORED';
+  | 'EFFECT_IGNORED'
+  | 'DICE_ROLLED'
+  | 'ATTACK_ROLLED'
+  | 'INITIATIVE_ROLLED';
 
 /** De onde veio o evento: qual comando, qual entidade e qual definição de conteúdo. */
 export interface EventCause {
