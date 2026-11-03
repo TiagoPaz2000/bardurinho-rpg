@@ -25,6 +25,19 @@ export interface UnitFlags {
   immortal?: boolean;
   canMove?: boolean;
   isDummy?: boolean;
+  // --- Opções do Test Dummy (Combat Debug Lab) ---
+  /** Volta ao PV máximo após cada comando. */
+  regenerate?: boolean;
+  /** Remove todos os estados após cada comando. */
+  clearStatusesAfterCommand?: boolean;
+  /** Remove a barreira após cada comando. */
+  clearShieldAfterCommand?: boolean;
+  /** Ignora deslocamentos forçados (Empurrão). */
+  immuneForcedMove?: boolean;
+  /** Ignora a aplicação de estados. */
+  immuneStatuses?: boolean;
+  /** Ignora dano de superfícies (fogo, espinhos). */
+  immuneSurfaces?: boolean;
 }
 
 export interface Unit {

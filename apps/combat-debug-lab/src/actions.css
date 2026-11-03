@@ -24,3 +24,10 @@ button.action .why { font-size: 10px; color: #ffa8a8; white-space: normal; }
 .elem { display: flex; justify-content: space-between; align-items: center; gap: 6px; padding: 2px 0; border-bottom: 1px solid #1f2024; }
 button.remove { color: #ffa8a8; border-color: #5c2b2b; padding: 1px 6px; font-size: 11px; }
 button.remove:hover { background: #3b1219; }
+
+/* Lateral: favoritos, filtros e ícones de itens */
+.filters { padding: 0 0 8px; }
+.entry-icon { width: 28px; height: 28px; border-radius: 4px; background: #fff; object-fit: contain; align-self: center; }
+button.star { margin-left: auto; padding: 0 5px; background: none; border: none; color: #868e96; font-size: 14px; }
+button.star.on { color: #ffd43b; }
+.dummy-flags { display: flex; flex-direction: column; gap: 3px; }

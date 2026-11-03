@@ -10,6 +10,8 @@ export interface ResolutionContext {
   state: GameState;
   catalog: Catalog;
   events: GameEvent[];
+  /** Debug: estado logo após cada evento (STEP por evento no Combat Debug Lab). */
+  snapshots?: GameState[];
   cause: EventCause;
 }
 
@@ -32,6 +34,7 @@ export function emit(ctx: ResolutionContext, type: GameEventType, payload: Recor
     payload,
   };
   ctx.events.push(event);
+  if (ctx.snapshots) ctx.snapshots.push(structuredClone(ctx.state));
   return event;
 }
 

@@ -1,6 +1,7 @@
 import type { Coord, EntityId } from '../core/types.js';
 import type { SurfaceKind } from '../map/grid.js';
 import type { EffectOp } from '../rules/definitions.js';
+import type { UnitFlags } from '../state/types.js';
 
 export type CommandTarget =
   | { kind: 'self' }
@@ -31,7 +32,7 @@ export type GameplayCommand =
 export type DebugCommand =
   | { type: 'DEBUG_APPLY_EFFECTS'; sourceId?: EntityId; definitionId?: string; target: CommandTarget; effects: EffectOp[] }
   | { type: 'DEBUG_PAINT_SURFACE'; cells: Coord[]; surface: SurfaceKind | null; durationRounds?: number | null }
-  | { type: 'DEBUG_SET_UNIT'; unitId: EntityId; patch: Partial<Record<'hp' | 'maxHp' | 'ap' | 'mp' | 'focus' | 'armor', number>> }
+  | { type: 'DEBUG_SET_UNIT'; unitId: EntityId; patch: Partial<Record<'hp' | 'maxHp' | 'ap' | 'mp' | 'focus' | 'armor', number>> & { flags?: Partial<UnitFlags> } }
   | { type: 'DEBUG_RESET_DUMMY'; unitId: EntityId }
   /** Remove um personagem ou objeto do cenário (registrado na timeline). */
   | { type: 'DEBUG_REMOVE_ENTITY'; entityId: EntityId };
@@ -46,6 +47,8 @@ export interface ExecutionOptions {
   /** Permite agir fora do próprio turno (debug). */
   ignoreTurn?: boolean;
   allowDebugCommands?: boolean;
+  /** Debug: guarda o estado após cada evento (custo alto; nunca no servidor normal). */
+  captureEventSnapshots?: boolean;
 }
 
 /** "Forçar execução" do Debug Lab. Nunca utilizado pelo servidor normal. */

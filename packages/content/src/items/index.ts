@@ -7,31 +7,31 @@ export const items: ItemDefinition[] = [
     kind: 'weapon', id: 'weapon.iron_sword', version: 1, name: 'Espada de ferro', tags: ['sword', 'melee'],
     classIds: ['warrior'], cost: { ap: 1 }, damage: 18, damageType: 'physical',
     target: { kind: 'cell', range: 1, sameFloor: true },
-    presentation: { animationId: 'melee', vfxId: 'impact.physical' },
+    presentation: { iconId: 'icon.weapon.iron_sword', animationId: 'melee', vfxId: 'impact.physical' },
   },
   {
     kind: 'weapon', id: 'weapon.dagger', version: 1, name: 'Adaga', tags: ['dagger', 'melee'],
     classIds: ['rogue'], cost: { ap: 1 }, damage: 16, damageType: 'physical',
     target: { kind: 'cell', range: 1, sameFloor: true },
-    presentation: { animationId: 'melee', vfxId: 'impact.physical' },
+    presentation: { iconId: 'icon.weapon.dagger', animationId: 'melee', vfxId: 'impact.physical' },
   },
   {
     kind: 'weapon', id: 'weapon.short_bow', version: 1, name: 'Arco curto', tags: ['bow', 'ranged'],
     classIds: ['rogue'], cost: { ap: 1 }, damage: 14, damageType: 'physical',
     target: { kind: 'cell', minRange: 2, range: 6, requiresLineOfSight: true },
-    presentation: { animationId: 'shoot', vfxId: 'trail.arrow' },
+    presentation: { iconId: 'icon.weapon.short_bow', animationId: 'shoot', vfxId: 'trail.arrow' },
   },
   {
     kind: 'weapon', id: 'weapon.arcane_wand', version: 1, name: 'Varinha arcana', tags: ['wand', 'ranged'],
     classIds: ['mage'], cost: { ap: 1 }, damage: 14, damageType: 'arcane',
     target: { kind: 'cell', range: 5, requiresLineOfSight: true },
-    presentation: { animationId: 'cast_forward', vfxId: 'projectile.arcane' },
+    presentation: { iconId: 'icon.weapon.arcane_wand', animationId: 'cast_forward', vfxId: 'projectile.arcane' },
   },
   {
     kind: 'weapon', id: 'weapon.nature_staff', version: 1, name: 'Cajado natural', tags: ['staff', 'ranged'],
     classIds: ['druid'], cost: { ap: 1 }, damage: 12, damageType: 'nature',
     target: { kind: 'cell', range: 4, requiresLineOfSight: true },
-    presentation: { animationId: 'cast_forward', vfxId: 'projectile.nature' },
+    presentation: { iconId: 'icon.weapon.nature_staff', animationId: 'cast_forward', vfxId: 'projectile.nature' },
   },
 
   // --- Armaduras (fixas por classe) ---

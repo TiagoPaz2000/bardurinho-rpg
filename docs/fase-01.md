@@ -61,26 +61,26 @@ No laboratório:
 | Reações ambientais | ✅ | Calor+óleo (mancha conectada), calor+espinhos, calor+madeira, fogo+barril, frio/água apagam fogo e Queimando, óleo sobre fogo |
 | Objetos ambientais | ✅ | Porta, portão+alavanca, barril (cadeia de explosões), caixa, baú, cisterna, altar |
 | Movimento | ✅ | 4 direções, Dijkstra, escadas com custo 2, deslocamento forçado |
-| Linha de visão | 🟡 | Mesmo andar completo; entre andares, aproximação provisória |
+| Linha de visão | ✅ | Mesmo andar e entre andares: altura do corpo (andar + 0,5); lajes de plataforma bloqueiam (`FLOOR_BLOCK`); do alto, enxerga por cima de muros |
 | Visibilidade | ✅ | Visão de 8 células, áreas escuras (2 células), luz do fogo (2 células), visão por equipe e projeção do estado (`projectStateForTeam`); no lab, botões Visão: Servidor / Equipe A / Equipe B |
 | Visualizador 2D | ✅ | Canvas; não calcula regras |
-| Editor de cenário | 🟡 | Terreno, área escura, superfícies, personagens, bonecos, objetos. Falta: escadas, andares e pontos de início pela UI |
+| Editor de cenário | ✅ | Terreno, área escura, superfícies, personagens, bonecos, objetos, **andares (+/−) e escadas**; mapas do catálogo (Pátio das Ruínas). Pontos de início = posições das unidades |
 | Inspector | ✅ | Célula, unidade, objeto (gatilhos, tags, usos) |
 | Timeline de eventos | ✅ | Log global com causa, definição, payload e State Diff |
-| Modo STEP | 🟡 | Por comando. Falta snapshot por evento individual |
+| Modo STEP | ✅ | Por comando e **por evento**: snapshot do estado após cada evento (`captureEventSnapshots`, só debug); botões ◀ evento / evento ▶, atalhos `,` e `.` |
 | Replay de comandos | ✅ | Reexecuta do zero e confirma determinismo |
-| Testes automatizados | ✅ | 56 testes, incluindo 5 cenários JSON |
-| Geração de screenshots | ⬜ | Pendente (renderizar canvas em Node ou via navegador headless) |
+| Testes automatizados | ✅ | 67 testes, incluindo 5 cenários JSON |
+| Geração de screenshots | ✅ | `npm run screenshots` (ou `npm run test:screenshots` / `SCREENSHOTS=1 npm test`) renderiza cada cenário com o renderer do Debug Lab via `@napi-rs/canvas`: `before.png`, `after_command_<n>.png`, `final.png` em `tests/output/<categoria>/<nome>/` + galeria `tests/output/index.html` |
 | Exportação de cenário | ✅ | Exportar e importar `initial.json` |
 | Criar teste a partir de cenário | ✅ | GERAR TESTE; coberto por `tests/unit/lab-session.test.ts` |
-| Aba lateral de conteúdo | 🟡 | Gerada a partir do catálogo, com busca por nome, id ou tag. Faltam filtros dedicados, favoritos e histórico |
-| Test Dummy instrumentado | 🟡 | 7 presets, logs, métricas, comparação, reset. Faltam regeneração automática e limpeza automática entre testes |
+| Aba lateral de conteúdo | ✅ | Gerada do catálogo; busca, filtros por classe e elemento, ★ favoritos e histórico recente (salvos no navegador), ícones de itens |
+| Test Dummy instrumentado | ✅ | 7 presets, logs, métricas, comparação, reset; opções: imortal, regenerar, limpar estados/escudo após cada comando, bloquear empurrão/estados/superfícies |
 | Logs de dano, cura e escudo | ✅ | Derivados dos eventos do core |
 | Execução direta de efeitos | ✅ | `DEBUG_APPLY_EFFECTS` com as mesmas operações do core |
 
-### Também pendente nesta fase
+**Status:** todos os critérios de conclusão da Fase 1 estão atendidos. O catálogo tem as 10 habilidades do plano e o mapa do MVP (Pátio das Ruínas).
 
-- Catálogo completo: as 10 habilidades do plano estão implementadas.
+### Fica para as próximas fases
 
 - **Filtragem de eventos por equipe**: a projeção já remove unidades não detectadas do estado; filtrar os eventos entra com o servidor (Fase 3).
 - Modos **AI** e **NETWORK** do laboratório: estrutura prevista, implementação junto das Fases 3 e 4.
@@ -103,6 +103,9 @@ Valores marcados para revisão de balanceamento:
 | Investida enraizado | Bloqueada, exceto se já estiver adjacente ao alvo |
 | Detecção de Oculto | Só a até 1 célula (adjacente) ou quando iluminado |
 | Fontes de luz | Fogo no chão, objetos em combustão e personagens Queimando |
+| Linha de visão entre andares | Origem e destino na altura do corpo (andar + 0,5); atravessar um nível exige célula vazia no andar de cima; na borda exata, basta uma célula livre |
+| Pátio das Ruínas | Plataformas como mirantes (uma escada cada), sobre o muro central; muro com 2 portas e portão; alavanca em (8,6) |
+| Opções do boneco | Aplicadas ao fim de cada comando |
 | Revelação | Verificada após cada comando: um inimigo que detecta o Oculto encerra o efeito |
 | Alvo não detectado | Não pode ser mirado diretamente (`TARGET_NOT_VISIBLE`), mas a célula pode — ataque "às cegas" |
 | Superfícies e objetos na projeção | Conhecidos por todas as equipes no MVP (sem memória de neblina) |

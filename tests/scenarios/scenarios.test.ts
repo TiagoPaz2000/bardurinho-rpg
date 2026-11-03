@@ -5,9 +5,13 @@
 import { existsSync, readdirSync, readFileSync, statSync } from 'node:fs';
 import { join, relative } from 'node:path';
 import { fileURLToPath } from 'node:url';
-import { describe, expect, it } from 'vitest';
+import { afterAll, describe, expect, it } from 'vitest';
 import { catalog } from '@bardurinho/content';
 import { checkExpectations, runScenario, type Command, type ScenarioExpected, type ScenarioInitial } from '@bardurinho/domain';
+
+/** `SCREENSHOTS=1` (ou `npm run test:screenshots`) gera PNGs em tests/output/ para inspeção humana. */
+const screenshots = process.env.SCREENSHOTS === '1';
+const loadShots = () => import('../screenshots/scenarioShots.js');
 
 const root = fileURLToPath(new URL('.', import.meta.url));
 
@@ -34,5 +38,13 @@ describe('cenários', () => {
       const run = runScenario(catalog, initial, commands, { allowDebugCommands: true });
       expect(checkExpectations(run, expected)).toEqual([]);
     });
+    if (screenshots) {
+      // Separado do teste de estado: o estado continua sendo a fonte de verdade.
+      it(`${name} (screenshots)`, async () => {
+        const manifest = (await loadShots()).generateScenarioScreenshots(catalog, dir);
+        expect(manifest.shots.length).toBeGreaterThanOrEqual(2);
+      });
+    }
   }
+  if (screenshots) afterAll(async () => void (await loadShots()).writeGallery());
 });

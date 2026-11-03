@@ -35,3 +35,18 @@ describe('Combat Debug Lab — sessão', () => {
     expect(lab.timeline).toHaveLength(1);
   });
 });
+
+describe('STEP por evento', () => {
+  it('guarda o estado logo após cada evento', () => {
+    const lab = new LabSession(catalog, defaultScenario);
+    lab.execute({ type: 'MOVE', actorId: 'mage-01', to: { x: 1, y: 4, floor: 0 } }, {});
+    expect(lab.execute({ type: 'USE_ABILITY', actorId: 'mage-01', abilityId: 'mage.flame', target: { kind: 'cell', x: 3, y: 1, floor: 0 } }, {})).toBe(true);
+    const entry = lab.timeline.at(-1)!;
+    expect(entry.snapshots).toHaveLength(entry.events.length);
+    const spent = entry.events.find((e) => e.type === 'RESOURCE_SPENT')!;
+    const destroyed = entry.events.find((e) => e.type === 'OBJECT_DESTROYED' && e.payload.objectId === 'barrel-01')!;
+    // Após gastar Foco o barril ainda existe; após o evento de destruição, não.
+    expect(lab.snapshotAfterEvent(spent.seq)!.objects['barrel-01']!.state).toBe('normal');
+    expect(lab.snapshotAfterEvent(destroyed.seq)!.objects['barrel-01']!.state).toBe('destroyed');
+  });
+});

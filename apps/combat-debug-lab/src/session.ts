@@ -25,6 +25,8 @@ export interface TimelineEntry {
   state: GameState;
   /** Estado antes do comando (para State Diff). */
   before: GameState;
+  /** Estado logo após cada evento (STEP por evento). */
+  snapshots: GameState[];
 }
 
 export class LabSession {
@@ -50,14 +52,14 @@ export class LabSession {
   /** Executa um comando no estado atual. Descarta comandos "à frente" do cursor. */
   execute(command: Command, options: ExecutionOptions): boolean {
     const before = this.state;
-    const r = applyCommand(before, this.catalog, command, { ...options, allowDebugCommands: true });
+    const r = applyCommand(before, this.catalog, command, { ...options, allowDebugCommands: true, captureEventSnapshots: true });
     if (!r.ok) {
       this.lastError = r.error;
       return false;
     }
     this.lastError = null;
     this.timeline = this.timeline.slice(0, this.cursor);
-    this.timeline.push({ command, options, events: r.events, state: r.state, before });
+    this.timeline.push({ command, options, events: r.events, state: r.state, before, snapshots: r.snapshots ?? [] });
     this.cursor = this.timeline.length;
     return true;
   }
@@ -70,6 +72,15 @@ export class LabSession {
     this.timeline = [];
     this.cursor = 0;
     this.execute({ type: 'START_MATCH' }, {});
+  }
+
+  /** Estado logo após o evento `seq` (entre os comandos aplicados). */
+  snapshotAfterEvent(seq: number): GameState | null {
+    for (const entry of this.timeline.slice(0, this.cursor)) {
+      const i = entry.events.findIndex((e) => e.seq === seq);
+      if (i >= 0) return entry.snapshots[i] ?? null;
+    }
+    return null;
   }
 
   stepBack(): void {

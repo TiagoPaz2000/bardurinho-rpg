@@ -31,6 +31,10 @@ export function walkPath(ctx: ResolutionContext, unit: Unit, path: Coord[], step
  */
 export function forceMove(ctx: ResolutionContext, unit: Unit, origin: Coord, cells: number, via: string | null): number {
   if (!unit.alive) return 0;
+  if (unit.flags.immuneForcedMove) {
+    emit(ctx, 'EFFECT_IGNORED', { unitId: unit.id, effect: 'forceMove', reason: 'IMMUNE_FORCED_MOVE' });
+    return 0;
+  }
   const dx = Math.sign(unit.pos.x - origin.x);
   const dy = Math.sign(unit.pos.y - origin.y);
   // Somente linhas retas ortogonais.

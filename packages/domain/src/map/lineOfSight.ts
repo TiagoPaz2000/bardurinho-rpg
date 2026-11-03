@@ -5,7 +5,7 @@ import { objectBlocksVision, objectsAt } from '../state/queries.js';
 import type { GameState } from '../state/types.js';
 import { getCell } from './grid.js';
 
-export type LineOfSightBlock = 'WALL_BLOCK' | 'OBJECT_BLOCK' | 'OUT_OF_BOUNDS';
+export type LineOfSightBlock = 'WALL_BLOCK' | 'OBJECT_BLOCK' | 'FLOOR_BLOCK' | 'OUT_OF_BOUNDS';
 
 export interface LineOfSightResult {
   visible: boolean;
@@ -54,12 +54,16 @@ export function supercoverLine(x0: number, y0: number, x1: number, y1: number): 
 }
 
 /**
- * Linha de visão lógica.
+ * Linha de visão lógica. Unidades não bloqueiam linha de visão.
  *
- * MVP: paredes e objetos que bloqueiam visão impedem a linha. Entre andares, a linha
- * é verificada no andar de origem e no de destino (aproximação provisória até o mapa
- * final definir bordas de plataforma e guarda-corpos).
- * Unidades não bloqueiam linha de visão.
+ * Mesmo andar: paredes e objetos que bloqueiam visão impedem a linha.
+ *
+ * Entre andares (seção 2.3: "considerarão a diferença de altura"): a linha vai da altura
+ * do corpo na origem (andar + 0,5) à do destino. Em cada célula atravessada, verifica-se
+ * parede/objeto no andar em que a linha está naquele ponto. Ao passar de um nível para
+ * outro, a linha precisa atravessar uma célula vazia (`void`) do andar superior — chão de
+ * plataforma ou parede ali funcionam como laje e bloqueiam (`FLOOR_BLOCK`). Na borda exata
+ * entre duas células, basta uma delas estar livre (quem está na beira enxerga abaixo).
  */
 export function lineOfSight(state: GameState, catalog: Catalog, from: Coord, to: Coord): LineOfSightResult {
   if (!getCell(state.map, from) || !getCell(state.map, to)) {
@@ -68,19 +72,68 @@ export function lineOfSight(state: GameState, catalog: Catalog, from: Coord, to:
   const line = supercoverLine(from.x, from.y, to.x, to.y).filter(
     (p) => !(p.x === from.x && p.y === from.y) && !(p.x === to.x && p.y === to.y),
   );
-  const floors = from.floor === to.floor ? [from.floor] : [from.floor, to.floor];
+  const blockAt = (c: Coord): LineOfSightResult | null => {
+    const cell = getCell(state.map, c);
+    if (!cell) return { visible: false, reason: 'OUT_OF_BOUNDS', blockedAt: c, path: line };
+    if (cell.terrain === 'wall') return { visible: false, reason: 'WALL_BLOCK', blockedAt: c, path: line };
+    if (objectsAt(state, c).some((o) => objectBlocksVision(catalog, o))) {
+      return { visible: false, reason: 'OBJECT_BLOCK', blockedAt: c, path: line };
+    }
+    return null;
+  };
+
+  if (from.floor === to.floor) {
+    for (const p of line) {
+      const b = blockAt({ x: p.x, y: p.y, floor: from.floor });
+      if (b) return b;
+    }
+    return { visible: true, path: line };
+  }
+
+  const dx = to.x - from.x;
+  const dy = to.y - from.y;
+  const len2 = dx * dx + dy * dy;
+  const za = from.floor + 0.5;
+  const zb = to.floor + 0.5;
+  const heightAt = (t: number) => za + (zb - za) * t;
+  const tOf = (p: { x: number; y: number }) => (len2 === 0 ? 0.5 : ((p.x - from.x) * dx + (p.y - from.y) * dy) / len2);
+
+  // 1) Paredes/objetos no andar em que a linha está em cada célula intermediária.
   for (const p of line) {
-    for (const floor of floors) {
-      const c = { x: p.x, y: p.y, floor };
-      const cell = getCell(state.map, c);
-      if (!cell) return { visible: false, reason: 'OUT_OF_BOUNDS', blockedAt: c, path: line };
-      if (cell.terrain === 'wall') return { visible: false, reason: 'WALL_BLOCK', blockedAt: c, path: line };
-      if (objectsAt(state, c).some((o) => objectBlocksVision(catalog, o))) {
-        return { visible: false, reason: 'OBJECT_BLOCK', blockedAt: c, path: line };
+    const floor = Math.min(state.map.floors - 1, Math.max(0, Math.floor(heightAt(tOf(p)))));
+    const b = blockAt({ x: p.x, y: p.y, floor });
+    if (b) return b;
+  }
+
+  // 2) Lajes: cada nível atravessado precisa de uma célula vazia no ponto de passagem.
+  const low = Math.min(from.floor, to.floor);
+  const high = Math.max(from.floor, to.floor);
+  for (let level = low + 1; level <= high; level++) {
+    const t = (level - za) / (zb - za);
+    const px = from.x + dx * t;
+    const py = from.y + dy * t;
+    const xs = candidates(px);
+    const ys = candidates(py);
+    let open = false;
+    let blocked: Coord | undefined;
+    for (const x of xs) {
+      for (const y of ys) {
+        const c = { x, y, floor: level };
+        const cell = getCell(state.map, c);
+        if (cell && cell.terrain === 'void') open = true;
+        else blocked ??= c;
       }
     }
+    if (!open) return { visible: false, reason: 'FLOOR_BLOCK', ...(blocked ? { blockedAt: blocked } : {}), path: line };
   }
   return { visible: true, path: line };
+}
+
+/** Células cujo intervalo contém a coordenada; na borda exata (x,5), as duas. */
+function candidates(v: number): number[] {
+  const frac = v - Math.floor(v);
+  if (Math.abs(frac - 0.5) < 1e-9) return [Math.floor(v), Math.ceil(v)];
+  return [Math.round(v)];
 }
 
 export const hasLineOfSight = (state: GameState, catalog: Catalog, from: Coord, to: Coord): boolean =>

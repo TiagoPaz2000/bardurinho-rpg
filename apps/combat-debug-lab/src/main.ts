@@ -1,6 +1,7 @@
 import './style.css';
 import './actions.css';
-import { catalog } from '@bardurinho/content';
+import { catalog, maps } from '@bardurinho/content';
+import { assetUrl, itemIconPath } from '@bardurinho/assets-manifest';
 import {
   DAMAGE_TYPES,
   coordKey,
@@ -52,7 +53,8 @@ type Armed =
   | { kind: 'placeDummy'; presetId: string; label: string }
   | { kind: 'placeObject'; defId: string; label: string }
   | { kind: 'erase'; label: string }
-  | { kind: 'measure'; label: string };
+  | { kind: 'measure'; label: string }
+  | { kind: 'stairs'; label: string };
 
 type ExecMode = 'normal' | 'ignoreCost' | 'ignoreCooldown' | 'ignoreTurn' | 'force';
 
@@ -77,6 +79,8 @@ const ui = {
   lastClickedCell: null as Coord | null,
   bottomTab: 'actions' as 'actions' | 'timeline' | 'legend',
   visionTeam: null as string | null,
+  /** STEP por evento: seq do evento cujo estado está sendo exibido. */
+  eventViewSeq: null as number | null,
   selectedUnitId: 'mage-01' as string | null,
   hoverCell: null as Coord | null,
   search: '',
@@ -85,16 +89,29 @@ const ui = {
   brushCross: false,
   surfaceViaEvent: false,
   measureFrom: null as Coord | null,
+  stairsFrom: null as Coord | null,
   measureInfo: null as string | null,
   form: { amount: 20, damageType: 'physical' as DamageType, ignoreArmor: false, statusId: 'burning', team: 'A' },
   message: null as { text: string; kind: 'ok' | 'error' } | null,
 };
 
-const state = (): GameState => ui.session.state;
+const state = (): GameState =>
+  (ui.eventViewSeq !== null ? ui.session.snapshotAfterEvent(ui.eventViewSeq) : null) ?? ui.session.state;
+
+/** STEP por evento: move o foco para o evento anterior/seguinte (-1/+1). */
+function stepEvent(delta: number): void {
+  const events = ui.session.visibleEvents;
+  if (!events.length) return;
+  const current = ui.eventViewSeq === null ? events.length : events.findIndex((e) => e.seq === ui.eventViewSeq);
+  const next = Math.max(0, Math.min(events.length - 1, current + delta));
+  ui.eventViewSeq = events[next]!.seq;
+  ui.selectedEventSeq = ui.eventViewSeq;
+}
 const selectedUnit = (): Unit | undefined => (ui.selectedUnitId ? state().units[ui.selectedUnitId] : undefined);
 const actor = (): Unit | undefined => selectedUnit() ?? (state().turn.activeUnitId ? state().units[state().turn.activeUnitId!] : undefined);
 
 function exec(command: Command): boolean {
+  ui.eventViewSeq = null; // agir sempre a partir do estado atual
   const ok = ui.session.execute(command, EXEC_OPTIONS[ui.execMode]);
   const err = ui.session.lastError;
   ui.message = ok ? null : { text: `${command.type}: ${err?.code} — ${err?.message}`, kind: 'error' };
@@ -147,8 +164,10 @@ document.addEventListener('keydown', (ev) => {
   if ((ev.target as HTMLElement).tagName === 'INPUT') return;
   if (ev.key === 'Escape') ui.armed = null;
   else if (ev.key === 'e' && state().turn.activeUnitId) exec({ type: 'END_TURN', actorId: state().turn.activeUnitId! });
-  else if (ev.key === 'ArrowLeft') ui.session.stepBack();
-  else if (ev.key === 'ArrowRight') ui.session.stepForward();
+  else if (ev.key === ',') stepEvent(-1);
+  else if (ev.key === '.') stepEvent(+1);
+  else if (ev.key === 'ArrowLeft') { ui.eventViewSeq = null; ui.session.stepBack(); }
+  else if (ev.key === 'ArrowRight') { ui.eventViewSeq = null; ui.session.stepForward(); }
   else return;
   refresh();
 });
@@ -239,8 +258,31 @@ function onCellClick(c: Coord): void {
           s.turn.order = s.turn.order.filter((id) => id !== u.id);
         }
         for (const o of Object.values(s.objects)) if (coordKey(o.pos) === coordKey(c)) delete s.objects[o.id];
+        s.map.connections = s.map.connections.filter((k) => coordKey(k.a) !== coordKey(c) && coordKey(k.b) !== coordKey(c));
       });
       ui.armed = null;
+      break;
+    case 'stairs':
+      if (!ui.stairsFrom) {
+        ui.stairsFrom = c;
+        ui.message = { text: `Escada: origem ${fmtCoord(c)}. Troque de andar e clique no destino.`, kind: 'ok' };
+      } else {
+        const from = ui.stairsFrom;
+        ui.stairsFrom = null;
+        ui.armed = null;
+        if (from.floor === c.floor) {
+          ui.message = { text: 'A escada precisa ligar andares diferentes.', kind: 'error' };
+          break;
+        }
+        ui.session.editSetup((s) => {
+          for (const p of [from, c]) {
+            const cell = getCell(s.map, p);
+            if (cell) cell.terrain = 'ground';
+          }
+          s.map.connections.push({ a: from, b: c, cost: 2 });
+        });
+        ui.message = { text: `Escada criada: ${fmtCoord(from)} ↔ ${fmtCoord(c)} (2 PM)`, kind: 'ok' };
+      }
       break;
     case 'measure':
       if (!ui.measureFrom) {
@@ -330,8 +372,25 @@ interface Entry {
   meta: string;
   tags: string[];
   version?: number;
+  /** Classes associadas (filtro "Classe"). */
+  classIds?: string[];
   arm?: () => Armed | void;
 }
+
+// Favoritos e histórico recente persistem entre recargas da página.
+const FAV_KEY = 'combat-lab.favorites';
+const RECENT_KEY = 'combat-lab.recent';
+const loadList = (key: string): string[] => {
+  try { return JSON.parse(localStorage.getItem(key) ?? '[]') as string[]; } catch { return []; }
+};
+const favorites = new Set<string>(loadList(FAV_KEY));
+let recent: string[] = loadList(RECENT_KEY);
+const saveLists = () => {
+  localStorage.setItem(FAV_KEY, JSON.stringify([...favorites]));
+  localStorage.setItem(RECENT_KEY, JSON.stringify(recent));
+};
+const ELEMENT_TAGS = ['FIRE', 'COLD', 'NATURE', 'ARCANE', 'PHYSICAL'] as const;
+const sidebarFilter = { classId: '', element: '' };
 
 function sidebarCategories(): Array<{ key: string; title: string; entries: Entry[]; extra?: HTMLElement }> {
   const items = Object.values(catalog.items);
@@ -360,7 +419,7 @@ function sidebarCategories(): Array<{ key: string; title: string; entries: Entry
       key: 'attacks', title: 'Ataques',
       entries: [
         ...items.filter((i) => i.kind === 'weapon').map((w) => ({
-          id: w.id, name: w.name, version: w.version, tags: w.tags,
+          id: w.id, name: w.name, version: w.version, tags: w.tags, classIds: w.classIds,
           meta: `${w.damage} ${w.damageType} · ${w.cost.ap} PA · alcance ${w.target.minRange ?? 1}–${w.target.range}`,
           arm: (): Armed => ({ kind: 'attack', weaponId: w.id, label: `Ataque: ${w.name}` }),
         })),
@@ -375,7 +434,7 @@ function sidebarCategories(): Array<{ key: string; title: string; entries: Entry
     {
       key: 'abilities', title: 'Magias',
       entries: Object.values(catalog.abilities).map((ab) => ({
-        id: ab.id, name: ab.name, version: ab.version, tags: ab.tags,
+        id: ab.id, name: ab.name, version: ab.version, tags: ab.tags, classIds: [ab.classId],
         meta: `${catalog.classes[ab.classId]?.name} · ${ab.cost.ap} PA + ${ab.cost.focus ?? 0} Foco · ${ab.target.kind}${ab.target.range ? ` ${ab.target.minRange ?? 0}–${ab.target.range}` : ''} · recarga ${ab.blockedOwnTurnsAfterUse}`,
         arm: (): Armed | void => {
           if (ab.target.kind === 'self') {
@@ -459,8 +518,20 @@ function sidebarCategories(): Array<{ key: string; title: string; entries: Entry
           id: `terrain.${t}`, name: { ground: 'Chão', wall: 'Parede', void: 'Vazio', dark: 'Área escura (alternar)' }[t], tags: [], meta: 'edita a preparação e reinicia a timeline',
           arm: (): Armed => ({ kind: 'paintTerrain', terrain: t, label: `Pintar terreno: ${t}` }),
         })),
-        { id: 'edit.erase', name: 'Remover entidade', tags: [], meta: 'remove unidades/objetos da célula', arm: (): Armed => ({ kind: 'erase', label: 'Remover entidade' }) },
+        { id: 'edit.erase', name: 'Remover entidade', tags: [], meta: 'remove unidades, objetos e escadas da célula', arm: (): Armed => ({ kind: 'erase', label: 'Remover entidade' }) },
+        { id: 'edit.stairs', name: 'Escada', tags: ['MULTI_FLOOR'], meta: 'clique na origem, troque de andar, clique no destino (custo 2 PM)', arm: (): Armed => ({ kind: 'stairs', label: 'Criar escada' }) },
+        { id: 'edit.add_floor', name: '+ Adicionar andar', tags: ['MULTI_FLOOR'], meta: `andar novo todo vazio (ar); pinte "Chão" para criar plataformas — atual: ${state().map.floors}`,
+          arm: () => { ui.session.editSetup((s) => addFloor(s)); ui.floor = state().map.floors - 1; } },
+        { id: 'edit.remove_floor', name: '− Remover último andar', tags: ['MULTI_FLOOR'], meta: 'remove o andar mais alto, suas unidades, objetos e escadas',
+          arm: () => { if (state().map.floors > 1) { ui.session.editSetup((s) => removeTopFloor(s)); ui.floor = Math.min(ui.floor, state().map.floors - 1); } } },
       ],
+    },
+    {
+      key: 'maps', title: 'Mapas',
+      entries: maps.map((m): Entry => ({
+        id: m.id, name: m.name, version: m.version, tags: m.tags, meta: m.description,
+        arm: () => { ui.session = new LabSession(catalog, m.scenario); ui.floor = 0; ui.selectedUnitId = Object.keys(state().units)[0] ?? null; ui.message = { text: `Mapa carregado: ${m.name}`, kind: 'ok' }; },
+      })),
     },
     {
       key: 'mechanics', title: 'Mecânicas',
@@ -488,29 +559,72 @@ function effectForm(): HTMLElement {
 
 function renderSidebar(): void {
   const q = ui.search.toLowerCase();
-  const match = (e: Entry) => !q || [e.id, e.name, e.meta, ...e.tags].some((t) => t.toLowerCase().includes(q));
+  const matchText = (e: Entry) => !q || [e.id, e.name, e.meta, ...e.tags].some((t) => t.toLowerCase().includes(q));
+  const matchFilters = (e: Entry) =>
+    (!sidebarFilter.classId || e.classIds?.includes(sidebarFilter.classId)) &&
+    (!sidebarFilter.element || e.tags.some((t) => t.toUpperCase() === sidebarFilter.element));
+  const filtering = !!q || !!sidebarFilter.classId || !!sidebarFilter.element;
+  const match = (e: Entry) => matchText(e) && matchFilters(e);
+
   const searchBox = h('input', {
     class: 'search', placeholder: 'Buscar conteúdo... (nome, id, tag)', value: ui.search,
     oninput: (e: Event) => { ui.search = (e.target as HTMLInputElement).value; renderSidebar(); (sidebar.querySelector('.search') as HTMLInputElement)?.focus(); },
   });
-  const cats = sidebarCategories().map((cat) => {
-    const entries = cat.entries.filter(match);
-    if (q && entries.length === 0) return null;
-    const open = !ui.collapsed.has(cat.key) || !!q;
-    return h('div', { class: 'category' },
-      h('div', { class: 'cat-title', onclick: () => { ui.collapsed.has(cat.key) ? ui.collapsed.delete(cat.key) : ui.collapsed.add(cat.key); renderSidebar(); } },
-        `${open ? '▾' : '▸'} ${cat.title}`, h('span', { class: 'count' }, String(entries.length))),
-      open ? cat.extra ?? null : null,
-      ...(open ? entries.map((e) =>
-        h('div', { class: 'entry', title: e.meta },
-          h('div', { class: 'entry-head' }, h('b', {}, e.name), h('code', {}, e.id), e.version ? h('span', { class: 'ver' }, `v${e.version}`) : null),
-          h('div', { class: 'meta' }, e.meta),
-          e.tags.length ? h('div', { class: 'tags' }, ...e.tags.map((t) => h('span', {}, t))) : null,
-          e.arm ? h('button', { onclick: () => { const r = e.arm!(); ui.armed = r ?? null; refresh(); } }, 'USAR') : null,
-        )) : []),
+  const select = (label: string, value: string, options: Array<[string, string]>, onChange: (v: string) => void) =>
+    h('label', {}, label + ' ', h('select', { onchange: (e: Event) => { onChange((e.target as HTMLSelectElement).value); renderSidebar(); } },
+      ...options.map(([v, text]) => h('option', { value: v, selected: v === value }, text))));
+  const filters = h('div', { class: 'row filters' },
+    select('Classe', sidebarFilter.classId, [['', 'todas'], ...Object.values(catalog.classes).map((c): [string, string] => [c.id, c.name])], (v) => { sidebarFilter.classId = v; }),
+    select('Elemento', sidebarFilter.element, [['', 'todos'], ...ELEMENT_TAGS.map((t): [string, string] => [t, t])], (v) => { sidebarFilter.element = v; }),
+  );
+
+  const categories = sidebarCategories();
+  const all = new Map<string, Entry>();
+  for (const cat of categories) for (const e of cat.entries) all.set(`${cat.key}:${e.id}`, e);
+
+  const entryView = (key: string, e: Entry) => {
+    const icon = itemIconPath(e.id);
+    return h('div', { class: 'entry', title: e.meta },
+      h('div', { class: 'entry-head' },
+        icon ? h('img', { class: 'entry-icon', src: assetUrl(icon), alt: '' }) : null,
+        h('b', {}, e.name), h('code', {}, e.id), e.version ? h('span', { class: 'ver' }, `v${e.version}`) : null,
+        h('button', {
+          class: `star ${favorites.has(key) ? 'on' : ''}`, title: favorites.has(key) ? 'Remover dos favoritos' : 'Adicionar aos favoritos',
+          onclick: () => { favorites.has(key) ? favorites.delete(key) : favorites.add(key); saveLists(); renderSidebar(); },
+        }, favorites.has(key) ? '★' : '☆')),
+      h('div', { class: 'meta' }, e.meta),
+      e.tags.length ? h('div', { class: 'tags' }, ...e.tags.map((t) => h('span', {}, t))) : null,
+      e.arm ? h('button', {
+        onclick: () => {
+          recent = [key, ...recent.filter((k) => k !== key)].slice(0, 8);
+          saveLists();
+          const r = e.arm!();
+          ui.armed = r ?? null;
+          refresh();
+        },
+      }, 'USAR') : null,
     );
-  });
-  sidebar.replaceChildren(h('div', { class: 'side-title' }, 'CONTENT'), searchBox, ...cats.filter((c): c is HTMLDivElement => !!c));
+  };
+
+  const section = (key: string, title: string, items: Array<[string, Entry]>, extra?: HTMLElement) => {
+    const shown = items.filter(([, e]) => match(e));
+    if (filtering && shown.length === 0) return null;
+    const open = !ui.collapsed.has(key) || filtering;
+    return h('div', { class: 'category' },
+      h('div', { class: 'cat-title', onclick: () => { ui.collapsed.has(key) ? ui.collapsed.delete(key) : ui.collapsed.add(key); renderSidebar(); } },
+        `${open ? '▾' : '▸'} ${title}`, h('span', { class: 'count' }, String(shown.length))),
+      open ? extra ?? null : null,
+      ...(open ? shown.map(([k, e]) => entryView(k, e)) : []),
+    );
+  };
+
+  const pick = (keys: string[]) => keys.filter((k) => all.has(k)).map((k): [string, Entry] => [k, all.get(k)!]);
+  const sections = [
+    favorites.size ? section('__favorites', '★ Favoritos', pick([...favorites])) : null,
+    recent.length ? section('__recent', 'Histórico recente', pick(recent)) : null,
+    ...categories.map((cat) => section(cat.key, cat.title, cat.entries.map((e): [string, Entry] => [`${cat.key}:${e.id}`, e]), cat.extra)),
+  ];
+  sidebar.replaceChildren(h('div', { class: 'side-title' }, 'CONTENT'), searchBox, filters, ...sections.filter((c): c is HTMLDivElement => !!c));
 }
 
 // ---------------------------------------------------------------------------
@@ -552,6 +666,22 @@ function renderUnitInspector(u: Unit): HTMLElement[] {
     h('button', { onclick: () => { exec({ type: 'DEBUG_SET_UNIT', unitId: u.id, patch: { hp: u.maxHp } }); refresh(); } }, 'RESET HP'),
     u.flags.isDummy ? h('button', { onclick: () => { exec({ type: 'DEBUG_RESET_DUMMY', unitId: u.id }); refresh(); } }, 'FULL RESET') : null,
   ));
+  if (u.flags.isDummy) {
+    const flag = (key: keyof Unit['flags'], label: string) =>
+      h('label', {}, h('input', {
+        type: 'checkbox', checked: !!u.flags[key],
+        onchange: () => { exec({ type: 'DEBUG_SET_UNIT', unitId: u.id, patch: { flags: { [key]: !u.flags[key] } } }); refresh(); },
+      }), label);
+    out.push(h('h4', {}, 'CONFIGURAÇÃO DO BONECO'), h('div', { class: 'dummy-flags' },
+      flag('immortal', 'Imortal (não cai abaixo de 1 PV)'),
+      flag('regenerate', 'Regenerar vida após cada comando'),
+      flag('clearStatusesAfterCommand', 'Limpar estados após cada comando'),
+      flag('clearShieldAfterCommand', 'Resetar escudo após cada comando'),
+      flag('immuneForcedMove', 'Bloquear empurrão'),
+      flag('immuneStatuses', 'Bloquear estados'),
+      flag('immuneSurfaces', 'Bloquear efeitos de superfície'),
+    ));
+  }
 
   // Logs instrumentados derivados dos eventos do core
   const events = unitEvents(u.id);
@@ -631,6 +761,11 @@ function cellInfoFromSelected(s: GameState, c: Coord, u: Unit | undefined): HTML
 function renderInspector(): void {
   const s = state();
   const parts: Array<HTMLElement | null> = [];
+  if (ui.eventViewSeq !== null) {
+    const ev = ui.session.visibleEvents.find((e) => e.seq === ui.eventViewSeq);
+    parts.push(h('div', { class: 'msg armed' }, `STEP: mapa logo após o evento #${ui.eventViewSeq} ${ev?.type ?? ''} `,
+      h('button', { onclick: () => { ui.eventViewSeq = null; refresh(); } }, 'Voltar ao estado atual')));
+  }
   if (ui.message) parts.push(h('div', { class: `msg ${ui.message.kind}` }, ui.message.text));
   if (ui.armed) {
     const painting = ui.armed.kind === 'paintSurface' || ui.armed.kind === 'paintTerrain';
@@ -703,7 +838,7 @@ function renderEventLog(): HTMLElement {
   const events = ui.session.visibleEvents;
   const selected = events.find((e) => e.seq === ui.selectedEventSeq);
   const list = h('div', { class: 'events' }, ...events.slice(-200).map((e) =>
-    h('div', { class: `ev ${e.seq === ui.selectedEventSeq ? 'sel' : ''}`, onclick: () => { ui.selectedEventSeq = e.seq; renderInspector(); } },
+    h('div', { class: `ev ${e.seq === ui.selectedEventSeq ? 'sel' : ''}`, onclick: () => { ui.selectedEventSeq = e.seq; ui.eventViewSeq = e.seq; refresh(); } },
       `#${String(e.seq).padStart(3, '0')} R${e.round} ${e.type}`)));
   queueMicrotask(() => { list.scrollTop = list.scrollHeight; });
   const detail = selected ? eventDetail(selected) : null;
@@ -776,8 +911,11 @@ function renderTimeline(): void {
   const timelineNodes = [
     h('div', { class: 'tl-controls' },
       h('button', { onclick: () => { t.cursor = Math.min(1, t.timeline.length); refresh(); }, title: 'Início' }, '⏮'),
-      h('button', { onclick: () => { t.stepBack(); refresh(); }, title: 'STEP ◀ (←)' }, '◀'),
-      h('button', { onclick: () => { t.stepForward(); refresh(); }, title: 'STEP ▶ (→)' }, '▶'),
+      h('button', { onclick: () => { ui.eventViewSeq = null; t.stepBack(); refresh(); }, title: 'STEP ◀ (←)' }, '◀'),
+      h('button', { onclick: () => { ui.eventViewSeq = null; t.stepForward(); refresh(); }, title: 'STEP ▶ (→)' }, '▶'),
+      h('button', { onclick: () => { stepEvent(-1); refresh(); }, title: 'Evento anterior (,)' }, '◀ evento'),
+      h('button', { onclick: () => { stepEvent(+1); refresh(); }, title: 'Próximo evento (.)' }, 'evento ▶'),
+      ui.eventViewSeq !== null ? h('button', { onclick: () => { ui.eventViewSeq = null; refresh(); } }, 'Estado atual') : null,
       h('button', { onclick: () => { t.cursor = t.timeline.length; refresh(); }, title: 'Fim' }, '⏭'),
       h('button', { onclick: () => { const r = t.replay(); ui.message = { text: r.identical ? 'REPLAY: estados idênticos (determinístico)' : 'REPLAY: DIVERGÊNCIA detectada', kind: r.identical ? 'ok' : 'error' }; refresh(); } }, 'REPLAY ✓'),
       h('button', {
@@ -898,6 +1036,55 @@ function rangePreview(): { min: number; max: number } | null {
   return null;
 }
 
+function addFloor(s: GameState): void {
+  const cells = Array.from({ length: s.map.width * s.map.height }, () => ({ terrain: 'void' as const, surface: null, dark: false }));
+  s.map.cells.push(cells);
+  s.map.floors += 1;
+}
+
+function removeTopFloor(s: GameState): void {
+  const top = s.map.floors - 1;
+  s.map.cells.pop();
+  s.map.floors -= 1;
+  for (const u of Object.values(s.units)) if (u.pos.floor === top) {
+    delete s.units[u.id];
+    s.turn.order = s.turn.order.filter((id) => id !== u.id);
+  }
+  for (const o of Object.values(s.objects)) if (o.pos.floor === top) delete s.objects[o.id];
+  s.map.connections = s.map.connections.filter((k) => k.a.floor !== top && k.b.floor !== top);
+}
+
+/** Marca as escadas do andar visível: seta para cima/baixo e o andar de destino. */
+function drawStairs(): void {
+  for (const k of state().map.connections) {
+    for (const [here, there] of [[k.a, k.b], [k.b, k.a]] as const) {
+      if (here.floor !== ui.floor) continue;
+      const px = here.x * CELL;
+      const py = here.y * CELL;
+      g.fillStyle = 'rgba(255, 212, 59, 0.9)';
+      g.beginPath();
+      g.moveTo(px + CELL - 4, py + CELL - 4);
+      g.lineTo(px + CELL - 4, py + CELL - 18);
+      g.lineTo(px + CELL - 18, py + CELL - 4);
+      g.closePath();
+      g.fill();
+      g.fillStyle = '#111';
+      g.font = 'bold 9px monospace';
+      g.textAlign = 'center';
+      g.textBaseline = 'middle';
+      g.fillText(there.floor > here.floor ? '▲' : '▼', px + CELL - 9, py + CELL - 9);
+      g.fillStyle = '#ffd43b';
+      g.fillText(`A${there.floor}`, px + CELL - 10, py + CELL - 22);
+    }
+  }
+  if (ui.stairsFrom && ui.stairsFrom.floor === ui.floor) {
+    g.strokeStyle = '#ffd43b';
+    g.setLineDash([4, 3]);
+    g.strokeRect(ui.stairsFrom.x * CELL + 3, ui.stairsFrom.y * CELL + 3, CELL - 6, CELL - 6);
+    g.setLineDash([]);
+  }
+}
+
 function drawGrid(): void {
   // Visão de equipe: desenha a projeção que aquele lado receberia do servidor.
   const projection = ui.visionTeam ? projectStateForTeam(state(), catalog, ui.visionTeam) : null;
@@ -912,6 +1099,7 @@ function drawGrid(): void {
       if (!projection.vision.visibleCells.has(coordKey({ x, y, floor: ui.floor }))) g.fillRect(x * CELL, y * CELL, CELL, CELL);
     }
   }
+  drawStairs();
 }
 
 function teamsInMatch(): string[] {

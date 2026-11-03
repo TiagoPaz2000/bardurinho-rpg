@@ -19,6 +19,10 @@ export function applyStatus(
   sourceDefinitionId: string | null,
 ): StatusInstance | null {
   if (!unit.alive) return null;
+  if (unit.flags.immuneStatuses) {
+    emit(ctx, 'EFFECT_IGNORED', { unitId: unit.id, effect: 'applyStatus', statusId, reason: 'IMMUNE_STATUSES' });
+    return null;
+  }
   const remaining = initialRemaining(ctx, statusId);
   const existing = unit.statuses.find((s) => s.statusId === statusId);
   if (existing) {

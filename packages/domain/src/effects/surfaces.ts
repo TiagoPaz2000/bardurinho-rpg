@@ -96,7 +96,7 @@ export type ExposureTrigger = 'enter' | 'turnStart' | 'created';
  * máximo uma vez por personagem por turno global (seção 5.2).
  */
 export function exposeUnitToSurface(ctx: ResolutionContext, unit: Unit, trigger: ExposureTrigger): void {
-  if (!unit.alive) return;
+  if (!unit.alive || unit.flags.immuneSurfaces) return;
   const cell = getCell(ctx.state.map, unit.pos);
   const surface = cell?.surface;
   if (!surface) return;

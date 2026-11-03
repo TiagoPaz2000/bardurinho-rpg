@@ -3,6 +3,7 @@
   "references": [
     { "path": "packages/domain" },
     { "path": "packages/protocol" },
+    { "path": "packages/assets-manifest" },
     { "path": "packages/content" },
     { "path": "apps/combat-debug-lab" },
     { "path": "tests" }

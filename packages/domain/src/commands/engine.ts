@@ -5,12 +5,12 @@
  */
 import { distance, sameCoord } from '../core/coords.js';
 import type { Coord } from '../core/types.js';
-import { grantShield } from '../combat/damage.js';
+import { grantShield, healUnit } from '../combat/damage.js';
 import { getCell } from '../map/grid.js';
 import { hasLineOfSight } from '../map/lineOfSight.js';
 import { findPath } from '../map/pathfinding.js';
 import type { Catalog, ConsumableDefinition, Cost, EffectOp, TargetingRule } from '../rules/definitions.js';
-import { createContext, emit, type ResolutionContext } from '../state/context.js';
+import { createContext, emit, withCause, type ResolutionContext } from '../state/context.js';
 import type { GameEvent } from '../state/events.js';
 import { getEntity, hasStatusFlag, unitAt } from '../state/queries.js';
 import type { Entity, GameState, MapObject, Unit } from '../state/types.js';
@@ -40,7 +40,7 @@ import {
 } from './checks.js';
 
 export type CommandResult =
-  | { ok: true; state: GameState; events: GameEvent[] }
+  | { ok: true; state: GameState; events: GameEvent[]; snapshots?: GameState[] }
   | { ok: false; state: GameState; error: CommandError };
 
 class Rejection extends Error {
@@ -71,11 +71,13 @@ export function applyCommand(
     commandSeq,
     sourceId: 'actorId' in command ? command.actorId : null,
   });
+  if (options.captureEventSnapshots) ctx.snapshots = [];
   try {
     handle(ctx, command, options);
     revealHiddenUnits(ctx);
+    maintainDummies(ctx);
     checkVictory(ctx);
-    return { ok: true, state: candidate, events: ctx.events };
+    return { ok: true, state: candidate, events: ctx.events, ...(ctx.snapshots ? { snapshots: ctx.snapshots } : {}) };
   } catch (err) {
     if (err instanceof Rejection) return { ok: false, state, error: { code: err.code, message: err.message } };
     throw err;
@@ -262,6 +264,21 @@ function executeAttack(ctx: ResolutionContext, actor: Unit, effects: EffectOp[],
   if (fromHiding) removeStatus(ctx, actor, VISIBILITY_TUNING.hiddenStatusId, 'attacked');
 }
 
+/** Opções do Test Dummy aplicadas ao fim de cada comando (regenerar, limpar estados/barreira). */
+function maintainDummies(ctx: ResolutionContext): void {
+  for (const u of livingUnits(ctx.state)) {
+    if (!u.flags.isDummy) continue;
+    withCause(ctx, { sourceId: null, definitionId: 'debug.dummy_options' }, () => {
+      if (u.flags.regenerate && u.hp < u.maxHp) healUnit(ctx, u, u.maxHp - u.hp);
+      if (u.flags.clearStatusesAfterCommand) for (const st of [...u.statuses]) removeStatus(ctx, u, st.statusId, 'debug.clear_after_command');
+      if (u.flags.clearShieldAfterCommand && u.shield) {
+        emit(ctx, 'SHIELD_EXPIRED', { unitId: u.id, amount: u.shield.amount, reason: 'debug.clear_after_command' });
+        u.shield = null;
+      }
+    });
+  }
+}
+
 /** Após cada comando: unidades Ocultas detectadas por um inimigo são reveladas. */
 function revealHiddenUnits(ctx: ResolutionContext): void {
   const units = livingUnits(ctx.state);
@@ -345,7 +362,9 @@ function handleDebug(ctx: ResolutionContext, command: Extract<Command, { type: `
     case 'DEBUG_SET_UNIT': {
       const unit = ctx.state.units[command.unitId];
       if (!unit) return reject('UNKNOWN_ACTOR', `Personagem desconhecido: ${command.unitId}`);
-      Object.assign(unit, command.patch);
+      const { flags, ...numbers } = command.patch;
+      Object.assign(unit, numbers);
+      if (flags) unit.flags = { ...unit.flags, ...flags };
       if (unit.hp > 0 && !unit.alive) unit.alive = true;
       return;
     }

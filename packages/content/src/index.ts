@@ -34,3 +34,4 @@ export const catalog: Catalog = buildCatalog();
 
 export { abilities, classes, items, statuses, surfaces, objects, dummies };
 export { validateCatalog, type ValidationIssue } from './validate.js';
+export { maps, patioDasRuinas, type MapDefinition } from './maps/index.js';

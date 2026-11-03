@@ -8,6 +8,7 @@
     "build": "vite build"
   },
   "dependencies": {
+    "@bardurinho/assets-manifest": "*",
     "@bardurinho/content": "*",
     "@bardurinho/domain": "*"
   }
