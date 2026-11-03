@@ -1,0 +1,7 @@
+{
+  "errors": 0,
+  "units": { "warrior-b": { "hp": 102, "shield": 0 } },
+  "damage": [
+    { "targetId": "warrior-b", "raw": 18, "mitigation": 4, "shieldAbsorbed": 6, "hpDamage": 8, "hpAfter": 102 }
+  ]
+}

@@ -1,0 +1,7 @@
+[
+  {
+    "type": "DEBUG_APPLY_EFFECTS",
+    "target": { "kind": "cell", "x": 4, "y": 5, "floor": 0 },
+    "effects": [{ "op": "emitStimulus", "selector": "targetCell", "stimulus": "heat" }]
+  }
+]

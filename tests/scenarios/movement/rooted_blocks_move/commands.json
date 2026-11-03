@@ -1,0 +1,8 @@
+[
+  { "type": "USE_ABILITY", "actorId": "druid-01", "abilityId": "druid.root", "target": { "kind": "entity", "id": "warrior-01" } },
+  { "type": "END_TURN", "actorId": "druid-01" },
+  { "type": "MOVE", "actorId": "warrior-01", "to": { "x": 4, "y": 3, "floor": 0 } },
+  { "type": "END_TURN", "actorId": "warrior-01" },
+  { "type": "END_TURN", "actorId": "druid-01" },
+  { "type": "MOVE", "actorId": "warrior-01", "to": { "x": 4, "y": 3, "floor": 0 } }
+]

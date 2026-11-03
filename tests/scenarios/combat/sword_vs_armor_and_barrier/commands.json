@@ -1,0 +1,6 @@
+[
+  { "type": "END_TURN", "actorId": "warrior-a" },
+  { "type": "DEFEND", "actorId": "warrior-b" },
+  { "type": "END_TURN", "actorId": "warrior-b" },
+  { "type": "BASIC_ATTACK", "actorId": "warrior-a", "weaponId": "weapon.iron_sword", "target": { "kind": "entity", "id": "warrior-b" } }
+]

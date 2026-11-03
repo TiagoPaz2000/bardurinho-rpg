@@ -1,0 +1,11 @@
+{
+  "errors": 0,
+  "units": {
+    "dummy-01": { "hp": 92, "statuses": ["burning"] },
+    "mage-01": { "ap": 1, "focus": 8 }
+  },
+  "damage": [
+    { "targetId": "dummy-01", "raw": 18, "damageType": "fire", "mitigation": 10, "hpDamage": 8, "hpAfter": 92 }
+  ],
+  "events": ["COMMAND_ACCEPTED", "RESOURCE_SPENT", "ABILITY_USED", "DAMAGE_APPLIED", "STATUS_APPLIED", "STIMULUS_EMITTED"]
+}

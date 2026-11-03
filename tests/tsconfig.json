@@ -1,0 +1,6 @@
+{
+  "extends": "../tsconfig.base.json",
+  "compilerOptions": { "rootDir": "..", "types": ["node"], "outDir": "../node_modules/.cache/tsc-tests" },
+  "include": ["**/*.ts", "../tools/**/*.ts", "../packages/*/src/**/*.test.ts"],
+  "references": [{ "path": "../apps/combat-debug-lab" }, { "path": "../packages/domain" }, { "path": "../packages/content" }, { "path": "../packages/protocol" }]
+}

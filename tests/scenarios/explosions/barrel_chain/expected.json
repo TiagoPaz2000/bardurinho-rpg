@@ -1,0 +1,11 @@
+{
+  "errors": 0,
+  "objects": {
+    "barrel-01": { "state": "destroyed" },
+    "barrel-02": { "state": "destroyed" }
+  },
+  "units": {
+    "warrior-01": { "hp": 90, "alive": true }
+  },
+  "events": ["ABILITY_USED", "OBJECT_DAMAGED", "OBJECT_DESTROYED", "EXPLOSION", "OBJECT_DESTROYED", "EXPLOSION", "DAMAGE_APPLIED"]
+}

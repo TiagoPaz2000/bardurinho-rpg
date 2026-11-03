@@ -1,0 +1,14 @@
+{
+  "name": "@bardurinho/combat-debug-lab",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "vite --host 127.0.0.1 --port 5174",
+    "build": "vite build"
+  },
+  "dependencies": {
+    "@bardurinho/content": "*",
+    "@bardurinho/domain": "*"
+  }
+}

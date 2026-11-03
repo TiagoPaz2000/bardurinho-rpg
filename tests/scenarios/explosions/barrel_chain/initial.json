@@ -1,0 +1,13 @@
+{
+  "name": "Chama detona barril, que detona o barril vizinho e atinge o guerreiro",
+  "map": { "floors": [["........","........","........","........","........","........","........","........"]] },
+  "units": [
+    { "id": "mage-01", "classId": "mage", "team": "A", "pos": { "x": 1, "y": 1 } },
+    { "id": "warrior-01", "classId": "warrior", "team": "B", "pos": { "x": 6, "y": 3 } }
+  ],
+  "objects": [
+    { "id": "barrel-01", "defId": "barrel", "pos": { "x": 4, "y": 3 } },
+    { "id": "barrel-02", "defId": "barrel", "pos": { "x": 5, "y": 3 } }
+  ],
+  "order": ["mage-01", "warrior-01"]
+}

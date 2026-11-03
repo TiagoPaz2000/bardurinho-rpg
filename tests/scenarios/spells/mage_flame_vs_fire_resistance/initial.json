@@ -1,0 +1,9 @@
+{
+  "name": "Chama concentrada contra boneco resistente a fogo",
+  "map": { "floors": [["........","........","........","........","........","........","........","........"]] },
+  "units": [
+    { "id": "mage-01", "classId": "mage", "team": "A", "pos": { "x": 1, "y": 4 } },
+    { "id": "dummy-01", "type": "debug.test-dummy", "preset": "dummy.default", "hp": 100, "resistances": { "fire": 10 }, "pos": { "x": 5, "y": 4 } }
+  ],
+  "order": ["mage-01", "dummy-01"]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Enraizar impede movimento voluntário no próximo turno do alvo, mas não o empurrão",
+  "map": { "floors": [["........","........","........","........","........","........","........","........"]] },
+  "units": [
+    { "id": "druid-01", "classId": "druid", "team": "A", "pos": { "x": 1, "y": 1 } },
+    { "id": "warrior-01", "classId": "warrior", "team": "B", "pos": { "x": 4, "y": 1 } }
+  ],
+  "order": ["druid-01", "warrior-01"]
+}

@@ -1,0 +1,9 @@
+{
+  "name": "Exemplo da seção 2.3: espada 18 contra armadura 4 e barreira 6",
+  "map": { "floors": [["........","........","........","........","........","........","........","........"]] },
+  "units": [
+    { "id": "warrior-a", "classId": "warrior", "team": "A", "pos": { "x": 3, "y": 3 } },
+    { "id": "warrior-b", "classId": "warrior", "team": "B", "pos": { "x": 4, "y": 3 } }
+  ],
+  "order": ["warrior-a", "warrior-b"]
+}

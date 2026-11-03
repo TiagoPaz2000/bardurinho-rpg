@@ -1,0 +1,10 @@
+{
+  "files": [],
+  "references": [
+    { "path": "packages/domain" },
+    { "path": "packages/protocol" },
+    { "path": "packages/content" },
+    { "path": "apps/combat-debug-lab" },
+    { "path": "tests" }
+  ]
+}

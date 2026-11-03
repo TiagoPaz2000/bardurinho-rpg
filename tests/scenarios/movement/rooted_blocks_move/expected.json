@@ -1,0 +1,7 @@
+{
+  "errors": 1,
+  "units": {
+    "warrior-01": { "hp": 102, "statuses": [], "pos": { "x": 4, "y": 3 }, "mp": 3 }
+  },
+  "events": ["STATUS_APPLIED", "TURN_STARTED", "STATUS_EXPIRED", "TURN_ENDED", "UNIT_MOVED", "UNIT_MOVED"]
+}
