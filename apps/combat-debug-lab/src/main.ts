@@ -1,4 +1,5 @@
 import './style.css';
+import './actions.css';
 import { catalog } from '@bardurinho/content';
 import {
   DAMAGE_TYPES,
@@ -11,6 +12,9 @@ import {
   findPath,
   getCell,
   lineOfSight,
+  listActionsOnTarget,
+  listUnitActions,
+  type ActionInfo,
   unitAt,
   type Command,
   type Coord,
@@ -25,7 +29,9 @@ import {
 } from '@bardurinho/domain';
 import { defaultScenario } from './defaultScenario.js';
 import { download, fmtCoord, h } from './dom.js';
-import { CELL, render, type Layers } from './render.js';
+import { CELL, render, renderLegend, type Layers } from './render.js';
+
+const legendPanel = renderLegend(); // estática: criada uma vez
 import { LabSession } from './session.js';
 
 // ---------------------------------------------------------------------------
@@ -35,6 +41,7 @@ import { LabSession } from './session.js';
 type Armed =
   | { kind: 'attack'; weaponId: string; label: string }
   | { kind: 'ability'; abilityId: string; label: string }
+  | { kind: 'useItem'; itemId: string; label: string }
   | { kind: 'effect'; effects: EffectOp[]; label: string; definitionId: string }
   | { kind: 'paintSurface'; surface: SurfaceKind | null; label: string }
   | { kind: 'paintTerrain'; terrain: Terrain | 'dark'; label: string }
@@ -64,6 +71,8 @@ const ui = {
   } as Layers,
   armed: null as Armed | null,
   selectedCell: null as Coord | null,
+  lastClickedCell: null as Coord | null,
+  bottomTab: 'actions' as 'actions' | 'timeline' | 'legend',
   selectedUnitId: 'mage-01' as string | null,
   hoverCell: null as Coord | null,
   search: '',
@@ -151,13 +160,25 @@ function onCellClick(c: Coord): void {
   const a = actor();
 
   if (!armed) {
+    // 1º clique: seleciona/inspeciona a célula. 2º clique na mesma célula vazia: move o personagem selecionado.
+    const previous = ui.lastClickedCell;
+    ui.lastClickedCell = c;
     const unit = unitAt(state(), c);
-    if (unit) ui.selectedUnitId = unit.id;
-    else if (a && !a.flags.isDummy && getCell(state().map, c)?.terrain === 'ground' && entitiesAt(state(), c).length === 0) {
+    // Ao clicar em algo no mapa, a aba de ações mostra o que pode ser feito.
+    if (entitiesAt(state(), c).length > 0) ui.bottomTab = 'actions';
+    if (unit) {
+      // Bonecos não agem: clicar neles mantém o personagem atual como ator.
+      if (!unit.flags.isDummy) ui.selectedUnitId = unit.id;
+    } else if (
+      previous && coordKey(previous) === coordKey(c) &&
+      a && !a.flags.isDummy && getCell(state().map, c)?.terrain === 'ground' && entitiesAt(state(), c).length === 0
+    ) {
       exec({ type: 'MOVE', actorId: a.id, to: c });
+      ui.lastClickedCell = null;
     }
     return refresh();
   }
+  ui.lastClickedCell = null;
 
   switch (armed.kind) {
     case 'attack':
@@ -168,8 +189,13 @@ function onCellClick(c: Coord): void {
       if (a) exec({ type: 'USE_ABILITY', actorId: a.id, abilityId: armed.abilityId, target });
       ui.armed = null;
       break;
+    case 'useItem':
+      if (a) exec({ type: 'USE_ITEM', actorId: a.id, itemId: armed.itemId, target });
+      ui.armed = null;
+      break;
     case 'effect':
       exec({ type: 'DEBUG_APPLY_EFFECTS', ...(a ? { sourceId: a.id } : {}), definitionId: armed.definitionId, target, effects: armed.effects });
+      ui.armed = null;
       break;
     case 'paintSurface': {
       const cells = ui.brushCross ? crossArea(c) : [c];
@@ -200,6 +226,7 @@ function onCellClick(c: Coord): void {
     case 'placeDummy':
     case 'placeObject':
       ui.session.editSetup((s) => place(s, armed, c));
+      ui.armed = null;
       break;
     case 'erase':
       ui.session.editSetup((s) => {
@@ -209,6 +236,7 @@ function onCellClick(c: Coord): void {
         }
         for (const o of Object.values(s.objects)) if (coordKey(o.pos) === coordKey(c)) delete s.objects[o.id];
       });
+      ui.armed = null;
       break;
     case 'measure':
       if (!ui.measureFrom) {
@@ -222,6 +250,7 @@ function onCellClick(c: Coord): void {
           (los.reason ? ` reason: ${los.reason} em ${fmtCoord(los.blockedAt!)}` : '') +
           ` | caminho: ${path ? `${path.cost} PM (${path.path.length - 1} passos)` : 'inexistente'}`;
         ui.measureFrom = null;
+        ui.armed = null;
       }
       break;
   }
@@ -551,15 +580,57 @@ function logBlock(title: string, events: GameEvent[], fmt: (e: GameEvent) => str
     h('pre', { class: 'log' }, events.slice(-30).map(fmt).join('\n') || '—'));
 }
 
+/** Elementos da célula, cada um com botão para removê-lo (registrado na timeline). */
+function cellElements(s: GameState, c: Coord): HTMLElement {
+  const cell = getCell(s.map, c)!;
+  const rows: HTMLElement[] = [];
+  if (cell.surface) {
+    rows.push(h('div', { class: 'elem' }, h('span', {}, `Superfície: ${cell.surface.kind}`),
+      h('button', { class: 'remove', title: 'Remover a superfície desta célula',
+        onclick: () => { exec({ type: 'DEBUG_PAINT_SURFACE', cells: [c], surface: null }); refresh(); } }, '✕ Remover')));
+  }
+  for (const e of entitiesAt(s, c)) {
+    const label = e.entity === 'unit'
+      ? `${e.flags.isDummy ? 'Boneco' : catalog.classes[e.classId ?? '']?.name ?? 'Personagem'}: ${e.id}`
+      : `${catalog.objects[e.defId]?.name ?? e.defId}: ${e.id}`;
+    rows.push(h('div', { class: 'elem' }, h('span', {}, label),
+      h('button', { class: 'remove', title: `Remover ${e.id} do cenário`,
+        onclick: () => {
+          if (exec({ type: 'DEBUG_REMOVE_ENTITY', entityId: e.id }) && ui.selectedUnitId === e.id) ui.selectedUnitId = null;
+          refresh();
+        } }, '✕ Remover')));
+  }
+  return h('div', { class: 'elements' }, h('h4', {}, 'ELEMENTOS NA CÉLULA'), ...(rows.length ? rows : [h('div', { class: 'meta' }, 'Célula vazia')]));
+}
+
+/** Distância, linha de visão e caminho a partir do personagem selecionado. */
+function cellInfoFromSelected(s: GameState, c: Coord, u: Unit | undefined): HTMLElement[] {
+  if (!u || !u.alive || coordKey(u.pos) === coordKey(c)) return [];
+  const d = Math.abs(u.pos.x - c.x) + Math.abs(u.pos.y - c.y) + 2 * Math.abs(u.pos.floor - c.floor);
+  const los = lineOfSight(s, catalog, u.pos, c);
+  const path = findPath(s, catalog, u.pos, c);
+  const canMove = !!path && path.cost <= u.mp && entitiesAt(s, c).length === 0 && !u.flags.isDummy;
+  const out: HTMLElement[] = [
+    kv(`Distância a partir de ${u.id}`, d),
+    kv('Linha de visão', los.visible ? 'sim' : `não (${los.reason}${los.blockedAt ? ' em ' + fmtCoord(los.blockedAt) : ''})`),
+    kv('Caminho', path ? `${path.cost} PM (disponível ${u.mp})` : 'inexistente'),
+  ];
+  if (canMove) out.push(h('div', { class: 'msg' }, `Clique de novo nesta célula para mover ${u.id}`));
+  return out;
+}
+
 function renderInspector(): void {
   const s = state();
   const parts: Array<HTMLElement | null> = [];
   if (ui.message) parts.push(h('div', { class: `msg ${ui.message.kind}` }, ui.message.text));
-  if (ui.armed) parts.push(h('div', { class: 'msg armed' }, `Ação armada: ${ui.armed.label} — clique no grid (botão direito/Esc cancela)`));
+  if (ui.armed) {
+    const painting = ui.armed.kind === 'paintSurface' || ui.armed.kind === 'paintTerrain';
+    parts.push(h('div', { class: 'msg armed' }, `Ação armada: ${ui.armed.label} — clique no grid `,
+      h('button', { onclick: () => { ui.armed = null; ui.measureFrom = null; refresh(); } }, painting ? 'Concluir pintura' : 'Cancelar')));
+  }
   if (ui.measureInfo) parts.push(h('div', { class: 'msg' }, ui.measureInfo));
 
   const u = selectedUnit();
-  if (u) parts.push(...renderUnitInspector(u));
 
   if (ui.selectedCell) {
     const c = ui.selectedCell;
@@ -571,8 +642,13 @@ function renderInspector(): void {
       cell.surface ? kv('Origem', `${cell.surface.sourceDefinitionId ?? '—'} (${cell.surface.sourceId ?? '—'})`) : null,
       cell.surface ? kv('Criada / expira', `rodada ${cell.surface.createdRound} / ${cell.surface.expiresAtRound ?? 'nunca'}`) : null,
       kv('Custo de movimento', cell.surface ? catalog.surfaces[cell.surface.kind].enterCost : 1),
-      kv('Ocupantes', entitiesAt(s, c).map((e) => e.id).join(', ') || '—'),
+      kv('Ocupantes', entitiesAt(s, c).map((e) => e.id).join(', ') || 'nenhum'),
+      ...cellInfoFromSelected(s, c, u),
+      cellElements(s, c),
     );
+    // Personagem/boneco na célula que não é o ator: mostrar os detalhes dele aqui.
+    const occupant = unitAt(s, c);
+    if (occupant && occupant.id !== u?.id) parts.push(...renderUnitInspector(occupant));
     for (const o of entitiesAt(s, c)) {
       if (o.entity !== 'object') continue;
       const def = catalog.objects[o.defId]!;
@@ -583,6 +659,18 @@ function renderInspector(): void {
         kv('Gatilhos', [def.explosion ? 'FIRE → EXPLODE' : null, def.explosion ? 'HP <= 0 → EXPLODE' : null, def.flammable && !def.explosion ? 'HEAT → COMBUSTION' : null].filter(Boolean).join(' · ') || '—'),
         def.interaction && u ? h('button', { onclick: () => { exec({ type: 'INTERACT', actorId: u.id, objectId: o.id }); refresh(); } }, `Interagir com ${u.id}`) : null,
       );
+    }
+  }
+
+  if (u) {
+    const onSelectedCell = !ui.selectedCell || coordKey(ui.selectedCell) === coordKey(u.pos);
+    if (onSelectedCell) {
+      parts.push(...renderUnitInspector(u));
+    } else {
+      // A célula clicada não é a do personagem: mostrar o ator recolhido e claramente separado.
+      parts.push(h('details', { class: 'actor' },
+        h('summary', {}, `Personagem selecionado (quem age): ${u.id} em ${fmtCoord(u.pos)}`),
+        ...renderUnitInspector(u)));
     }
   }
 
@@ -676,7 +764,7 @@ function renderTimeline(): void {
       h('span', { class: 'count' }, `${entry.events.length} ev`)));
   const list = h('div', { class: 'tl-list' }, ...entries);
   queueMicrotask(() => { list.scrollLeft = list.scrollWidth; });
-  timeline.replaceChildren(
+  const timelineNodes = [
     h('div', { class: 'tl-controls' },
       h('button', { onclick: () => { t.cursor = Math.min(1, t.timeline.length); refresh(); }, title: 'Início' }, '⏮'),
       h('button', { onclick: () => { t.stepBack(); refresh(); }, title: 'STEP ◀ (←)' }, '◀'),
@@ -714,7 +802,76 @@ function renderTimeline(): void {
       h('span', { class: 'count' }, `cursor ${t.cursor}/${t.timeline.length}`),
     ),
     list,
+  ];
+
+  const tab = (key: typeof ui.bottomTab, label: string) =>
+    h('button', { class: `tab ${ui.bottomTab === key ? 'on' : ''}`, onclick: () => { ui.bottomTab = key; renderTimeline(); } }, label);
+  timeline.replaceChildren(
+    h('div', { class: 'tabs' }, tab('actions', 'Ações'), tab('timeline', `Timeline (${t.cursor}/${t.timeline.length})`), tab('legend', 'Legenda')),
+    h('div', { class: 'tab-body' }, ...(ui.bottomTab === 'actions' ? renderActionsPanel() : ui.bottomTab === 'legend' ? [legendPanel] : timelineNodes)),
   );
+}
+
+// ---------------------------------------------------------------------------
+// Aba de ações: disponíveis e indisponíveis (calculadas pelo core)
+// ---------------------------------------------------------------------------
+
+function renderActionsPanel(): HTMLElement[] {
+  const s = state();
+  const options = EXEC_OPTIONS[ui.execMode];
+  const a = actor();
+  const c = ui.selectedCell;
+  const targetEntity = c ? entitiesAt(s, c).find((e) => e.id !== a?.id) : undefined;
+  const sections: HTMLElement[] = [];
+
+  if (a && !a.flags.isDummy) {
+    sections.push(actionSection(`Ações de ${a.id}`, listUnitActions(s, catalog, a.id, options), null));
+  } else {
+    sections.push(h('div', { class: 'meta' }, 'Selecione um personagem para ver as ações dele.'));
+  }
+  if (a && !a.flags.isDummy && targetEntity) {
+    const label = targetEntity.entity === 'object' ? catalog.objects[targetEntity.defId]?.name ?? targetEntity.id : targetEntity.id;
+    sections.push(actionSection(`${a.id} sobre ${label} (${targetEntity.id})`, listActionsOnTarget(s, catalog, a.id, targetEntity.id, options), targetEntity.id));
+  }
+  return [h('div', { class: 'action-sections' }, ...sections)];
+}
+
+function actionSection(title: string, actions: ActionInfo[], targetId: string | null): HTMLElement {
+  const available = actions.filter((x) => x.available);
+  const unavailable = actions.filter((x) => !x.available);
+  const card = (x: ActionInfo) =>
+    h('button', {
+      class: `action ${x.available ? 'ok' : 'blocked'}`,
+      disabled: !x.available,
+      title: x.reason ? `${x.reason.code}: ${x.reason.message}` : x.id,
+      onclick: () => runAction(x),
+    },
+      h('b', {}, x.name),
+      h('span', { class: 'cost' }, x.cost),
+      x.available
+        ? h('span', { class: 'hint' }, x.command ? (targetId ? 'clique para executar' : 'executa agora') : `escolha o alvo${x.validTargets !== undefined ? ` · ${x.validTargets} válidos` : ''}`)
+        : h('span', { class: 'why' }, x.reason?.message ?? ''));
+  return h('div', { class: 'action-section' },
+    h('h4', {}, title),
+    actions.length === 0 ? h('div', { class: 'meta' }, 'Nenhuma ação.') : null,
+    available.length ? h('div', { class: 'action-group' }, h('span', { class: 'group-label ok' }, `Disponíveis (${available.length})`), ...available.map(card)) : null,
+    unavailable.length ? h('div', { class: 'action-group' }, h('span', { class: 'group-label blocked' }, `Indisponíveis (${unavailable.length})`), ...unavailable.map(card)) : null,
+  );
+}
+
+function runAction(x: ActionInfo): void {
+  if (x.command) {
+    exec(x.command);
+  } else if (x.kind === 'move') {
+    ui.message = { text: 'Clique numa célula destacada em azul e clique de novo para mover.', kind: 'ok' };
+  } else if (x.kind === 'attack') {
+    ui.armed = { kind: 'attack', weaponId: x.id, label: x.name };
+  } else if (x.kind === 'ability') {
+    ui.armed = { kind: 'ability', abilityId: x.id, label: x.name };
+  } else if (x.kind === 'item') {
+    ui.armed = { kind: 'useItem', itemId: x.id, label: x.name };
+  }
+  refresh();
 }
 
 // ---------------------------------------------------------------------------

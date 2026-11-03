@@ -32,7 +32,9 @@ export type DebugCommand =
   | { type: 'DEBUG_APPLY_EFFECTS'; sourceId?: EntityId; definitionId?: string; target: CommandTarget; effects: EffectOp[] }
   | { type: 'DEBUG_PAINT_SURFACE'; cells: Coord[]; surface: SurfaceKind | null; durationRounds?: number | null }
   | { type: 'DEBUG_SET_UNIT'; unitId: EntityId; patch: Partial<Record<'hp' | 'maxHp' | 'ap' | 'mp' | 'focus' | 'armor', number>> }
-  | { type: 'DEBUG_RESET_DUMMY'; unitId: EntityId };
+  | { type: 'DEBUG_RESET_DUMMY'; unitId: EntityId }
+  /** Remove um personagem ou objeto do cenário (registrado na timeline). */
+  | { type: 'DEBUG_REMOVE_ENTITY'; entityId: EntityId };
 
 export type Command = GameplayCommand | DebugCommand;
 
@@ -82,6 +84,7 @@ export type CommandErrorCode =
   | 'INVENTORY_FULL'
   | 'CELL_OCCUPIED'
   | 'MISSING_WEAPON'
+  | 'NO_VALID_TARGET'
   | 'DEBUG_DISABLED';
 
 export interface CommandError {

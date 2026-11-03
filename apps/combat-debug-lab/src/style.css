@@ -64,3 +64,12 @@ table.cmp td:first-child { text-align: left; }
 .tl { flex: 0 0 auto; max-width: 280px; background: #25262b; border-radius: 4px; padding: 4px 6px; cursor: pointer; font-size: 11px; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
 .tl.future { opacity: 0.4; }
 .tl.current { outline: 2px solid #ffd43b; }
+details.actor { margin-top: 12px; border-top: 1px solid #2c2e33; padding-top: 6px; }
+details.actor > summary { color: #4dabf7; }
+
+/* Legenda dos ícones do mapa (render.ts → renderLegend) */
+.legend { font-size: 11px; color: #ced4da; }
+.legend-group { margin: 8px 0 4px; color: #868e96; text-transform: uppercase; letter-spacing: 0.05em; font-size: 10px; }
+.legend-list { display: grid; grid-template-columns: repeat(auto-fill, minmax(118px, 1fr)); gap: 3px 8px; }
+.legend-item { display: flex; align-items: center; gap: 6px; }
+.legend-item canvas { width: 28px; height: 28px; flex: none; background: #2b2f36; border-radius: 3px; }

@@ -38,7 +38,8 @@ export type GameEventType =
   | 'OBJECT_IGNITED'
   | 'OBJECT_EXTINGUISHED'
   | 'EXPLOSION'
-  | 'CONSUMABLE_GRANTED';
+  | 'CONSUMABLE_GRANTED'
+  | 'ENTITY_REMOVED';
 
 /** De onde veio o evento: qual comando, qual entidade e qual definição de conteúdo. */
 export interface EventCause {

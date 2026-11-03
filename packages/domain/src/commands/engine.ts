@@ -21,6 +21,19 @@ import { setSurfaceDirect } from '../effects/surfaces.js';
 import { checkVictory, endTurn, finishMatch, startMatch } from '../turns/turns.js';
 import { resetDummy } from '../state/factory.js';
 import type { Command, CommandError, CommandErrorCode, CommandTarget, ExecutionOptions } from './types.js';
+import {
+  DEFEND_SHIELD,
+  INTERACT_COST,
+  checkAbility,
+  checkActor,
+  checkCanMove,
+  checkConsumable,
+  checkCost,
+  checkDefend,
+  checkInteract,
+  checkWeapon,
+  type Check,
+} from './checks.js';
 
 export type CommandResult =
   | { ok: true; state: GameState; events: GameEvent[] }
@@ -36,10 +49,10 @@ const reject = (code: CommandErrorCode, message: string): never => {
   throw new Rejection(code, message);
 };
 
-/** Defender: barreira de 6 até o início do próximo turno próprio (seção 2.2). */
-export const DEFEND_SHIELD = { amount: 6, ownTurns: 1, cost: { ap: 1 } } as const;
-export const INTERACT_COST: Cost = { ap: 1 };
-export const MAX_CONSUMABLES = 2;
+/** Lança a rejeição de uma pré-condição que falhou. */
+const fail = (check: Check): void => {
+  if (check) reject(check.code, check.message);
+};
 
 export function applyCommand(
   state: GameState,
@@ -96,7 +109,6 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
     if (state.status !== 'setup') reject('MATCH_ALREADY_STARTED', 'A partida já começou');
     return startMatch(ctx);
   }
-  if (state.status !== 'active') reject('MATCH_NOT_ACTIVE', 'A partida não está ativa');
   if ('expectedTurnId' in command && command.expectedTurnId !== undefined && command.expectedTurnId !== state.turn.turnId) {
     reject('STALE_TURN', `Turno esperado ${command.expectedTurnId}, atual ${state.turn.turnId}`);
   }
@@ -114,7 +126,7 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
     case 'MOVE':
       return handleMove(ctx, actor, command.to);
     case 'DEFEND': {
-      if (actor.defendedThisTurn && !options.ignoreCooldown) reject('MAX_USES_REACHED', 'Defender só pode ser usado uma vez por turno');
+      fail(checkDefend(actor, options));
       spend(ctx, actor, DEFEND_SHIELD.cost, options, 'action.defend');
       actor.defendedThisTurn = true;
       grantShield(ctx, actor, DEFEND_SHIELD.amount, DEFEND_SHIELD.ownTurns, actor.id, 'action.defend');
@@ -123,7 +135,7 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
     case 'BASIC_ATTACK': {
       const weapon = ctx.catalog.items[command.weaponId];
       if (!weapon || weapon.kind !== 'weapon') return reject('UNKNOWN_DEFINITION', `Arma desconhecida: ${command.weaponId}`);
-      if (!actor.weapons.includes(weapon.id)) reject('NOT_EQUIPPED', `${actor.id} não possui ${weapon.id}`);
+      fail(checkWeapon(actor, weapon));
       const target = resolveTarget(ctx, actor, command.target, weapon.target);
       spend(ctx, actor, weapon.cost, options, weapon.id);
       emit(ctx, 'ATTACK_PERFORMED', { actorId: actor.id, weaponId: weapon.id, target: target.cell });
@@ -136,21 +148,7 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
     case 'USE_ABILITY': {
       const ability = ctx.catalog.abilities[command.abilityId];
       if (!ability) return reject('UNKNOWN_DEFINITION', `Habilidade desconhecida: ${command.abilityId}`);
-      if (!actor.abilities.includes(ability.id) && !options.ignoreCooldown) {
-        reject('NOT_EQUIPPED', `${actor.id} não possui ${ability.id}`);
-      }
-      if (ability.requiresWeaponTag) {
-        const has = actor.weapons.some((w) => ctx.catalog.items[w]?.tags.includes(ability.requiresWeaponTag!));
-        if (!has) reject('MISSING_WEAPON', `${ability.id} exige arma com tag ${ability.requiresWeaponTag}`);
-      }
-      if (!options.ignoreCooldown) {
-        const uses = actor.usesThisTurn[ability.id] ?? 0;
-        if (uses >= ability.maxUsesPerTurn) reject('MAX_USES_REACHED', `${ability.id} já foi usada neste turno`);
-        const availableFrom = actor.availableFromOwnTurn[ability.id] ?? 0;
-        if (actor.ownTurnsStarted < availableFrom) {
-          reject('ON_COOLDOWN', `${ability.id} disponível no turno próprio ${availableFrom}`);
-        }
-      }
+      fail(checkAbility(ctx.catalog, actor, ability, options));
       const target = resolveTarget(ctx, actor, command.target, ability.target);
       spend(ctx, actor, ability.cost, options, ability.id);
       actor.usesThisTurn[ability.id] = (actor.usesThisTurn[ability.id] ?? 0) + 1;
@@ -170,8 +168,8 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
     case 'USE_ITEM': {
       const item = ctx.catalog.items[command.itemId];
       if (!item || item.kind !== 'consumable') return reject('UNKNOWN_DEFINITION', `Consumível desconhecido: ${command.itemId}`);
+      fail(checkConsumable(actor, item));
       const index = actor.consumables.indexOf(item.id);
-      if (index < 0) reject('NOT_EQUIPPED', `${actor.id} não carrega ${item.id}`);
       const target = resolveTarget(ctx, actor, command.target ?? { kind: 'self' }, item.target);
       spend(ctx, actor, item.cost, options, item.id);
       actor.consumables.splice(index, 1);
@@ -186,20 +184,14 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
 
 
 function requireActor(ctx: ResolutionContext, actorId: string, options: ExecutionOptions): Unit {
-  const actor = ctx.state.units[actorId];
-  if (!actor) return reject('UNKNOWN_ACTOR', `Personagem desconhecido: ${actorId}`);
-  if (!actor.alive) reject('ACTOR_DEFEATED', `${actorId} foi derrotado`);
-  if (!options.ignoreTurn && ctx.state.turn.activeUnitId !== actorId) {
-    reject('WRONG_TURN', `Não é o turno de ${actorId}`);
-  }
-  return actor;
+  fail(checkActor(ctx.state, actorId, options));
+  return ctx.state.units[actorId]!;
 }
 
 function spend(ctx: ResolutionContext, actor: Unit, cost: Cost, options: ExecutionOptions, definitionId: string): void {
   if (options.ignoreCost) return;
+  fail(checkCost(actor, cost, options));
   const focus = cost.focus ?? 0;
-  if (actor.ap < cost.ap) reject('NOT_ENOUGH_AP', `PA insuficiente (${actor.ap}/${cost.ap})`);
-  if (actor.focus < focus) reject('NOT_ENOUGH_FOCUS', `Foco insuficiente (${actor.focus}/${focus})`);
   actor.ap -= cost.ap;
   actor.focus -= focus;
   emit(ctx, 'RESOURCE_SPENT', { unitId: actor.id, ap: cost.ap, focus, apAfter: actor.ap, focusAfter: actor.focus, definitionId });
@@ -243,11 +235,7 @@ function resolveTarget(ctx: ResolutionContext, actor: Unit, target: CommandTarge
 }
 
 function handleMove(ctx: ResolutionContext, actor: Unit, to: Coord): void {
-  if (actor.flags.canMove === false) reject('CANNOT_MOVE', `${actor.id} não pode se mover`);
-  if (hasStatusFlag(ctx.state, ctx.catalog, actor, 'rooted')) {
-    emit(ctx, 'MOVE_BLOCKED', { unitId: actor.id, reason: 'ROOTED', forced: false });
-    reject('ROOTED', `${actor.id} está enraizado`);
-  }
+  fail(checkCanMove(ctx.state, ctx.catalog, actor));
   if (sameCoord(actor.pos, to)) reject('INVALID_TARGET', 'Destino igual à posição atual');
   const path = findPath(ctx.state, ctx.catalog, actor.pos, to, { maxCost: actor.mp });
   if (!path) {
@@ -259,24 +247,10 @@ function handleMove(ctx: ResolutionContext, actor: Unit, to: Coord): void {
 }
 
 function handleInteract(ctx: ResolutionContext, actor: Unit, objectId: string, options: ExecutionOptions): void {
-  const obj = ctx.state.objects[objectId];
-  if (!obj || obj.state === 'destroyed') return reject('INVALID_TARGET', `Objeto inválido: ${objectId}`);
-  const def = ctx.catalog.objects[obj.defId];
-  if (!def?.interaction) return reject('NOT_INTERACTABLE', `${obj.defId} não é interativo`);
-  if (obj.pos.floor !== actor.pos.floor || distance(obj.pos, actor.pos) > 1) {
-    reject('NOT_ADJACENT', 'É preciso estar adjacente ao objeto');
-  }
-  if (obj.usesLeft !== null && obj.usesLeft <= 0) reject('NO_USES_LEFT', `${obj.id} já foi utilizado`);
-
-  const interaction = def.interaction;
-  if (interaction.kind === 'grantConsumable') {
-    if (actor.consumables.length >= MAX_CONSUMABLES || actor.consumables.includes(interaction.itemId)) {
-      reject('INVENTORY_FULL', 'Sem espaço para o consumível');
-    }
-  }
-  if (interaction.kind === 'toggleDoor' && obj.state === 'open' && unitAt(ctx.state, obj.pos)) {
-    reject('CELL_OCCUPIED', 'Há um personagem na passagem');
-  }
+  const obj = ctx.state.objects[objectId]!;
+  fail(checkInteract(ctx.state, ctx.catalog, actor, obj, options));
+  const def = ctx.catalog.objects[obj.defId]!;
+  const interaction = def.interaction!;
 
   spend(ctx, actor, INTERACT_COST, options, def.id);
   switch (interaction.kind) {
@@ -341,6 +315,33 @@ function handleDebug(ctx: ResolutionContext, command: Extract<Command, { type: `
       const unit = ctx.state.units[command.unitId];
       if (!unit) return reject('UNKNOWN_ACTOR', `Personagem desconhecido: ${command.unitId}`);
       resetDummy(ctx.catalog, unit);
+      return;
+    }
+    case 'DEBUG_REMOVE_ENTITY': {
+      const { state } = ctx;
+      const id = command.entityId;
+      if (state.objects[id]) {
+        const obj = state.objects[id]!;
+        delete state.objects[id];
+        emit(ctx, 'ENTITY_REMOVED', { entityId: id, kind: 'object', defId: obj.defId, pos: obj.pos });
+        return;
+      }
+      const unit = state.units[id];
+      if (!unit) return reject('INVALID_TARGET', `Entidade desconhecida: ${id}`);
+      const index = state.turn.order.indexOf(id);
+      const wasActive = state.turn.activeUnitId === id;
+      delete state.units[id];
+      delete state.surfaceHitsThisTurn[id];
+      if (index >= 0) {
+        state.turn.order.splice(index, 1);
+        if (index <= state.turn.activeIndex) state.turn.activeIndex -= 1;
+      }
+      emit(ctx, 'ENTITY_REMOVED', { entityId: id, kind: 'unit', pos: unit.pos });
+      // Se era a vez dele, o turno passa para o próximo da ordem.
+      if (wasActive && state.status === 'active') {
+        state.turn.activeUnitId = null;
+        endTurn(ctx);
+      }
       return;
     }
   }

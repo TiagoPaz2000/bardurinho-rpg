@@ -23,3 +23,5 @@ export * from './turns/turns.js';
 export * from './commands/types.js';
 export * from './commands/engine.js';
 export * from './scenario/scenario.js';
+export * from './commands/checks.js';
+export * from './commands/availability.js';
