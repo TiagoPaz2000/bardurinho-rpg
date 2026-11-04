@@ -8,6 +8,7 @@
     "start": "tsx src/main.ts"
   },
   "dependencies": {
+    "@bardurinho/ai": "*",
     "@bardurinho/content": "*",
     "@bardurinho/domain": "*",
     "@bardurinho/protocol": "*",

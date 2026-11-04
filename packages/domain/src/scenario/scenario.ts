@@ -23,6 +23,8 @@ export type ScenarioUnit =
       classId: string;
       team: string;
       pos: ScenarioPos;
+      /** Nome de exibição (Fase 5: nome do personagem do jogador). */
+      name?: string;
       accessoryId?: string | null;
       consumables?: string[];
       hp?: number;
@@ -107,6 +109,7 @@ export function buildScenario(catalog: Catalog, initial: ScenarioInitial): GameS
       classId: spec.classId,
       team: spec.team,
       pos: toCoord(spec.pos),
+      ...(spec.name ? { name: spec.name } : {}),
       accessoryId: spec.accessoryId ?? null,
       consumables: spec.consumables ?? [],
     });

@@ -95,18 +95,19 @@ const KEY = 'bardurinho.rede';
 
 const storage = (): Storage | null => (typeof sessionStorage !== 'undefined' ? sessionStorage : null);
 
-export function loadSession(): SavedSession | null {
+/** `key`: chave do `sessionStorage` (o lobby de desenvolvimento usa `bardurinho.rede`; o ciclo de jogo, `bardurinho.jogo`). */
+export function loadSession(key = KEY): SavedSession | null {
   try {
-    const raw = storage()?.getItem(KEY);
+    const raw = storage()?.getItem(key);
     return raw ? (JSON.parse(raw) as SavedSession) : null;
   } catch {
     return null;
   }
 }
 
-export function saveSession(s: SavedSession | null): void {
-  if (!s) storage()?.removeItem(KEY);
-  else storage()?.setItem(KEY, JSON.stringify(s));
+export function saveSession(s: SavedSession | null, key = KEY): void {
+  if (!s) storage()?.removeItem(key);
+  else storage()?.setItem(key, JSON.stringify(s));
 }
 
 /** Volta à partida salva: token de reconexão (reserva de vaga) ou, se expirou, `joinById` com a conta. */
@@ -130,8 +131,8 @@ export async function resumeMatch(saved: SavedSession): Promise<Joined | null> {
 }
 
 /** Guarda sala + token de reconexão (atualiza a cada reconexão automática do SDK). */
-export function rememberRoom(saved: SavedSession, room: Room): void {
-  const write = () => saveSession({ ...saved, roomId: room.roomId, reconnectionToken: room.reconnectionToken });
+export function rememberRoom(saved: SavedSession, room: Room, key = KEY): void {
+  const write = () => saveSession({ ...saved, roomId: room.roomId, reconnectionToken: room.reconnectionToken }, key);
   write();
   room.onReconnect(() => write());
 }

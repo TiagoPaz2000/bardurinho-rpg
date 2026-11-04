@@ -61,6 +61,13 @@ export interface HudActions {
   summary: () => MatchSummary;
   /** Alterna o ritmo da reprodução (normal / rápido). */
   toggleSpeed: () => void;
+  /**
+   * Fase 5 (ciclo de jogo): botões da tela de resultado no lugar de "Jogar novamente" /
+   * "Reiniciar" (ex.: "Ver recompensas", "Voltar ao lobby").
+   */
+  endActions?: Array<{ id: string; label: string; secondary?: boolean; run: () => void }>;
+  /** Fase 5: linha extra sob o título do resultado (ex.: "Você venceu!"). */
+  endSubtitle?: (state: GameState) => string | null;
 }
 
 const esc = (s: string) => s.replace(/[&<>"]/g, (c) => `&#${c.charCodeAt(0)};`);
@@ -127,7 +134,9 @@ export class Hud {
     this.endOverlay.hidden = true;
     this.endOverlay.addEventListener('click', (e) => {
       const t = e.target as HTMLElement;
-      if (t.closest('button[data-new-match]')) this.actions.newMatch();
+      const custom = t.closest<HTMLElement>('button[data-end-action]');
+      if (custom) this.actions.endActions?.find((a) => a.id === custom.dataset.endAction)?.run();
+      else if (t.closest('button[data-new-match]')) this.actions.newMatch();
       else if (t.closest('button[data-restart]')) this.actions.restart();
       else if (t.closest('button[data-view-arena]')) {
         // Fecha o resultado para ver a arena; o botão "Resultado" do HUD reabre.
@@ -274,14 +283,22 @@ export class Hud {
       <div class="hud-panel end-box">
         <div class="end-kicker">Fim da partida</div>
         <div class="end-title">${title}</div>
+        ${(() => {
+          const sub = this.actions.endSubtitle?.(state);
+          return sub ? `<div class="end-you">${esc(sub)}</div>` : '';
+        })()}
         <div class="sub">${esc(reasons[why] ?? why)} · ${sum.rounds} ${sum.rounds === 1 ? 'rodada' : 'rodadas'} · ${sum.turns} turnos · ${sum.commands} comandos</div>
         <table class="end-table">
           <thead><tr><th>Personagem</th><th>Final</th><th title="Dano em personagens causado por ele (inclui fogo/explosões que disparou)">Causou</th><th>Recebeu</th><th title="Jogadas de ataque (d20) que acertaram">Acertos</th><th>Cura</th><th>Objetos</th></tr></thead>
           <tbody>${rows}</tbody>
         </table>
         <div class="end-actions">
-          <button type="button" class="hud-button" data-new-match>Jogar novamente</button>
-          <button type="button" class="hud-button opt-secondary" data-restart title="Mesma semente dos dados">Reiniciar</button>
+          ${
+            this.actions.endActions
+              ? this.actions.endActions.map((a) => `<button type="button" class="hud-button${a.secondary ? ' opt-secondary' : ''}" data-end-action="${esc(a.id)}">${esc(a.label)}</button>`).join('')
+              : `<button type="button" class="hud-button" data-new-match>Jogar novamente</button>
+          <button type="button" class="hud-button opt-secondary" data-restart title="Mesma semente dos dados">Reiniciar</button>`
+          }
           <button type="button" class="hud-button opt-secondary" data-view-arena>Ver a arena</button>
         </div>
       </div>`;

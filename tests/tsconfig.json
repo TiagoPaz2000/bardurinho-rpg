@@ -2,5 +2,5 @@
   "extends": "../tsconfig.base.json",
   "compilerOptions": { "rootDir": "..", "types": ["node"], "outDir": "../node_modules/.cache/tsc-tests" },
   "include": ["**/*.ts", "../tools/**/*.ts", "../packages/*/src/**/*.test.ts"],
-  "references": [{ "path": "../apps/web" }, { "path": "../apps/server" }, { "path": "../apps/combat-debug-lab" }, { "path": "../packages/domain" }, { "path": "../packages/content" }, { "path": "../packages/protocol" }]
+  "references": [{ "path": "../apps/web" }, { "path": "../apps/server" }, { "path": "../apps/combat-debug-lab" }, { "path": "../packages/domain" }, { "path": "../packages/content" }, { "path": "../packages/protocol" }, { "path": "../packages/ai" }]
 }

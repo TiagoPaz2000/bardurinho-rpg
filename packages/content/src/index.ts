@@ -37,3 +37,5 @@ export { validateCatalog, type ValidationIssue } from './validate.js';
 export { maps, patioDasRuinas, type MapDefinition } from './maps/index.js';
 export * from './maps/setup.js';
 export { describeDefinition, describeEffect, describeStatus, describeTarget, formatAmount, formatCost, BASIC_ACTION_DESCRIPTIONS, type Description } from './describe.js';
+export * from './progression/cosmetics.js';
+export * from './progression/progression.js';

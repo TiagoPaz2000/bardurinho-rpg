@@ -3,7 +3,8 @@
  *
  *   GET  /health                       estado do processo e do banco
  *   POST /auth/login                   { username, password } → { token, account }
- *   GET  /rooms                        salas de partida abertas (lobby)
+ *   GET  /rooms                        salas de partida abertas (lobby de desenvolvimento)
+ *   Fase 5 (conta, personagem, loja, missões, histórico, lobby): ver packages/protocol/src/api.ts
  *   GET  /debug/matches                (dev) partidas em memória e recentes no banco
  *   GET  /debug/matches/:id            (dev) estado oficial × visão de cada equipe × o que o
  *                                      cliente confirmou (modo NETWORK do Combat Debug Lab)
@@ -12,11 +13,46 @@
  */
 import type { Application, NextFunction, Request, Response } from 'express';
 import { matchMaker } from '@colyseus/core';
-import { MATCH_ROOM, stateHash, type LoginResponse } from '@bardurinho/protocol';
+import { MATCH_ROOM, stateHash, type LoginResponse, type MeResponse } from '@bardurinho/protocol';
+import { WELCOME_COINS, passwordProblem, usernameProblem } from '@bardurinho/content';
+import type { Account } from './db/repositories.js';
+import { LobbyError } from './modules/lobby/LobbyService.js';
 import { verifyMatchReplay } from './modules/matches/replay.js';
+import { ProgressionError } from './modules/progression/ProgressionService.js';
 import type { ServerServices } from './services.js';
 
-const ROUTE_PREFIXES = ['/health', '/auth', '/rooms', '/debug'];
+const ROUTE_PREFIXES = ['/health', '/auth', '/rooms', '/debug', '/me', '/characters', '/shop', '/missions', '/matches', '/lobby'];
+
+/** Token da sessão: `Authorization: Bearer <token>`. */
+const bearer = (req: Request): string => {
+  const h = req.headers.authorization ?? '';
+  return h.startsWith('Bearer ') ? h.slice(7).trim() : '';
+};
+
+type Authed = (req: Request, res: Response, account: Account) => Promise<unknown>;
+
+/** Rota autenticada: sessão válida; erros de regra (400/404/409) viram `{ error }`. */
+const authed = (svc: ServerServices, fn: Authed) => async (req: Request, res: Response) => {
+  try {
+    const account = await svc.accounts.bySession(bearer(req));
+    if (!account) return void res.status(401).json({ error: 'Sessão inválida ou expirada: faça login novamente' });
+    const out = await fn(req, res, account);
+    if (!res.headersSent) res.json(out ?? { ok: true });
+  } catch (err) {
+    if (err instanceof ProgressionError || err instanceof LobbyError) return void res.status(err.status).json({ error: err.message });
+    svc.log(`[http] ${req.method} ${req.path}: ${String(err)}`);
+    if (!res.headersSent) res.status(500).json({ error: 'Erro interno' });
+  }
+};
+
+async function me(svc: ServerServices, accountId: string): Promise<MeResponse> {
+  const a = (await svc.profiles.account(accountId))!;
+  return {
+    account: { id: a.id, username: a.username, displayName: a.displayName, friendCode: a.friendCode, coins: a.coins, activeCharacterId: a.activeCharacterId },
+    characters: await svc.profiles.characters(accountId),
+    inventory: await svc.profiles.inventory(accountId),
+  };
+}
 
 export function registerRoutes(app: Application, svc: ServerServices): void {
   // CORS só nas rotas próprias (o matchmaking do Colyseus cuida das dele).
@@ -27,7 +63,7 @@ export function registerRoutes(app: Application, svc: ServerServices): void {
       res.setHeader('Access-Control-Allow-Origin', origin);
       res.setHeader('Vary', 'Origin');
       res.setHeader('Access-Control-Allow-Headers', 'Content-Type, Authorization');
-      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, OPTIONS');
+      res.setHeader('Access-Control-Allow-Methods', 'GET, POST, PATCH, DELETE, OPTIONS');
     }
     if (req.method === 'OPTIONS') return void res.sendStatus(204);
     next();
@@ -45,9 +81,79 @@ export function registerRoutes(app: Application, svc: ServerServices): void {
     }
     const r = await svc.accounts.login(username, password);
     if (!r) return void res.status(401).json({ error: 'Usuário ou senha inválidos' });
-    const body: LoginResponse = { token: r.token, account: r.account };
+    const body: LoginResponse = { token: r.token, account: r.account, expiresAt: r.expiresAt };
     res.json(body);
   });
+
+  // ---------------------------------------------------------------------------
+  // Fase 5: conta, personagem, inventário, loja, missões, histórico, lobby
+  // ---------------------------------------------------------------------------
+
+  app.post('/auth/register', jsonBody, async (req, res) => {
+    const { username, password, displayName } = (req.body ?? {}) as Record<string, unknown>;
+    const problem = usernameProblem(username) ?? passwordProblem(password);
+    if (problem) return void res.status(400).json({ error: problem });
+    const name = typeof displayName === 'string' && displayName.trim() ? displayName.trim().slice(0, 24) : String(username);
+    const account = await svc.accounts.register(String(username), String(password), name, WELCOME_COINS);
+    if (!account) return void res.status(409).json({ error: 'Esse usuário já existe' });
+    const session = await svc.accounts.openSession(account.id);
+    svc.log(`[conta] cadastro de ${account.username}`);
+    const body: LoginResponse = { token: session.token, expiresAt: session.expiresAt, account: { id: account.id, username: account.username, displayName: account.displayName } };
+    res.status(201).json(body);
+  });
+
+  app.post('/auth/logout', async (req, res) => {
+    await svc.accounts.logout(bearer(req));
+    res.json({ ok: true });
+  });
+
+  app.get('/me', authed(svc, (_req, _res, a) => me(svc, a.id)));
+
+  app.post('/characters', jsonBody, authed(svc, async (req, res, a) => {
+    const c = await svc.progression.createCharacter(a.id, (req.body ?? {}) as Record<string, unknown>);
+    res.status(201).json(c);
+  }));
+  app.patch('/characters/:id', jsonBody, authed(svc, (req, _res, a) => svc.progression.updateCharacter(a.id, String(req.params.id), (req.body ?? {}) as Record<string, unknown>)));
+  app.post('/characters/:id/select', authed(svc, async (req, _res, a) => {
+    if (!(await svc.profiles.selectCharacter(a.id, String(req.params.id)))) throw new ProgressionError('Personagem não encontrado', 404);
+    return me(svc, a.id);
+  }));
+
+  app.get('/shop', authed(svc, (_req, _res, a) => svc.progression.shop(a.id)));
+  app.post('/shop/buy', jsonBody, authed(svc, async (req, res, a) => {
+    const { productId, requestId } = (req.body ?? {}) as Record<string, unknown>;
+    const r = await svc.progression.buy(a.id, productId, requestId);
+    res.status(r.ok ? 200 : 409).json(r);
+  }));
+
+  app.get('/missions', authed(svc, (_req, _res, a) => svc.progression.missions(a.id)));
+  app.get('/matches/history', authed(svc, (_req, _res, a) => svc.profiles.history(a.id)));
+  app.get('/matches/:id/reward', authed(svc, async (req, res, a) => {
+    const r = await svc.profiles.reward(String(req.params.id), a.id);
+    if (!r) return void res.status(404).json({ error: 'Recompensa ainda não calculada' });
+    return r;
+  }));
+
+  app.get('/lobby/status', authed(svc, (_req, _res, a) => svc.lobby.status(a)));
+  app.post('/lobby/bot', jsonBody, authed(svc, async (req, _res, a) => ({ roomId: await svc.lobby.playBot(a, (req.body as Record<string, unknown>)?.difficulty) })));
+  app.post('/lobby/queue', authed(svc, async (_req, _res, a) => {
+    await svc.lobby.enqueue(a);
+    return svc.lobby.status(a);
+  }));
+  app.delete('/lobby/queue', authed(svc, async (_req, _res, a) => {
+    svc.lobby.leaveQueue(a.id);
+    return svc.lobby.status(a);
+  }));
+  app.post('/lobby/invites', jsonBody, authed(svc, (req, _res, a) => svc.lobby.invite(a, (req.body as Record<string, unknown>)?.to)));
+  app.post('/lobby/invites/:id/accept', authed(svc, async (req, _res, a) => ({ roomId: await svc.lobby.accept(a, String(req.params.id)) })));
+  app.post('/lobby/invites/:id/decline', authed(svc, async (req, _res, a) => {
+    svc.lobby.respond(a, String(req.params.id), 'decline');
+    return svc.lobby.status(a);
+  }));
+  app.post('/lobby/invites/:id/cancel', authed(svc, async (req, _res, a) => {
+    svc.lobby.respond(a, String(req.params.id), 'cancel');
+    return svc.lobby.status(a);
+  }));
 
   app.get('/rooms', async (_req, res) => {
     const rooms = await matchMaker.query({ name: MATCH_ROOM });

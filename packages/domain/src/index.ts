@@ -30,3 +30,4 @@ export * from './commands/checks.js';
 export * from './commands/availability.js';
 export * from './visibility/visibility.js';
 export * from './visibility/projection.js';
+export * from './match/summary.js';

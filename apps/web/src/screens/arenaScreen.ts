@@ -122,6 +122,14 @@ export interface NetworkModeOptions {
   match: NetworkMatch;
   /** Sai da partida e volta ao lobby. */
   leave(): void;
+  /**
+   * Fase 5 (ciclo de jogo): botões da tela de resultado (recompensas / lobby) e "Desistir"
+   * no painel da partida.
+   */
+  game?: {
+    endActions: NonNullable<import('./hud.js').HudActions['endActions']>;
+    endSubtitle?: (state: GameState) => string | null;
+  };
 }
 
 export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement, catalog: Catalog, mapDef: MapDefinition, net?: NetworkModeOptions): ArenaScreen {
@@ -142,6 +150,8 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   const match: MatchDriver = net?.match ?? new MatchController(catalog, buildScenario(catalog, { ...scenarioOverride(mapDef, catalog), dice, seed, autoStart: false }));
   const map = match.state.map;
   const arena = new ArenaView(scene, match.state);
+  // Fase 5: cosméticos do personagem de cada assento (cor, conjunto visual, aura).
+  for (const seat of net?.match.seatList ?? []) if (seat.character?.appearance) arena.setTeamAppearance(seat.team, seat.character.appearance);
 
   const b = arenaBounds(map);
   const bounds = new CameraBounds({ ...b, margin: 4, minRadius: 10, maxRadius: 60 });
@@ -243,6 +253,7 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
     openOptions: () => options.open(),
     summary: () => summarizeMatch(match.state, match.history),
     toggleSpeed: () => toggleSpeed(),
+    ...(net?.game ? { endActions: net.game.endActions, ...(net.game.endSubtitle ? { endSubtitle: net.game.endSubtitle } : {}) } : {}),
   });
   hud.setFast(pace.fast);
   const options = new OptionsMenu(hudRoot, settings, pace.fast, {
@@ -424,7 +435,19 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   // Visão geral até o START_MATCH (a câmera vai para o primeiro personagem da iniciativa).
   focus.focusOverview(map, OVERVIEW_RADIUS);
   camera.snap();
-  const netHud = net ? new NetworkHud(hudRoot, net.match, { leave: () => net.leave() }) : null;
+  const netHud = net
+    ? new NetworkHud(hudRoot, net.match, {
+        leave: () => net.leave(),
+        ...(net.game
+          ? {
+              surrender: () => {
+                const mine = Object.values(match.state.units).find((u) => u.alive && match.canControl(u.id));
+                if (mine && match.state.status === 'active') void match.execute({ type: 'SURRENDER', actorId: mine.id });
+              },
+            }
+          : {}),
+      })
+    : null;
   if (!net) void match.execute({ type: 'START_MATCH' });
   else {
     // Entrou numa partida já em andamento (reconexão, seção 14.14): câmera no personagem da vez.

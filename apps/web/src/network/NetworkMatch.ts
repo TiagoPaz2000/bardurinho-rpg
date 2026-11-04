@@ -21,6 +21,7 @@ import {
   stateHash,
   type ClientCommand,
   type CommandResultMessage,
+  type MatchRewardDto,
   type PresenceMessage,
   type SeatInfo,
   type SnapshotMessage,
@@ -71,6 +72,9 @@ export class NetworkMatch implements MatchDriver {
   presenter: MatchPresenter | null = null;
   /** Snapshot recebido (reconexão/ressincronização): a tela reconstrói a cena. */
   onSnapshot: ((msg: SnapshotMessage) => void) | null = null;
+  /** Fase 5: recompensa calculada pelo servidor ao fim da partida. */
+  rewards: MatchRewardDto | null = null;
+  private readonly rewardListeners = new Set<(r: MatchRewardDto) => void>();
 
   constructor(
     readonly catalog: Catalog,
@@ -100,6 +104,10 @@ export class NetworkMatch implements MatchDriver {
     room.onMessage('presence', (msg: PresenceMessage) => {
       this.seats = msg.seats;
       this.emitStatus();
+    });
+    room.onMessage('rewards', (msg: MatchRewardDto) => {
+      this.rewards = msg;
+      for (const fn of this.rewardListeners) fn(msg);
     });
     room.onDrop(() => {
       this.connection = 'reconnecting';
@@ -162,6 +170,18 @@ export class NetworkMatch implements MatchDriver {
   onChange(fn: (change: MatchChange) => void): () => void {
     this.listeners.add(fn);
     return () => this.listeners.delete(fn);
+  }
+
+  /** Fase 5: chamada quando a recompensa chega (ou já chegou). */
+  onRewards(fn: (r: MatchRewardDto) => void): () => void {
+    this.rewardListeners.add(fn);
+    if (this.rewards) fn(this.rewards);
+    return () => this.rewardListeners.delete(fn);
+  }
+
+  /** Fase 5: assentos (nome e aparência do personagem de cada equipe). */
+  get seatList(): readonly SeatInfo[] {
+    return this.seats;
   }
 
   onStatus(fn: (s: NetworkStatus) => void): () => void {

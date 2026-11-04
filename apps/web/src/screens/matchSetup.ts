@@ -119,7 +119,7 @@ export function showLocalSetup(root: HTMLElement, catalog: Catalog): Promise<Mat
           </div>
           <div class="ms-teams">${pickers.A.render()}${pickers.B.render()}</div>
           <button type="button" class="hud-button ms-start" data-act="start">Começar partida</button>
-          <div class="sub">Recarregar a página mantém a escolha (<code>?setup=</code>). <a href="?mode=rede">Partida em rede</a></div>
+          <div class="sub">Recarregar a página mantém a escolha (<code>?setup=</code>). <a href="?mode=rede">Partida em rede</a> · <a href="/">Jogo completo (conta)</a></div>
         </div>`;
     };
     box.addEventListener('click', (e) => {

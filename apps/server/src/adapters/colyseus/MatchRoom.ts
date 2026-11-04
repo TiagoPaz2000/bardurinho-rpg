@@ -11,9 +11,12 @@
  *   equipe (`snapshot`, `update`), montadas no servidor.
  */
 import { Room, type Client } from '@colyseus/core';
+import { BotBrain, exploreTargets } from '@bardurinho/ai';
+import type { BotDifficultyId, MatchMode } from '@bardurinho/content';
 import { MATCH_ROOM, type ServerMessages } from '@bardurinho/protocol';
 import type { Account } from '../../db/repositories.js';
-import { MatchSession } from '../../modules/matches/MatchSession.js';
+import { BotSeat } from '../../modules/bots/BotSeat.js';
+import { MatchSession, type ReservedSeat } from '../../modules/matches/MatchSession.js';
 import type { ServerServices } from '../../services.js';
 
 interface JoinOptions {
@@ -28,6 +31,14 @@ interface JoinOptions {
    */
   teamSize?: number;
   team?: unknown;
+  /**
+   * Fase 5: partida montada pelo servidor (fila, convite, bot). Só vale com a chave interna
+   * (`services.internalKey`) — um cliente não consegue criar sala com assentos reservados.
+   */
+  internal?: string;
+  mode?: MatchMode;
+  reserved?: ReservedSeat[];
+  botDifficulty?: BotDifficultyId;
 }
 
 interface ClientAuth {
@@ -41,6 +52,9 @@ export class MatchRoom extends Room {
   private readonly seatClients = new Map<number, Client>();
   private abandonTimer: ReturnType<typeof setTimeout> | null = null;
   private starting = false;
+  /** Fase 5: bot que ocupa um assento (partida contra bot). */
+  private bot: BotSeat | null = null;
+  private settled = false;
 
   override maxClients = 4;
 
@@ -77,12 +91,17 @@ export class MatchRoom extends Room {
     const seed = dev && Number.isInteger(options.seed) && options.seed! > 0 ? options.seed! : 1 + Math.floor(Math.random() * (2 ** 31 - 2));
     const turnSeconds = dev && typeof options.turnSeconds === 'number' && options.turnSeconds > 0 ? options.turnSeconds : svc.config.turnSeconds;
     this.autoDispose = false;
-    const teamSize = options.teamSize === 1 || options.teamSize === 2 ? options.teamSize : undefined;
+    // Fase 5: só o próprio servidor cria partidas com assentos reservados.
+    const internal = options.internal === svc.internalKey && Array.isArray(options.reserved);
+    const mode: MatchMode = internal && options.mode ? options.mode : 'custom';
+    const teamSize = internal ? 1 : options.teamSize === 1 || options.teamSize === 2 ? options.teamSize : undefined;
+    const botDifficulty = internal ? (options.botDifficulty ?? null) : null;
     this.session = new MatchSession({
       roomId: this.roomId,
       mapId: svc.map.id,
       scenario: svc.map.scenario,
       ...(teamSize ? { teamSize, setupMap: svc.map } : {}),
+      ...(internal ? { reserved: options.reserved!, mode, botDifficulty, onFinished: () => void this.settle() } : {}),
       catalog: svc.catalog,
       repo: svc.matches,
       seed,
@@ -92,6 +111,12 @@ export class MatchRoom extends Room {
     });
     await this.session.ready;
     svc.rooms.set(this.session.id, this);
+    if (internal) await this.setPrivate(true);
+    const botSeat = this.session.seats.find((x) => x.bot);
+    if (botSeat && botDifficulty) {
+      const brain = new BotBrain(svc.catalog, botSeat.team, { difficulty: botDifficulty, seed, explore: exploreTargets(svc.map, botSeat.team) });
+      this.bot = new BotSeat(this.session, botSeat.seat, brain, { delayMs: svc.config.botDelayMs, log: (m) => svc.log(`[sala ${this.roomId}] ${m}`) });
+    }
     await this.setMetadata({ matchId: this.session.id, seats: this.session.seatInfo(), status: this.session.state.status, teamSize: this.session.teamSize });
     svc.log(`[sala ${this.roomId}] partida ${this.session.id} criada (semente ${seed}, turno ${turnSeconds} s)`);
 
@@ -114,8 +139,7 @@ export class MatchRoom extends Room {
   override async onAuth(_client: Client, options: JoinOptions = {}): Promise<ClientAuth> {
     const account = await this.svc.accounts.bySession(options.token ?? '');
     if (!account) throw new Error('Sessão inválida: faça login novamente');
-    const own = this.session.seatOf(account.id);
-    if (!own && this.session.full) throw new Error('Sala cheia');
+    if (!this.session.canJoin(account.id)) throw new Error(this.session.full ? 'Sala cheia' : 'Partida reservada para outros jogadores');
     return { account };
   }
 
@@ -130,6 +154,7 @@ export class MatchRoom extends Room {
     this.seatClients.set(seat.seat, client);
     seat.connected = true;
     client.userData = { seat: seat.seat };
+    this.svc.lobby?.joined(account.id);
     this.cancelAbandon();
     client.send('snapshot', this.session.snapshot(seat.seat, hadSeat ? 'reconnect' : 'join', this.roomId));
     // Fase 4: a montagem mudou com a escolha deste jogador — quem já estava na sala recebe o
@@ -152,6 +177,7 @@ export class MatchRoom extends Room {
       const r = await this.session.start();
       if (!r.ok) this.svc.log(`[sala ${this.roomId}] START_MATCH recusado: ${r.error.message}`);
       await this.updateMeta();
+      this.bot?.notify();
     } catch (err) {
       this.svc.log(`[sala ${this.roomId}] falha ao iniciar: ${String(err)}`);
     }
@@ -197,6 +223,7 @@ export class MatchRoom extends Room {
   }
 
   override onDispose() {
+    this.bot?.dispose();
     this.session?.dispose();
     if (this.abandonTimer) clearTimeout(this.abandonTimer);
     if (this.session) this.svc.rooms.delete(this.session.id);
@@ -208,6 +235,12 @@ export class MatchRoom extends Room {
   }
 
   private sendToSeat<K extends keyof ServerMessages>(seat: number, type: K, message: ServerMessages[K]) {
+    if (this.bot && seat === this.bot.seat) {
+      // O bot não tem conexão: é avisado e lê a projeção da sua equipe na sessão.
+      this.bot.notify();
+      if (type === 'update') void this.updateMeta();
+      return;
+    }
     const client = this.seatClients.get(seat);
     // Desconectado: nada é enfileirado; ao voltar, o snapshot traz tudo.
     if (client && this.session.seats[seat]?.connected) client.send(type, message);
@@ -229,9 +262,33 @@ export class MatchRoom extends Room {
     if (this.session.state.status === 'finished') this.autoDispose = true;
   }
 
+  /**
+   * Fase 5: fim da partida → recompensa de cada jogador calculada pelo servidor a partir do
+   * resultado oficial (estado final + eventos persistidos), uma vez por partida e conta.
+   */
+  private async settle() {
+    if (this.settled) return;
+    this.settled = true;
+    const s = this.session;
+    try {
+      const humans = s.seats.filter((x) => x.account && !x.bot).map((x) => ({ accountId: x.account!.id, team: x.team, seat: x.seat }));
+      const events = await this.svc.matches.events(s.id);
+      const rewards = await this.svc.progression.settleMatch(s.id, s.mode as MatchMode, s.state, events, humans);
+      for (const h of humans) {
+        const r = rewards.get(h.accountId);
+        const client = this.seatClients.get(h.seat);
+        if (r && client && s.seats[h.seat]?.connected) client.send('rewards', r);
+      }
+      this.svc.log(`[sala ${this.roomId}] recompensas: ${[...rewards.entries()].map(([, r]) => `${r.outcome} +${r.coins + r.missionCoins}`).join(', ')}`);
+    } catch (err) {
+      this.settled = false;
+      this.svc.log(`[sala ${this.roomId}] falha ao calcular recompensas: ${String(err)}`);
+    }
+  }
+
   /** Nenhum jogador conectado por `abandonSeconds`: encerra a sala (a partida fica no banco). */
   private checkAbandon() {
-    const anyone = this.session.seats.some((s) => s.connected);
+    const anyone = this.session.seats.some((s) => s.connected && !s.bot);
     if (anyone || this.abandonTimer) return;
     if (this.session.state.status === 'finished') {
       this.autoDispose = true;

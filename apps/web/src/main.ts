@@ -1,8 +1,11 @@
 /**
  * Cliente web 3D (Babylon.js).
  * Fase 2: Pátio das Ruínas a partir do core, câmera tática, HUD e partida local (os dois lados).
- * Fase 3: modo em rede — `?mode=rede` (lobby → sala no servidor de jogo; o servidor é a
- * autoridade e o cliente só vê a visão da sua equipe). Sem o parâmetro: partida local.
+ * Fase 3: modo em rede — `?mode=rede` (lobby de desenvolvimento → sala no servidor de jogo; o
+ * servidor é a autoridade e o cliente só vê a visão da sua equipe).
+ * Fase 5: sem parâmetros abre o **jogo completo** (login → personagem → lobby → partida →
+ * resultado → recompensas → lobby). A partida local de depuração fica em `?mode=local` (tela de
+ * escolha) ou direto com `?seed=` / `?setup=` / `?units=`.
  *
  * Parâmetros do modo em rede: `server=http://127.0.0.1:2567`, `seed=N` e `turn=S` (opções de
  * desenvolvimento para quem cria a sala). Recarregar a página volta à mesma partida
@@ -15,12 +18,14 @@ import { pace } from './rendering/anim.js';
 import { startArenaScreen, type ArenaScreen } from './screens/arenaScreen.js';
 import { showLobby } from './screens/lobby.js';
 import { encodeSetup, showLocalSetup } from './screens/matchSetup.js';
+import { GameFlow } from './screens/flow/gameFlow.js';
 import './style.css';
 
 const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
 const hudRoot = document.getElementById('hud') as HTMLElement;
 const params = new URLSearchParams(location.search);
-const mode = params.get('mode') === 'rede' || params.get('mode') === 'network' ? 'rede' : 'local';
+const direct = params.has('setup') || params.has('seed') || params.has('units');
+const mode = params.get('mode') === 'rede' || params.get('mode') === 'network' ? 'rede' : params.get('mode') === 'local' || direct ? 'local' : 'jogo';
 
 function expose(screen: ArenaScreen) {
   // Gancho de depuração (console / screenshots automatizados).
@@ -75,7 +80,26 @@ async function startNetwork() {
   expose(screen);
 }
 
-if (mode === 'rede') {
+if (mode === 'jogo') {
+  document.body.dataset.mode = 'jogo';
+  const flow = new GameFlow({
+    serverUrl: params.get('server') ?? defaultServerUrl(),
+    canvas,
+    hudRoot,
+    onArena: (screen, match) => {
+      (window as unknown as { __net: NetworkMatch }).__net = match;
+      expose(screen);
+    },
+  });
+  (window as unknown as { __flow: GameFlow }).__flow = flow;
+  flow.start().catch((err: unknown) => {
+    console.error('Falha no jogo:', err);
+    const box = document.createElement('div');
+    box.className = 'hud-panel hud-error';
+    box.textContent = `Falha: ${String(err)}`;
+    hudRoot.append(box);
+  });
+} else if (mode === 'rede') {
   startNetwork().catch((err: unknown) => {
     console.error('Falha no modo em rede:', err);
     const box = document.createElement('div');
@@ -83,7 +107,7 @@ if (mode === 'rede') {
     box.textContent = `Falha no modo em rede: ${String(err)}`;
     hudRoot.append(box);
   });
-} else if (!params.has('setup') && !params.has('seed') && !params.has('units')) {
+} else if (!direct) {
   // Fase 4: abrir sem parâmetros mostra a escolha de personagens; a partida começa com
   // `?setup=…&seed=…` (o mesmo caminho de "Reiniciar"/"Jogar novamente", que mantêm a escolha).
   document.body.dataset.setup = '1';

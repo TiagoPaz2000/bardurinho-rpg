@@ -5,6 +5,7 @@
     { "path": "packages/protocol" },
     { "path": "packages/assets-manifest" },
     { "path": "packages/content" },
+    { "path": "packages/ai" },
     { "path": "apps/combat-debug-lab" },
     { "path": "apps/web" },
     { "path": "apps/server" },

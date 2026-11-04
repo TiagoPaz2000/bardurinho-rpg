@@ -16,6 +16,8 @@ export const MAX_START_CONSUMABLES = 2;
 
 export interface CharacterChoice {
   classId: string;
+  /** Fase 5: nome do personagem (só exibição; validado pelo servidor ao criar o personagem). */
+  name?: string;
   accessoryId?: string | null;
   /** Até dois consumíveis de tipos diferentes (ids completos, ex.: `consumable.health_potion`). */
   consumables?: string[];
@@ -54,7 +56,8 @@ export function normalizeChoice(catalog: Catalog, raw: Partial<CharacterChoice> 
     if (catalog.items[id]?.kind !== 'consumable' || consumables.includes(id)) continue;
     if (consumables.length < MAX_START_CONSUMABLES) consumables.push(id);
   }
-  return { classId, accessoryId, consumables };
+  const name = typeof raw?.name === 'string' && raw.name.trim() ? raw.name.trim().slice(0, 24) : undefined;
+  return { classId, accessoryId, consumables, ...(name ? { name } : {}) };
 }
 
 const withPrefix = (id: string, prefix: string) => (id.includes('.') ? id : `${prefix}${id}`);
@@ -92,6 +95,7 @@ export function scenarioFromSetup(mapDef: MapDefinition, catalog: Catalog, setup
         classId: c.classId,
         team,
         pos: { ...pos },
+        ...(c.name ? { name: c.name } : {}),
         accessoryId: c.accessoryId ?? null,
         consumables: [...(c.consumables ?? [])],
       });

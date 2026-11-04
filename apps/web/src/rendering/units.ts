@@ -15,6 +15,7 @@ import { GHOST_ENTITY_VISIBILITY } from './floorView.js';
 import { standingPoint } from './terrain.js';
 import type { ModelLibrary } from './loaders.js';
 import { PALETTE, type Materials } from './materials.js';
+import { applyAppearanceToMeshes, resolveAppearance } from './appearance.js';
 
 /** `recommendedScale` de assets/models/characters/manifest.json (altura ≈ 1,67 m). */
 export const CHARACTER_SCALE = 1.7;
@@ -243,6 +244,19 @@ export class UnitView {
       mat.transparencyMode = on ? Material.MATERIAL_ALPHABLEND : mode;
       mat.needDepthPrePass = on;
     }
+  }
+
+  /**
+   * Fase 5: cosméticos do personagem (cor/conjunto visual nos materiais do GLB, aura no anel).
+   * Pode ser chamado antes de o modelo carregar.
+   */
+  setAppearance(appearance: Record<string, string> | null | undefined): void {
+    const a = resolveAppearance(appearance);
+    if (a.ring) {
+      this.ring.material = this.ctx.mats.solid(a.ring, { emissive: 0.9 });
+      this.disc.material = this.ctx.mats.solid(a.ring, { emissive: 0.5, alpha: 0.4 });
+    }
+    void this.ready.then(() => applyAppearanceToMeshes(this.bodyMeshes, a));
   }
 
   dispose(): void {

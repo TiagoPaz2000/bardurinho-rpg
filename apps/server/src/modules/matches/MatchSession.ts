@@ -51,6 +51,19 @@ export interface SeatState {
   divergences: Array<{ version: number; expected: string; got: string }>;
   /** Eventos projetados desde o início (snapshot de reconexão leva o histórico). */
   history: GameEvent[];
+  /** Fase 5: personagem do assento (nome + cosméticos) e bot que o controla. */
+  character: { id: string | null; name: string; classId: string; appearance: Record<string, string> } | null;
+  bot: string | null;
+}
+
+/** Fase 5: assento reservado pelo servidor (fila, convite ou bot) com o personagem da conta. */
+export interface ReservedSeat {
+  seat: number;
+  account: Account;
+  choice: CharacterChoice;
+  character: { id: string | null; name: string; classId: string; appearance: Record<string, string> } | null;
+  /** Dificuldade quando o assento é de um bot (fica sempre "conectado"). */
+  bot?: string;
 }
 
 export type Author = { kind: 'player'; seat: number } | { kind: 'timer' } | { kind: 'server' };
@@ -69,6 +82,13 @@ export interface MatchSessionOptions {
   setupMap?: MapDefinition;
   catalog: Catalog;
   repo: MatchesRepository;
+  /** Fase 5: modo da partida (pvp, private, bot, custom) e dificuldade do bot. */
+  mode?: string;
+  botDifficulty?: string | null;
+  /** Fase 5: assentos reservados (só estas contas entram); exige `teamSize` + `setupMap`. */
+  reserved?: ReservedSeat[];
+  /** Fase 5: chamado uma vez quando a partida termina (recompensas). */
+  onFinished?: () => void;
   seed: number;
   turnSeconds: number;
   /** Envio para um assento (o adaptador decide a conexão). */
@@ -97,10 +117,25 @@ export class MatchSession {
 
   constructor(private readonly o: MatchSessionOptions) {
     this.id = o.id ?? randomUUID();
+    for (const r of o.reserved ?? []) this.loadouts.set(r.seat, [r.choice]);
     this.official = buildScenario(o.catalog, { ...this.initialScenario(), dice: 'random', seed: o.seed, autoStart: false });
     const teams = [...new Set(Object.values(this.official.units).filter((u) => !u.flags.isDummy).map((u) => u.team))].sort();
-    this.seats = teams.map((team, seat) => ({ seat, team, account: null, connected: false, sent: null, ack: null, sentHashes: new Map(), divergences: [], history: [] }));
-    this.ready = o.repo.create({ id: this.id, roomId: o.roomId, mapId: o.mapId, state: this.official, seed: o.seed, turnSeconds: o.turnSeconds, hash: stateHash(this.official) });
+    this.seats = teams.map((team, seat) => ({ seat, team, account: null, connected: false, sent: null, ack: null, sentHashes: new Map(), divergences: [], history: [], character: null, bot: null }));
+    const created = o.repo.create({ id: this.id, roomId: o.roomId, mapId: o.mapId, state: this.official, seed: o.seed, turnSeconds: o.turnSeconds, hash: stateHash(this.official), mode: o.mode ?? 'custom', botDifficulty: o.botDifficulty ?? null });
+    // Bots ocupam o assento desde o início (sempre "conectados").
+    for (const r of o.reserved ?? []) {
+      const seat = this.seats[r.seat];
+      if (!seat) continue;
+      seat.character = r.character;
+      if (r.bot) {
+        seat.account = r.account;
+        seat.bot = r.bot;
+        seat.connected = true;
+      }
+    }
+    this.ready = created.then(async () => {
+      for (const r of o.reserved ?? []) if (r.bot) await o.repo.addPlayer(this.id, r.seat, this.seats[r.seat]!.team, r.account.id, r.character ? { id: r.character.id, snapshot: r.character } : null);
+    });
     // Nada é processado antes de a partida existir no banco.
     this.queue = this.ready.catch(() => undefined);
   }
@@ -157,10 +192,14 @@ export class MatchSession {
     await this.ready;
     const own = this.seatOf(account.id);
     if (own) return own;
-    const free = this.seats.find((s) => !s.account);
-    if (!free) return null;
+    // Fase 5: partida montada pelo servidor — só a conta reservada entra no seu assento.
+    const reserved = this.o.reserved?.find((r) => r.account.id === account.id && !r.bot);
+    if (this.o.reserved && !reserved) return null;
+    const free = reserved ? this.seats[reserved.seat] : this.seats.find((s) => !s.account);
+    if (!free || free.account) return null;
     free.account = account;
-    await this.o.repo.addPlayer(this.id, free.seat, free.team, account.id);
+    await this.o.repo.addPlayer(this.id, free.seat, free.team, account.id, free.character ? { id: free.character.id, snapshot: free.character } : null);
+    if (reserved) return free;
     // Na fila da partida: nada é processado enquanto a montagem muda.
     await this.enqueue(() => this.configureSeat(free, choice));
     return free;
@@ -170,8 +209,27 @@ export class MatchSession {
     return this.seats.every((s) => s.account);
   }
 
+  get mode(): string {
+    return this.o.mode ?? 'custom';
+  }
+
+  /** A conta pode entrar nesta partida (assento já dela, reservado para ela, ou vaga livre sem reserva). */
+  canJoin(accountId: string): boolean {
+    if (this.seatOf(accountId)) return true;
+    if (this.o.reserved) return this.o.reserved.some((r) => r.account.id === accountId && !r.bot);
+    return !this.full;
+  }
+
   seatInfo(): SeatInfo[] {
-    return this.seats.map((s) => ({ seat: s.seat, team: s.team, username: s.account?.username ?? null, displayName: s.account?.displayName ?? null, connected: s.connected }));
+    return this.seats.map((s) => ({
+      seat: s.seat,
+      team: s.team,
+      username: s.account?.username ?? null,
+      displayName: s.account?.displayName ?? null,
+      connected: s.connected,
+      ...(s.character ? { character: { name: s.character.name, appearance: s.character.appearance } } : {}),
+      ...(s.bot ? { bot: s.bot } : {}),
+    }));
   }
 
   timerInfo(): TurnTimer | null {
@@ -301,7 +359,11 @@ export class MatchSession {
     this.responses.set(commandId, { seat, response });
     this.rescheduleTimer(before);
     this.broadcastUpdate(before, r.events, command, commandId, author);
-    if (this.official.status === 'finished') this.o.log?.(`[partida ${this.id.slice(0, 8)}] fim: ${JSON.stringify(this.official.result)} (v${version})`);
+    if (this.official.status === 'finished') {
+      this.o.log?.(`[partida ${this.id.slice(0, 8)}] fim: ${JSON.stringify(this.official.result)} (v${version})`);
+      // Recompensas depois da resposta (fora da fila da partida).
+      if (this.o.onFinished) setTimeout(() => this.o.onFinished?.(), 0);
+    }
     return response;
   }
 

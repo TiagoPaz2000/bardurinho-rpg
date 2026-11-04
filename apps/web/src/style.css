@@ -238,3 +238,59 @@ button.link { background: none; border: 0; color: #74c0fc; cursor: pointer; font
 .action-card .ac-cd { gap: 0; font-size: 14px; }
 .action-card .ac-cd .ac-cd-icon { position: absolute; width: 30px; height: 30px; opacity: 0.55; }
 .action-card .ac-cd b { position: relative; }
+
+/* Fase 5 — ciclo do jogo: login, personagem, lobby, loja, missões, histórico, recompensas */
+.hud-lobby.flow { background: radial-gradient(circle at 30% 20%, #23262d 0%, #121316 70%); }
+.flow-box { position: static; width: min(900px, calc(100vw - 32px)); max-height: calc(100vh - 32px); overflow: auto; display: flex; flex-direction: column; gap: 9px; padding: 18px 20px; }
+.flow-login .flow-field, .flow-login .hud-button { max-width: 420px; }
+.flow-box.flow-login, .flow-box.flow-loading { width: min(460px, calc(100vw - 32px)); }
+.flow-box.flow-rewards { width: min(560px, calc(100vw - 32px)); }
+.flow-title { font-size: 22px; font-weight: 700; color: #ffd43b; }
+.flow-h { font-size: 13px; font-weight: 700; color: #ced4da; margin: 4px 0 2px; }
+.flow-field { display: flex; flex-direction: column; gap: 3px; color: #adb5bd; font-size: 12px; }
+.flow-box input { font: 14px system-ui, sans-serif; color: #f1f3f5; background: #1a1b1e; border: 1px solid #3d4047; border-radius: 4px; padding: 7px 9px; outline: none; }
+.flow-box input:focus { border-color: #ffd43b; }
+.flow-tabs { margin: 2px 0; }
+.flow-msg { font-size: 13px; border-radius: 4px; padding: 6px 10px; }
+.flow-msg.info { color: #b2f2bb; background: rgba(47, 158, 68, 0.15); border: 1px solid #2f9e44; }
+.flow-msg.error { color: #ffc9c9; background: rgba(201, 42, 42, 0.15); border: 1px solid #c92a2a; }
+.flow-cols { display: flex; gap: 16px; flex-wrap: wrap; }
+.flow-col { flex: 1; min-width: 320px; display: flex; flex-direction: column; gap: 5px; }
+.flow-col-preview { flex: 0 0 270px; min-width: 270px; align-items: center; }
+.flow-preview { width: 260px; height: 300px; border-radius: 6px; border: 1px solid #2c2e33; display: block; }
+.flow-actions { display: flex; gap: 8px; }
+.flow-actions .hud-button { flex: 1; }
+.flow-chars { display: flex; flex-direction: column; gap: 6px; }
+.flow-char { display: flex; align-items: center; gap: 10px; border: 1px solid #2c2e33; border-radius: 6px; padding: 6px 10px; background: rgba(37, 38, 43, 0.6); }
+.flow-char > div { flex: 1; }
+.flow-char.on { border-color: #4dabf7; }
+.flow-head { display: flex; align-items: center; gap: 12px; }
+.flow-who { flex: 1; font-size: 15px; }
+.flow-coins { font: 700 20px ui-monospace, monospace; color: #ffd43b; }
+.flow-coins span { font: 12px system-ui, sans-serif; color: #adb5bd; }
+.flow-head-links { display: flex; flex-direction: column; gap: 4px; }
+.flow-section { display: flex; flex-direction: column; gap: 6px; border: 1px solid #2c2e33; border-radius: 6px; padding: 8px 10px; background: rgba(37, 38, 43, 0.5); }
+.flow-inline { display: flex; gap: 6px; }
+.flow-inline input { flex: 1; }
+.flow-invite { display: flex; align-items: center; gap: 8px; font-size: 13px; }
+.flow-queue { color: #ffe066; font-size: 13px; }
+.flow-shop { display: grid; grid-template-columns: repeat(auto-fill, minmax(200px, 1fr)); gap: 8px; }
+.flow-product { border: 1px solid #2c2e33; border-radius: 6px; padding: 8px; display: flex; flex-direction: column; gap: 5px; background: rgba(37, 38, 43, 0.6); }
+.flow-product.owned { border-color: #2f9e44; }
+.flow-product-top { display: flex; gap: 8px; align-items: center; }
+.flow-owned { color: #8ce99a; font-weight: 600; }
+.swatch { display: inline-block; width: 12px; height: 12px; border-radius: 50%; border: 1px solid rgba(255, 255, 255, 0.4); margin-right: 3px; }
+.swatch.big { width: 26px; height: 26px; }
+.flow-mission { border: 1px solid #2c2e33; border-radius: 6px; padding: 6px 10px; display: flex; flex-direction: column; gap: 3px; margin-bottom: 5px; }
+.flow-mission.done { border-color: #2f9e44; }
+.flow-bar { height: 7px; background: #1a1b1e; border-radius: 4px; overflow: hidden; }
+.flow-bar i { display: block; height: 100%; background: linear-gradient(90deg, #1c7ed6, #40c057); }
+.flow-new { color: #ffe066; font-weight: 600; }
+.flow-reward-coins { font: 700 26px ui-monospace, monospace; color: #ffd43b; }
+.flow-reward-coins.small { font-size: 16px; }
+.flow-inventory { display: flex; flex-wrap: wrap; gap: 4px; }
+.flow-history td.outcome-victory, .outcome-victory { color: #8ce99a; }
+.flow-history td.outcome-defeat, .outcome-defeat { color: #ffa8a8; }
+.portrait { position: relative; display: inline-flex; align-items: center; justify-content: center; border-radius: 50%; flex: none; overflow: hidden; }
+.portrait .portrait-color { position: absolute; right: 3px; bottom: 3px; width: 11px; height: 11px; border-radius: 50%; border: 1px solid #fff; }
+.end-you { font-size: 15px; color: #ffe066; margin-bottom: 2px; }

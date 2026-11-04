@@ -16,6 +16,8 @@ export interface ServerConfig {
   reconnectSeconds: number;
   /** Sala sem nenhum jogador conectado por este tempo (s) é encerrada (partida abandonada). */
   abandonSeconds: number;
+  /** Fase 5: pausa do bot entre comandos (ms), para o jogador acompanhar as animações. */
+  botDelayMs: number;
   /**
    * Rotas e opções de desenvolvimento: `/debug/*` (modo NETWORK do Combat Debug Lab), semente
    * e duração de turno escolhidas pelo cliente ao criar a sala. Desligado em produção.
@@ -40,6 +42,7 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     turnSeconds: num(env.TURN_SECONDS, 60),
     reconnectSeconds: num(env.RECONNECT_SECONDS, 90),
     abandonSeconds: num(env.ABANDON_SECONDS, 600),
+    botDelayMs: num(env.BOT_DELAY_MS, 700),
     dev,
     devAccounts: dev
       ? [

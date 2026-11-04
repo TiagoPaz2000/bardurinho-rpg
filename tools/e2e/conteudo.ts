@@ -200,7 +200,8 @@ try {
   // 2. Cliente 3D: tela de escolha (2 × 2, as quatro classes)
   // -------------------------------------------------------------------------
   log('== Cliente 3D: tela de escolha de personagens');
-  await br.send('Page.navigate', { url: WEB });
+  // Fase 5: a raiz abre o jogo completo (login); a escolha local fica em ?mode=local.
+  await br.send('Page.navigate', { url: `${WEB}?mode=local` });
   await d.waitFor(async () => (await br.ev<string>('document.body.dataset.setup ?? ""')) === '1' && !!(await br.ev('document.querySelector(".match-setup")')), 60000, 'tela de escolha');
   const clickSel = async (sel: string) => {
     const r = await br.ev<{ x: number; y: number } | null>(`(() => { const e = document.querySelector(${JSON.stringify(sel)}); if (!e) return null; const r = e.getBoundingClientRect(); return { x: r.x + r.width / 2, y: r.y + r.height / 2 }; })()`);

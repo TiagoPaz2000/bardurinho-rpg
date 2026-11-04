@@ -7,6 +7,9 @@
  * (apps/server), pelo cliente (apps/web), pelo Combat Debug Lab e pelos testes.
  */
 import type { CommandError, CommandTarget, Coord, GameEvent, GameplayCommand, GameState } from '@bardurinho/domain';
+import type { AppearanceDto, MatchRewardDto } from './api.js';
+
+export * from './api.js';
 
 export const PROTOCOL_VERSION = 1;
 /** Endereço padrão do servidor de jogo (seção 10.1). */
@@ -54,6 +57,10 @@ export interface SeatInfo {
   username: string | null;
   displayName: string | null;
   connected: boolean;
+  /** Fase 5: personagem do assento (nome e cosméticos — públicos; a classe só aparece quando é vista). */
+  character?: { name: string; appearance: AppearanceDto } | null;
+  /** Fase 5: assento controlado pelo bot do servidor (dificuldade). */
+  bot?: string | null;
 }
 
 export interface TurnTimer {
@@ -111,12 +118,16 @@ export interface ServerMessages {
   update: UpdateMessage;
   result: CommandResultMessage;
   presence: PresenceMessage;
+  /** Fase 5: recompensa calculada pelo servidor ao fim da partida (por conta). */
+  rewards: MatchRewardDto;
 }
 
 /** Resposta de `POST /auth/login`. */
 export interface LoginResponse {
   token: string;
   account: { id: string; username: string; displayName: string };
+  /** Fase 5: validade da sessão (ms desde a época). */
+  expiresAt?: number;
 }
 
 // ---------------------------------------------------------------------------

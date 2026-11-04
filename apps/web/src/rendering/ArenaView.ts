@@ -43,6 +43,8 @@ export class ArenaView {
   /** Blocos do terreno tratados pela oclusão da câmera. */
   readonly occluders: TerrainOccluder[];
   private readonly units = new Map<string, UnitView>();
+  /** Fase 5: cosméticos por equipe (do assento do servidor). */
+  private readonly teamAppearance = new Map<string, Record<string, string>>();
   private readonly objects = new Map<string, ObjectView>();
   private gridOverlay: LinesMesh[] = [];
   private gridVisible = false;
@@ -156,6 +158,8 @@ export class ArenaView {
       if (!view) {
         view = new UnitView({ scene, map: state.map, mats, models, centerY: state.map.height / 2, onMesh: this.onMesh }, unit);
         this.units.set(unit.id, view);
+        const look = this.teamAppearance.get(unit.team);
+        if (look) view.setAppearance(look);
         const v = view;
         // Registrado já (o andar vale para anel, disco e efeitos) e de novo quando o GLB carrega.
         const reg = () => this.floorView.register(v.root, this.floorView.floorOf(v.root) ?? this.state.units[unit.id]?.pos.floor ?? 0, { ghostVisibility: GHOST_ENTITY_VISIBILITY, onApply: (g) => v.setGhost(g) });
@@ -168,6 +172,12 @@ export class ArenaView {
     for (const [id, view] of this.units) if (!state.units[id]) (view.dispose(), this.units.delete(id));
 
     this.stateFx.sync(state);
+  }
+
+  /** Fase 5: aparência dos personagens de uma equipe (aplicada aos atuais e aos que surgirem). */
+  setTeamAppearance(team: string, appearance: Record<string, string>): void {
+    this.teamAppearance.set(team, appearance);
+    for (const v of this.units.values()) if (this.state.units[v.root.metadata?.entityId as string]?.team === team) v.setAppearance(appearance);
   }
 
   /** Overlay de debug: contorno fino das células de chão em cada andar (tecla G). */

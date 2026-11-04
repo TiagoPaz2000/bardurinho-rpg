@@ -24,7 +24,9 @@
     "server": "npm run dev -w @bardurinho/server",
     "e2e:rede": "tsx tools/e2e/rede.ts",
     "e2e:rede-ui": "tsx tools/e2e/rede-ui.ts",
-    "e2e:conteudo": "tsx tools/e2e/conteudo.ts"
+    "e2e:conteudo": "tsx tools/e2e/conteudo.ts",
+    "bots:sim": "tsx tools/bots/simulate.ts",
+    "e2e:ciclo": "tsx tools/e2e/ciclo.ts"
   },
   "devDependencies": {
     "@gltf-transform/cli": "^4.5.1",

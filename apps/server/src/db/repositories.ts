@@ -1,76 +1,10 @@
 /**
  * Repositórios (camada de persistência, seção 9): SQL fica aqui, regras ficam no domínio.
  */
-import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import type { GameEvent, GameState, MatchResult } from '@bardurinho/domain';
 import type { Database, Queryable } from './database.js';
 
-export interface Account {
-  id: string;
-  username: string;
-  displayName: string;
-}
-
-const SESSION_HOURS = 24 * 7;
-
-export function hashPassword(password: string): string {
-  const salt = randomBytes(16).toString('hex');
-  return `scrypt$${salt}$${scryptSync(password, salt, 32).toString('hex')}`;
-}
-
-export function verifyPassword(password: string, stored: string): boolean {
-  const [scheme, salt, hash] = stored.split('$');
-  if (scheme !== 'scrypt' || !salt || !hash) return false;
-  const a = Buffer.from(hash, 'hex');
-  const b = scryptSync(password, salt, 32);
-  return a.length === b.length && timingSafeEqual(a, b);
-}
-
-export class AccountsRepository {
-  constructor(private readonly db: Database) {}
-
-  async ensure(username: string, displayName: string, password: string): Promise<Account> {
-    const found = await this.byUsername(username);
-    if (found) return found;
-    const id = randomUUID();
-    await this.db.query('INSERT INTO accounts (id, username, display_name, password_hash) VALUES ($1, $2, $3, $4) ON CONFLICT (username) DO NOTHING', [
-      id,
-      username,
-      displayName,
-      hashPassword(password),
-    ]);
-    return (await this.byUsername(username))!;
-  }
-
-  async byUsername(username: string): Promise<Account | null> {
-    const rows = await this.db.query<{ id: string; username: string; display_name: string }>('SELECT id, username, display_name FROM accounts WHERE username = $1', [username]);
-    const r = rows[0];
-    return r ? { id: r.id, username: r.username, displayName: r.display_name } : null;
-  }
-
-  /** Confere a senha e abre uma sessão; devolve o token. */
-  async login(username: string, password: string): Promise<{ token: string; account: Account } | null> {
-    const rows = await this.db.query<{ id: string; username: string; display_name: string; password_hash: string }>(
-      'SELECT id, username, display_name, password_hash FROM accounts WHERE username = $1',
-      [username],
-    );
-    const r = rows[0];
-    if (!r || !verifyPassword(password, r.password_hash)) return null;
-    const token = randomBytes(24).toString('base64url');
-    await this.db.query(`INSERT INTO sessions (token, account_id, expires_at) VALUES ($1, $2, now() + interval '${SESSION_HOURS} hours')`, [token, r.id]);
-    return { token, account: { id: r.id, username: r.username, displayName: r.display_name } };
-  }
-
-  async bySession(token: string): Promise<Account | null> {
-    if (typeof token !== 'string' || token.length === 0 || token.length > 128) return null;
-    const rows = await this.db.query<{ id: string; username: string; display_name: string }>(
-      'SELECT a.id, a.username, a.display_name FROM sessions s JOIN accounts a ON a.id = s.account_id WHERE s.token = $1 AND s.expires_at > now()',
-      [token],
-    );
-    const r = rows[0];
-    return r ? { id: r.id, username: r.username, displayName: r.display_name } : null;
-  }
-}
+export { AccountsRepository, hashPassword, verifyPassword, type Account } from './accounts.js';
 
 export interface CommandRecord {
   seq: number;
@@ -100,11 +34,11 @@ const json = (v: unknown) => JSON.stringify(v);
 export class MatchesRepository {
   constructor(private readonly db: Database) {}
 
-  async create(m: { id: string; roomId: string; mapId: string; state: GameState; seed: number; turnSeconds: number; hash: string }): Promise<void> {
+  async create(m: { id: string; roomId: string; mapId: string; state: GameState; seed: number; turnSeconds: number; hash: string; mode?: string; botDifficulty?: string | null }): Promise<void> {
     await this.db.transaction(async (tx) => {
       await tx.query(
-        'INSERT INTO matches (id, room_id, map_id, rules_version, content_version, seed, turn_seconds, status) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)',
-        [m.id, m.roomId, m.mapId, m.state.rulesVersion, m.state.contentVersion, m.seed, m.turnSeconds, m.state.status],
+        'INSERT INTO matches (id, room_id, map_id, rules_version, content_version, seed, turn_seconds, status, mode, bot_difficulty) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
+        [m.id, m.roomId, m.mapId, m.state.rulesVersion, m.state.contentVersion, m.seed, m.turnSeconds, m.state.status, m.mode ?? 'custom', m.botDifficulty ?? null],
       );
       await this.insertSnapshot(tx, m.id, 0, m.state, m.hash);
     });
@@ -119,8 +53,20 @@ export class MatchesRepository {
     await this.db.query('UPDATE match_snapshots SET state = $3::jsonb, state_hash = $4 WHERE match_id = $1 AND version = $2', [matchId, 0, json(state), hash]);
   }
 
-  async addPlayer(matchId: string, seat: number, team: string, accountId: string): Promise<void> {
-    await this.db.query('INSERT INTO match_players (match_id, seat, team, account_id) VALUES ($1, $2, $3, $4) ON CONFLICT DO NOTHING', [matchId, seat, team, accountId]);
+  async addPlayer(matchId: string, seat: number, team: string, accountId: string, character?: { id: string | null; snapshot: unknown } | null): Promise<void> {
+    await this.db.query('INSERT INTO match_players (match_id, seat, team, account_id, character_id, character) VALUES ($1, $2, $3, $4, $5, $6::jsonb) ON CONFLICT DO NOTHING', [
+      matchId,
+      seat,
+      team,
+      accountId,
+      character?.id ?? null,
+      character ? json(character.snapshot) : null,
+    ]);
+  }
+
+  async mode(matchId: string): Promise<{ mode: string; botDifficulty: string | null } | null> {
+    const rows = await this.db.query<{ mode: string; bot_difficulty: string | null }>('SELECT mode, bot_difficulty FROM matches WHERE id = $1', [matchId]);
+    return rows[0] ? { mode: rows[0].mode, botDifficulty: rows[0].bot_difficulty } : null;
   }
 
   private insertSnapshot(tx: Queryable, matchId: string, version: number, state: GameState, hash: string) {
