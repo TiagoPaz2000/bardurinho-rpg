@@ -1,0 +1,283 @@
+{
+  "fps": 24,
+  "frames": 120,
+  "impact_frame": 20,
+  "flames": [
+    {
+      "name": "Chama 01 | nascimento 028",
+      "birth": 28,
+      "death": 105,
+      "radius": 0.7678452485143111
+    },
+    {
+      "name": "Chama 02 | nascimento 024",
+      "birth": 24,
+      "death": 98,
+      "radius": 0.3408271229667813
+    },
+    {
+      "name": "Chama 03 | nascimento 029",
+      "birth": 29,
+      "death": 88,
+      "radius": 0.85815856158187
+    },
+    {
+      "name": "Chama 04 | nascimento 026",
+      "birth": 26,
+      "death": 98,
+      "radius": 1.076216433363166
+    },
+    {
+      "name": "Chama 05 | nascimento 026",
+      "birth": 26,
+      "death": 100,
+      "radius": 0.9515805345433779
+    },
+    {
+      "name": "Chama 06 | nascimento 028",
+      "birth": 28,
+      "death": 89,
+      "radius": 0.8057934286802044
+    },
+    {
+      "name": "Chama 07 | nascimento 027",
+      "birth": 27,
+      "death": 97,
+      "radius": 1.0092432741774928
+    },
+    {
+      "name": "Chama 08 | nascimento 027",
+      "birth": 27,
+      "death": 85,
+      "radius": 1.0787692704887943
+    },
+    {
+      "name": "Chama 09 | nascimento 025",
+      "birth": 25,
+      "death": 94,
+      "radius": 0.26638799567430854
+    },
+    {
+      "name": "Chama 10 | nascimento 027",
+      "birth": 27,
+      "death": 95,
+      "radius": 1.5760710643876437
+    },
+    {
+      "name": "Chama 11 | nascimento 031",
+      "birth": 31,
+      "death": 94,
+      "radius": 1.6561249952826629
+    },
+    {
+      "name": "Chama 12 | nascimento 032",
+      "birth": 32,
+      "death": 94,
+      "radius": 1.7324837661577093
+    },
+    {
+      "name": "Chama 13 | nascimento 027",
+      "birth": 27,
+      "death": 95,
+      "radius": 1.8056162382964993
+    },
+    {
+      "name": "Chama 14 | nascimento 031",
+      "birth": 31,
+      "death": 103,
+      "radius": 1.875899784103618
+    },
+    {
+      "name": "Chama 15 | nascimento 030",
+      "birth": 30,
+      "death": 86,
+      "radius": 1.9436434858275837
+    },
+    {
+      "name": "Chama 16 | nascimento 029",
+      "birth": 29,
+      "death": 96,
+      "radius": 2.0091042780303865
+    },
+    {
+      "name": "Chama 17 | nascimento 033",
+      "birth": 33,
+      "death": 113,
+      "radius": 2.0724984921586795
+    },
+    {
+      "name": "Chama 18 | nascimento 032",
+      "birth": 32,
+      "death": 113,
+      "radius": 2.134010309253449
+    },
+    {
+      "name": "Chama 19 | nascimento 029",
+      "birth": 29,
+      "death": 94,
+      "radius": 2.193798076396276
+    },
+    {
+      "name": "Chama 20 | nascimento 029",
+      "birth": 29,
+      "death": 96,
+      "radius": 2.251999111900358
+    },
+    {
+      "name": "Chama 21 | nascimento 033",
+      "birth": 33,
+      "death": 101,
+      "radius": 2.3087334189983912
+    },
+    {
+      "name": "Chama 22 | nascimento 034",
+      "birth": 34,
+      "death": 96,
+      "radius": 2.3641065965814656
+    },
+    {
+      "name": "Chama 23 | nascimento 032",
+      "birth": 32,
+      "death": 103,
+      "radius": 2.4182121495021898
+    },
+    {
+      "name": "Chama 24 | nascimento 031",
+      "birth": 31,
+      "death": 104,
+      "radius": 2.471133343225331
+    },
+    {
+      "name": "Chama 25 | nascimento 032",
+      "birth": 32,
+      "death": 111,
+      "radius": 2.5229447080742773
+    },
+    {
+      "name": "Chama 26 | nascimento 032",
+      "birth": 32,
+      "death": 114,
+      "radius": 2.573713270743266
+    },
+    {
+      "name": "Chama 27 | nascimento 034",
+      "birth": 34,
+      "death": 113,
+      "radius": 2.6234995711834985
+    },
+    {
+      "name": "Chama 28 | nascimento 034",
+      "birth": 34,
+      "death": 104,
+      "radius": 2.672358508883118
+    },
+    {
+      "name": "Chama 29 | nascimento 032",
+      "birth": 32,
+      "death": 115,
+      "radius": 2.7203400522728773
+    },
+    {
+      "name": "Chama 30 | nascimento 030",
+      "birth": 30,
+      "death": 93,
+      "radius": 2.767489837379715
+    },
+    {
+      "name": "Chama 31 | nascimento 030",
+      "birth": 30,
+      "death": 106,
+      "radius": 2.813849676155427
+    },
+    {
+      "name": "Chama 32 | nascimento 034",
+      "birth": 34,
+      "death": 113,
+      "radius": 2.859457990598918
+    },
+    {
+      "name": "Chama 33 | nascimento 034",
+      "birth": 34,
+      "death": 102,
+      "radius": 2.9043501854976097
+    },
+    {
+      "name": "Chama 34 | nascimento 031",
+      "birth": 31,
+      "death": 115,
+      "radius": 2.9485589700733477
+    },
+    {
+      "name": "Chama 35 | nascimento 034",
+      "birth": 34,
+      "death": 102,
+      "radius": 2.9921146368413094
+    },
+    {
+      "name": "Chama 36 | nascimento 033",
+      "birth": 33,
+      "death": 94,
+      "radius": 3.035045304439458
+    },
+    {
+      "name": "Chama 37 | nascimento 036",
+      "birth": 36,
+      "death": 101,
+      "radius": 3.0773771299598627
+    },
+    {
+      "name": "Chama 38 | nascimento 031",
+      "birth": 31,
+      "death": 113,
+      "radius": 3.119134495336808
+    },
+    {
+      "name": "Chama 39 | nascimento 035",
+      "birth": 35,
+      "death": 95,
+      "radius": 3.160340171563815
+    },
+    {
+      "name": "Chama 40 | nascimento 036",
+      "birth": 36,
+      "death": 113,
+      "radius": 3.2010154638801733
+    },
+    {
+      "name": "Chama 41 | nascimento 033",
+      "birth": 33,
+      "death": 109,
+      "radius": 3.241180340554965
+    },
+    {
+      "name": "Chama 42 | nascimento 032",
+      "birth": 32,
+      "death": 110,
+      "radius": 3.2808535474781557
+    },
+    {
+      "name": "Chama 43 | nascimento 034",
+      "birth": 34,
+      "death": 112,
+      "radius": 3.3200527104249415
+    },
+    {
+      "name": "Chama 44 | nascimento 032",
+      "birth": 32,
+      "death": 115,
+      "radius": 3.358794426576298
+    },
+    {
+      "name": "Chama 45 | nascimento 034",
+      "birth": 34,
+      "death": 99,
+      "radius": 3.397094346643908
+    },
+    {
+      "name": "Chama 46 | nascimento 034",
+      "birth": 34,
+      "death": 108,
+      "radius": 3.4349672487521627
+    }
+  ]
+}

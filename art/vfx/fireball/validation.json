@@ -1,0 +1,73 @@
+{
+  "profile": "Editable native Blender VFX concept; not a game-runtime certification",
+  "source": "C:\\Users\\User\\orca\\bardurinho-rpg\\art\\vfx\\fireball\\fireball-stylized.blend",
+  "checks": {
+    "loop_geometry_1_equals_49": {
+      "status": "PASS",
+      "max_matrix_delta": 0.0
+    },
+    "animation_changes_geometry": {
+      "status": "PASS",
+      "max_matrix_delta": 4.226329654455185
+    },
+    "timeline": {
+      "status": "PASS"
+    },
+    "native_reopen": {
+      "status": "PASS",
+      "blender": "5.2.3 LTS"
+    },
+    "no_linked_libraries": {
+      "status": "PASS"
+    },
+    "images_packed": {
+      "status": "PASS",
+      "image_names": [
+        "REFERENCE | supplied stylized fireball"
+      ]
+    },
+    "procedural_fire_material": {
+      "status": "PASS"
+    },
+    "editable_flame_sections": {
+      "status": "PASS",
+      "object_names": [
+        "Chama superior | amarela",
+        "Chama superior | laranja",
+        "Chama inferior | lingua longa",
+        "Chama inferior | borda vermelha",
+        "Fluxo lateral | chama de ligacao",
+        "Fluxo lateral | filete amarelo"
+      ]
+    },
+    "glow_compositor": {
+      "status": "PASS"
+    },
+    "no_zero_area_triangles": {
+      "status": "PASS",
+      "affected_objects": [],
+      "local_area_threshold": 1e-12
+    },
+    "genuine_three_dimensional_volume": {
+      "status": "PASS",
+      "evaluated_bounds_xyz": [
+        7.529767036437988,
+        1.8750861883163452,
+        2.8671246767044067
+      ]
+    },
+    "core_edit_keeps_tail_unchanged": {
+      "status": "PASS"
+    },
+    "smoke_material_follows_root": {
+      "status": "PASS"
+    }
+  },
+  "mesh_objects": 90,
+  "evaluated_vertices": 11722,
+  "evaluated_triangles": 23084,
+  "simulation_cache_required": false,
+  "external_plugins_required": false,
+  "game_runtime": "NOT_CHECKED - no export or integration requested",
+  "hidden_reference_geometry": "UNKNOWN - single supplied reference view"
+}

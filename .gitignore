@@ -7,3 +7,8 @@ tests/output/
 tools/batch/out/
 tools/balance/out/
 .env
+
+# Blender: backups e frames intermediários de revisão (GIF/MP4/contact sheet cobrem)
+*.blend1
+__pycache__/
+art/vfx/*/animation-frames/

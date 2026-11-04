@@ -1,0 +1,74 @@
+{
+  "source": "C:\\Users\\User\\orca\\bardurinho-rpg\\art\\vfx\\fireball-impact\\fireball-impact.blend",
+  "profile": "Editable native Blender VFX concept",
+  "checks": {
+    "native_reopened": {
+      "status": "PASS",
+      "blender": "5.2.3 LTS"
+    },
+    "duration_5_seconds": {
+      "status": "PASS"
+    },
+    "no_linked_libraries": {
+      "status": "PASS"
+    },
+    "all_reference_images_packed": {
+      "status": "PASS"
+    },
+    "radial_front_expands": {
+      "status": "PASS",
+      "radii": [
+        0.0,
+        0.8500000238418579,
+        3.4000000953674316,
+        3.8499999046325684
+      ]
+    },
+    "texture_changes_during_expansion": {
+      "status": "PASS"
+    },
+    "ground_is_eroded_completely": {
+      "status": "PASS"
+    },
+    "patch_is_not_only_a_scaling_disc": {
+      "status": "PASS"
+    },
+    "46_editable_shape_key_flames": {
+      "status": "PASS",
+      "count": 46
+    },
+    "flames_do_not_sway_in_sync": {
+      "status": "PASS"
+    },
+    "projectile_falls_then_disappears": {
+      "status": "PASS"
+    },
+    "all_flames_end": {
+      "status": "PASS"
+    },
+    "all_64_sparks_end": {
+      "status": "PASS"
+    },
+    "all_25_smoke_clouds_fade": {
+      "status": "PASS"
+    },
+    "impact_light_ends": {
+      "status": "PASS"
+    },
+    "optical_glow": {
+      "status": "PASS"
+    },
+    "evaluated_geometry_finite": {
+      "status": "PASS",
+      "bad_objects": [],
+      "evaluated_triangles": 75782
+    },
+    "ground_control_does_not_modify_flame_geometry": {
+      "status": "PASS"
+    }
+  },
+  "reference": "User-supplied video, action condensed to 5 seconds",
+  "game_runtime": "NOT_CHECKED - no export or integration requested",
+  "simulation_cache": "Not required",
+  "third_party_plugins": "Not required"
+}
