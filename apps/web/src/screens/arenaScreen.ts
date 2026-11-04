@@ -130,6 +130,12 @@ export interface NetworkModeOptions {
     endActions: NonNullable<import('./hud.js').HudActions['endActions']>;
     endSubtitle?: (state: GameState) => string | null;
   };
+  /**
+   * Fase 7 (teste externo): contador de sinais de atrito da interface/câmera (telemetria, só
+   * com consentimento) e "reportar bug" no painel da partida.
+   */
+  telemetry?: { count(name: string): void };
+  reportBug?: () => void;
 }
 
 export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement, catalog: Catalog, mapDef: MapDefinition, net?: NetworkModeOptions): ArenaScreen {
@@ -217,13 +223,18 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
     hud.setFast(pace.fast);
     options.setFast(pace.fast);
   };
-  const toggleSpeed = () => setFast(!pace.fast);
+  const toggleSpeed = () => {
+    signal('speed');
+    setFast(!pace.fast);
+  };
   const input = new CameraInput(camera, canvas, { focusActive, onManualInput: manualInput });
 
   // Preferências do cliente (tela de opções, etapa 6).
   let settings = loadSettings();
   // Fase 4: efeitos sonoros (WebAudio, volume nas opções). `window.__sfx` para depuração/e2e.
   const sfx = new Sfx();
+  /** Fase 7: sinal de atrito/uso para a telemetria (nada acontece sem o teste externo). */
+  const signal = (name: string) => net?.telemetry?.count(name);
   (window as unknown as { __sfx: Sfx }).__sfx = sfx;
   const applySettings = (s: ClientSettings) => {
     settings = s;
@@ -353,6 +364,7 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
       bars.sync(state);
     },
     rejected: (error) => {
+      signal('rejected');
       sfx.play('ui.error');
       hud.toast(error.message);
     },
@@ -388,10 +400,14 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
       tactical.cancelAiming();
       // Volta a selecionar o personagem da vez (o jogador pode ter inspecionado outro).
       if (match.activeUnit && tactical.selectedUnitId !== match.activeUnit.id) tactical.selectUnit(match.activeUnit.id);
-      if (!action.available) hud.toast(action.reason?.message ?? 'Movimento indisponível');
+      if (!action.available) {
+        signal('unavailable');
+        hud.toast(action.reason?.message ?? 'Movimento indisponível');
+      }
       return;
     }
     if (!action.available) {
+      signal('unavailable');
       hud.toast(action.reason?.message ?? 'Ação indisponível');
       return;
     }
@@ -415,18 +431,31 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
     if (digit) {
       const x = actionBar.hotkey(Number(digit[1]));
       if (x) chooseAction(x);
-    } else if (e.code === 'PageUp') chooseFloor(f + 1);
-    else if (e.code === 'PageDown') chooseFloor(f - 1);
-    else if (e.code === 'KeyG') arena.toggleGrid();
+    } else if (e.code === 'PageUp') {
+      signal('floorChange');
+      chooseFloor(f + 1);
+    } else if (e.code === 'PageDown') {
+      signal('floorChange');
+      chooseFloor(f - 1);
+    } else if (e.code === 'KeyG') arena.toggleGrid();
     else if (e.code === 'KeyT') toggleSpeed();
-    else if (e.code === 'KeyH') hud.toggleHelp();
-    else if (e.code === 'Home') focus.focusOverview(map, OVERVIEW_RADIUS);
-    else if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space') void endTurn();
+    else if (e.code === 'KeyH') {
+      signal('help');
+      hud.toggleHelp();
+    } else if (e.code === 'Home') {
+      signal('overview');
+      focus.focusOverview(map, OVERVIEW_RADIUS);
+    } else if (e.code === 'Enter' || e.code === 'NumpadEnter' || e.code === 'Space') void endTurn();
     else if (e.code === 'Escape') {
       manualInput();
       // Esc cancela a mira; sem mira abre as opções (limpar a seleção: clique direito).
-      if (tactical.aiming) tactical.cancelAiming();
-      else options.open();
+      if (tactical.aiming) {
+        signal('aimCancel');
+        tactical.cancelAiming();
+      } else {
+        signal('options');
+        options.open();
+      }
     } else return;
     e.preventDefault();
   });
@@ -438,6 +467,7 @@ export function startArenaScreen(canvas: HTMLCanvasElement, hudRoot: HTMLElement
   const netHud = net
     ? new NetworkHud(hudRoot, net.match, {
         leave: () => net.leave(),
+        ...(net.reportBug ? { reportBug: net.reportBug } : {}),
         ...(net.game
           ? {
               surrender: () => {

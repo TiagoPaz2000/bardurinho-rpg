@@ -1,7 +1,7 @@
 {
   "name": "bardurinho-rpg",
   "private": true,
-  "version": "0.1.0",
+  "version": "0.7.0",
   "type": "module",
   "workspaces": [
     "packages/*",
@@ -35,7 +35,13 @@
     "netsim": "tsx tools/perf/netsim.ts",
     "fuzz:server": "vitest run tests/integration/seguranca.test.ts",
     "regression:from-match": "tsx tools/regression/from-match.ts",
-    "balance:difficulty": "tsx tools/balance/difficulty.ts"
+    "balance:difficulty": "tsx tools/balance/difficulty.ts",
+    "build:web": "npm run build -w @bardurinho/web",
+    "start:prod": "tsx tools/playtest/start.ts",
+    "metrics:report": "tsx tools/playtest/report.ts",
+    "playtest:invites": "tsx tools/playtest/invites.ts",
+    "playtest:sim": "tsx tools/playtest/simulate.ts",
+    "e2e:playtest": "tsx tools/e2e/playtest.ts"
   },
   "devDependencies": {
     "@gltf-transform/cli": "^4.5.1",

@@ -13,7 +13,7 @@
 import { randomUUID } from 'node:crypto';
 import { matchMaker } from '@colyseus/core';
 import type { BotDifficultyId } from '@bardurinho/content';
-import { MATCH_ROOM, type InviteDto, type LobbyStatusDto } from '@bardurinho/protocol';
+import { MATCH_ROOM, type InviteDto, type LobbyStatusDto, type RematchResponse } from '@bardurinho/protocol';
 import type { Account } from '../../db/repositories.js';
 import type { ServerServices } from '../../services.js';
 import type { ReservedSeat } from '../matches/MatchSession.js';
@@ -35,6 +35,9 @@ interface Invite {
   to: Account;
   createdAt: number;
   status: InviteDto['status'];
+  /** Fase 7: pedido de revanche (partida anterior e o modo dela). */
+  rematchOf?: string;
+  mode?: 'pvp' | 'private';
 }
 
 export class LobbyError extends Error {
@@ -84,7 +87,7 @@ export class LobbyService {
   }
 
   /** Cria a sala com assentos reservados e avisa cada jogador (status do lobby). */
-  async createMatch(mode: 'pvp' | 'private' | 'bot', players: Account[], bot?: BotDifficultyId): Promise<string> {
+  async createMatch(mode: 'pvp' | 'private' | 'bot', players: Account[], bot?: BotDifficultyId, opts: { rematchOf?: string } = {}): Promise<string> {
     const reserved: ReservedSeat[] = [];
     for (const [i, a] of players.entries()) reserved.push(await this.seatFor(a, i));
     if (bot) {
@@ -92,12 +95,12 @@ export class LobbyService {
       const choice = { ...botCharacter(this.svc.rng), name };
       reserved.push({ seat: reserved.length, account: this.svc.botAccounts[bot], choice, character: { id: null, name, classId: choice.classId, appearance: { color: 'color.natural' } }, bot });
     }
-    const room = await matchMaker.createRoom(MATCH_ROOM, { internal: this.svc.internalKey, mode, reserved, teamSize: 1, ...(bot ? { botDifficulty: bot } : {}) });
+    const room = await matchMaker.createRoom(MATCH_ROOM, { internal: this.svc.internalKey, mode, reserved, teamSize: 1, ...(bot ? { botDifficulty: bot } : {}), ...(opts.rematchOf ? { rematchOf: opts.rematchOf } : {}) });
     for (const a of players) {
       this.queue.delete(a.id);
       this.pending.set(a.id, { roomId: room.roomId, mode, createdAt: this.now() });
     }
-    this.svc.log(`[lobby] partida ${mode}${bot ? ` (${bot})` : ''}: ${players.map((p) => p.username).join(' × ')}${bot ? ' × bot' : ''} → sala ${room.roomId}`);
+    this.svc.log(`[lobby] partida ${mode}${bot ? ` (${bot})` : ''}: ${players.map((p) => p.username).join(' × ')}${bot ? ' × bot' : ''}${opts.rematchOf ? ` (revanche de ${opts.rematchOf.slice(0, 8)})` : ''} → sala ${room.roomId}`);
     return room.roomId;
   }
 
@@ -166,7 +169,7 @@ export class LobbyService {
     if (this.busy(account.id) || this.busy(inv.from.id)) throw new LobbyError('Um dos jogadores já está numa partida', 409);
     inv.status = 'accepted';
     try {
-      return await this.createMatch('private', [inv.from, account]);
+      return await this.createMatch(inv.mode ?? 'private', [inv.from, account], undefined, inv.rematchOf ? { rematchOf: inv.rematchOf } : {});
     } catch (err) {
       inv.status = 'pending';
       throw err;
@@ -182,7 +185,45 @@ export class LobbyService {
   }
 
   private dto(i: Invite): InviteDto {
-    return { id: i.id, from: { username: i.from.username, displayName: i.from.displayName }, to: { username: i.to.username, displayName: i.to.displayName }, createdAt: i.createdAt, status: i.status };
+    return { id: i.id, from: { username: i.from.username, displayName: i.from.displayName }, to: { username: i.to.username, displayName: i.to.displayName }, createdAt: i.createdAt, status: i.status, ...(i.rematchOf ? { rematchOf: i.rematchOf } : {}) };
+  }
+
+  // --- Revanche (Fase 7) ----------------------------------------------------------------
+
+  /**
+   * "Revanche" depois de uma partida terminada. Contra o bot: partida nova na mesma dificuldade.
+   * PvP/convite: vira um convite ao adversário marcado com `rematchOf`; se ele já tinha pedido,
+   * o pedido dele é aceito e a partida nasce na hora (mesmo modo da anterior). A partida nova
+   * guarda `matches.rematch_of` (taxa de revanche).
+   */
+  async rematch(account: Account, matchId: unknown): Promise<RematchResponse> {
+    if (typeof matchId !== 'string' || !matchId || matchId.length > 64) throw new LobbyError('Partida inválida');
+    const m = await this.svc.matches.get(matchId);
+    const players = m ? await this.svc.matches.players(matchId) : [];
+    if (!m || !players.some((p) => p.accountId === account.id)) throw new LobbyError('Partida não encontrada', 404);
+    if (m.status !== 'finished') throw new LobbyError('A partida ainda não terminou', 409);
+    const info = await this.svc.matches.mode(matchId);
+    if (this.busy(account.id)) throw new LobbyError('Você já está numa partida', 409);
+    if (info?.mode === 'bot') {
+      const diff = info.botDifficulty;
+      if (diff !== 'easy' && diff !== 'normal' && diff !== 'hard') throw new LobbyError('Revanche indisponível para esta partida', 409);
+      this.queue.delete(account.id);
+      return { status: 'created', roomId: await this.createMatch('bot', [account], diff, { rematchOf: matchId }) };
+    }
+    if (info?.mode !== 'pvp' && info?.mode !== 'private') throw new LobbyError('Revanche indisponível para esta partida', 409);
+    const oppId = players.find((p) => p.accountId !== account.id)?.accountId;
+    const opp = oppId ? await this.svc.accounts.byId(oppId) : null;
+    if (!opp) throw new LobbyError('Adversário não encontrado', 404);
+    for (const inv of this.invites.values()) {
+      if (inv.status !== 'pending' || inv.rematchOf !== matchId) continue;
+      if (inv.from.id === opp.id && inv.to.id === account.id) return { status: 'created', roomId: await this.accept(account, inv.id) };
+      if (inv.from.id === account.id) return { status: 'waiting', inviteId: inv.id, opponent: opp.displayName };
+    }
+    await this.seatFor(account, 0);
+    const inv: Invite = { id: randomUUID(), from: account, to: opp, createdAt: this.now(), status: 'pending', rematchOf: matchId, mode: info.mode };
+    this.invites.set(inv.id, inv);
+    this.svc.log(`[lobby] revanche pedida: ${account.username} → ${opp.username} (partida ${matchId.slice(0, 8)})`);
+    return { status: 'waiting', inviteId: inv.id, opponent: opp.displayName };
   }
 
   // --- Status (consulta do cliente) ---------------------------------------------------------

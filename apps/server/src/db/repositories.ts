@@ -34,11 +34,11 @@ const json = (v: unknown) => JSON.stringify(v);
 export class MatchesRepository {
   constructor(private readonly db: Database) {}
 
-  async create(m: { id: string; roomId: string; mapId: string; state: GameState; seed: number; turnSeconds: number; hash: string; mode?: string; botDifficulty?: string | null }): Promise<void> {
+  async create(m: { id: string; roomId: string; mapId: string; state: GameState; seed: number; turnSeconds: number; hash: string; mode?: string; botDifficulty?: string | null; rematchOf?: string | null }): Promise<void> {
     await this.db.transaction(async (tx) => {
       await tx.query(
-        'INSERT INTO matches (id, room_id, map_id, rules_version, content_version, seed, turn_seconds, status, mode, bot_difficulty) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10)',
-        [m.id, m.roomId, m.mapId, m.state.rulesVersion, m.state.contentVersion, m.seed, m.turnSeconds, m.state.status, m.mode ?? 'custom', m.botDifficulty ?? null],
+        'INSERT INTO matches (id, room_id, map_id, rules_version, content_version, seed, turn_seconds, status, mode, bot_difficulty, rematch_of) VALUES ($1, $2, $3, $4, $5, $6, $7, $8, $9, $10, $11)',
+        [m.id, m.roomId, m.mapId, m.state.rulesVersion, m.state.contentVersion, m.seed, m.turnSeconds, m.state.status, m.mode ?? 'custom', m.botDifficulty ?? null, m.rematchOf ?? null],
       );
       await this.insertSnapshot(tx, m.id, 0, m.state, m.hash);
     });

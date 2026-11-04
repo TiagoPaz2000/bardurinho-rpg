@@ -3,6 +3,8 @@
  */
 import type { BotDifficultyId, MapDefinition } from '@bardurinho/content';
 import type { Catalog } from '@bardurinho/domain';
+import type { BuildInfo } from '@bardurinho/protocol';
+import type { PlaytestRepository } from './db/playtest.js';
 import type { ServerConfig } from './config.js';
 import type { Database } from './db/database.js';
 import type { ProfileRepository } from './db/profile.js';
@@ -19,6 +21,10 @@ export interface ServerServices {
   /** Fase 5: personagens, inventário, moedas, missões, recompensas, histórico. */
   profiles: ProfileRepository;
   progression: ProgressionService;
+  /** Fase 7: convites, telemetria, pesquisas e bugs do teste externo. */
+  playtest: PlaytestRepository;
+  /** Fase 7: versão do servidor. */
+  build: BuildInfo;
   lobby: LobbyService;
   /** Contas de sistema dos bots (uma por dificuldade). */
   botAccounts: Record<BotDifficultyId, Account>;

@@ -5,9 +5,13 @@
  */
 import { Client, type Room } from '@colyseus/sdk';
 import { DEFAULT_SERVER_PORT, MATCH_ROOM, type LoginResponse, type SnapshotMessage } from '@bardurinho/protocol';
+import { IS_PROD } from '../build.js';
 import { bufferEarly } from './early.js';
 
 export const defaultServerUrl = (): string => {
+  // Fase 7: o build de produção é servido pelo próprio servidor de jogo → mesma origem (LAN,
+  // túnel HTTPS ou hospedagem: o endereço que o testador abriu).
+  if (IS_PROD && typeof location !== 'undefined' && location.protocol.startsWith('http')) return location.origin;
   const host = typeof location !== 'undefined' ? location.hostname : '127.0.0.1';
   return `http://${host || '127.0.0.1'}:${DEFAULT_SERVER_PORT}`;
 };

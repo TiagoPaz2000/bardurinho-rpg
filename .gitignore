@@ -6,3 +6,4 @@ tests/output/
 .data/
 tools/batch/out/
 tools/balance/out/
+.env

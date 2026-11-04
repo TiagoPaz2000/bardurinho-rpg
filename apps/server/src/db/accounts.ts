@@ -5,6 +5,10 @@
  */
 import { randomBytes, randomUUID, scryptSync, timingSafeEqual } from 'node:crypto';
 import type { Database } from './database.js';
+import { PlaytestRepository, normalizeCode } from './playtest.js';
+
+/** Fase 7: código de convite ausente, inválido, desativado ou esgotado. */
+export class InviteCodeError extends Error {}
 
 export interface Account {
   id: string;
@@ -60,14 +64,18 @@ export class AccountsRepository {
    * Cadastro (Fase 5): código de amigo único e moedas de boas-vindas registradas no histórico
    * de movimentações. Devolve null se o usuário já existe.
    */
-  register(username: string, password: string, displayName: string, welcomeCoins: number): Promise<Account | null> {
+  register(username: string, password: string, displayName: string, welcomeCoins: number, invite?: { code?: string | null; required?: boolean }): Promise<Account | null> {
     const id = randomUUID();
+    const code = invite?.code ? normalizeCode(invite.code) : null;
+    if (invite?.required && !code) return Promise.reject(new InviteCodeError('Informe o código de convite do teste'));
     const hash = hashPassword(password);
     return this.db.transaction(async (tx) => {
       if ((await tx.query('SELECT 1 FROM accounts WHERE username = $1', [username])).length) return null;
-      let code = newFriendCode();
-      for (let i = 0; i < 5 && (await tx.query('SELECT 1 FROM accounts WHERE friend_code = $1', [code])).length; i++) code = newFriendCode();
-      await tx.query('INSERT INTO accounts (id, username, display_name, password_hash, kind, friend_code, coins) VALUES ($1, $2, $3, $4, $5, $6, $7)', [id, username, displayName, hash, 'player', code, welcomeCoins]);
+      // Fase 7: grupo controlado — o código é consumido na mesma transação do cadastro.
+      if (code && !(await PlaytestRepository.consumeInvite(tx, code))) throw new InviteCodeError('Código de convite inválido ou esgotado');
+      let friend = newFriendCode();
+      for (let i = 0; i < 5 && (await tx.query('SELECT 1 FROM accounts WHERE friend_code = $1', [friend])).length; i++) friend = newFriendCode();
+      await tx.query('INSERT INTO accounts (id, username, display_name, password_hash, kind, friend_code, coins, invite_code) VALUES ($1, $2, $3, $4, $5, $6, $7, $8)', [id, username, displayName, hash, 'player', friend, welcomeCoins, code]);
       if (welcomeCoins > 0) await tx.query('INSERT INTO coin_ledger (account_id, delta, balance_after, reason, ref) VALUES ($1, $2, $2, $3, $4)', [id, welcomeCoins, 'welcome', 'account']);
       return { id, username, displayName, kind: 'player' };
     });

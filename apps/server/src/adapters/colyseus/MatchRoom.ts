@@ -39,6 +39,8 @@ interface JoinOptions {
   mode?: MatchMode;
   reserved?: ReservedSeat[];
   botDifficulty?: BotDifficultyId;
+  /** Fase 7: revanche (id da partida anterior; só com a chave interna). */
+  rematchOf?: string;
 }
 
 interface ClientAuth {
@@ -107,7 +109,7 @@ export class MatchRoom extends Room {
       mapId: svc.map.id,
       scenario: svc.map.scenario,
       ...(teamSize ? { teamSize, setupMap: svc.map } : {}),
-      ...(internal ? { reserved: options.reserved!, mode, botDifficulty, onFinished: () => void this.settle() } : {}),
+      ...(internal ? { reserved: options.reserved!, mode, botDifficulty, rematchOf: typeof options.rematchOf === 'string' ? options.rematchOf : null, onFinished: () => void this.settle() } : {}),
       catalog: svc.catalog,
       repo: svc.matches,
       seed,

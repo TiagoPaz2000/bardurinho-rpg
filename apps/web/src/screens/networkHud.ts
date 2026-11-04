@@ -17,7 +17,7 @@ export class NetworkHud {
   constructor(
     root: HTMLElement,
     private readonly match: NetworkMatch,
-    private readonly actions: { leave(): void; surrender?: () => void },
+    private readonly actions: { leave(): void; surrender?: () => void; reportBug?: () => void },
   ) {
     this.box = document.createElement('div');
     this.box.className = 'hud-panel hud-net';
@@ -30,6 +30,7 @@ export class NetworkHud {
       if (e.button !== 0) return;
       const t = e.target as HTMLElement;
       if (t.closest('[data-act="leave"]')) this.actions.leave();
+      if (t.closest('[data-act="report-bug"]')) this.actions.reportBug?.();
       // Fase 5: desistir pede confirmação (segundo clique).
       if (t.closest('[data-act="surrender"]')) {
         if (this.confirmSurrender) {
@@ -67,7 +68,7 @@ export class NetworkHud {
             ? `<button type="button" class="link" data-act="surrender">${this.confirmSurrender ? 'confirmar: desistir da partida' : 'desistir'}</button>`
             : ''
           : '<button type="button" class="link" data-act="leave">sair da partida</button>'
-      }`;
+      }${this.actions.reportBug ? ' <button type="button" class="link" data-act="report-bug">reportar bug</button>' : ''}`;
     if (html !== this.last) {
       this.last = html;
       this.box.innerHTML = html;

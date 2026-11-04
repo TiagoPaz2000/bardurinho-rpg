@@ -11,6 +11,7 @@ import type { AppearanceDto, MatchRewardDto } from './api.js';
 
 export * from './api.js';
 export * from './bugReport.js';
+export * from './playtest.js';
 
 export const PROTOCOL_VERSION = 1;
 /** Endereço padrão do servidor de jogo (seção 10.1). */

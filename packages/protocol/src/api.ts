@@ -134,6 +134,8 @@ export interface InviteDto {
   to: { username: string; displayName: string };
   createdAt: number;
   status: 'pending' | 'accepted' | 'declined' | 'cancelled' | 'expired';
+  /** Fase 7: convite de revanche (id da partida anterior). */
+  rematchOf?: string;
 }
 
 export interface LobbyStatusDto {

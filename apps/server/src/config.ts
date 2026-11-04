@@ -1,7 +1,13 @@
 /**
  * Configuração do servidor de jogo (variáveis de ambiente; padrões da seção 10.1).
  */
+import { existsSync } from 'node:fs';
+import { randomBytes } from 'node:crypto';
+import { fileURLToPath } from 'node:url';
 import { DEFAULT_SERVER_PORT } from '@bardurinho/protocol';
+
+/** Build de produção do cliente web (vite build), servido pelo próprio servidor na Fase 7. */
+export const WEB_DIST = fileURLToPath(new URL('../../web/dist/', import.meta.url));
 
 export interface ServerConfig {
   host: string;
@@ -40,12 +46,35 @@ export interface ServerConfig {
   /** Origens aceitas pelo CORS das rotas HTTP. */
   corsOrigins: string[];
   log: boolean;
+  /**
+   * Fase 7 (teste externo): tela de consentimento, telemetria do cliente, pesquisa pós-partida e
+   * "reportar bug". Padrão: ligado em produção, desligado em desenvolvimento (`PLAYTEST=1/0`).
+   */
+  playtest: boolean;
+  /** Fase 7: cadastro aberto, só com código de convite (padrão em produção) ou fechado. */
+  registration: 'open' | 'invite' | 'closed';
+  /** Fase 7: códigos de convite criados na inicialização (`INVITE_CODES=ABC:10,XYZ` → código:usos). */
+  inviteCodes: Array<{ code: string; maxUses: number }>;
+  /**
+   * Fase 7: token do painel/API de administração (`/admin`). Sem `ADMIN_TOKEN`: em produção é
+   * gerado na inicialização (aparece no log); em desenvolvimento o painel fica desligado.
+   */
+  adminToken: string | null;
+  adminTokenGenerated: boolean;
+  /** Fase 7: pasta do cliente web de produção servida na mesma porta (`STATIC_DIR`; `none` desliga). */
+  staticDir: string | null;
+  /** Fase 7: atrás de túnel/proxy reverso, IP do cliente pelo X-Forwarded-For (`TRUST_PROXY=1`). */
+  trustProxy: boolean;
 }
 
 const num = (v: string | undefined, d: number) => (v !== undefined && v !== '' && Number.isFinite(Number(v)) ? Number(v) : d);
 
 export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Partial<ServerConfig> = {}): ServerConfig {
   const dev = env.NODE_ENV !== 'production' && env.GAME_DEV !== '0';
+  const flag = (v: string | undefined, d: boolean) => (v === undefined || v === '' ? d : v !== '0' && v.toLowerCase() !== 'false');
+  const registration = env.REGISTRATION === 'open' || env.REGISTRATION === 'invite' || env.REGISTRATION === 'closed' ? env.REGISTRATION : dev ? 'open' : 'invite';
+  const adminToken = env.ADMIN_TOKEN?.trim() || (dev ? null : randomBytes(18).toString('base64url'));
+  const staticDir = env.STATIC_DIR === 'none' ? null : env.STATIC_DIR ? env.STATIC_DIR : !dev && existsSync(`${WEB_DIST}index.html`) ? WEB_DIST : null;
   return {
     host: env.HOST ?? '127.0.0.1',
     port: num(env.PORT, DEFAULT_SERVER_PORT),
@@ -69,6 +98,20 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
       : [],
     corsOrigins: (env.CORS_ORIGINS ?? 'http://127.0.0.1:5173,http://localhost:5173,http://127.0.0.1:5174,http://localhost:5174').split(','),
     log: env.GAME_LOG !== '0',
+    playtest: flag(env.PLAYTEST, !dev),
+    registration,
+    inviteCodes: (env.INVITE_CODES ?? '')
+      .split(',')
+      .map((x) => x.trim())
+      .filter(Boolean)
+      .map((x) => {
+        const [code, uses] = x.split(':');
+        return { code: code!.toUpperCase(), maxUses: Math.max(1, num(uses, 1)) };
+      }),
+    adminToken,
+    adminTokenGenerated: !!adminToken && !env.ADMIN_TOKEN?.trim(),
+    staticDir,
+    trustProxy: env.TRUST_PROXY === '1',
     ...overrides,
   };
 }

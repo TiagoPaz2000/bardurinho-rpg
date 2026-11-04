@@ -14,7 +14,11 @@ import type {
   MatchRewardDto,
   MeResponse,
   MissionDto,
+  PlaytestConfigDto,
+  RematchResponse,
   ShopItemDto,
+  SurveyInput,
+  BugReportInput,
 } from '@bardurinho/protocol';
 
 export class ApiError extends Error {
@@ -47,8 +51,8 @@ export class GameApi {
     return data;
   }
 
-  async register(username: string, password: string, displayName?: string): Promise<LoginResponse> {
-    const r = await this.call<LoginResponse>('POST', '/auth/register', { username, password, ...(displayName ? { displayName } : {}) });
+  async register(username: string, password: string, displayName?: string, inviteCode?: string): Promise<LoginResponse> {
+    const r = await this.call<LoginResponse>('POST', '/auth/register', { username, password, ...(displayName ? { displayName } : {}), ...(inviteCode ? { inviteCode } : {}) });
     this.token = r.token;
     return r;
   }
@@ -81,6 +85,12 @@ export class GameApi {
   acceptInvite = (id: string) => this.call<{ roomId: string }>('POST', `/lobby/invites/${encodeURIComponent(id)}/accept`);
   declineInvite = (id: string) => this.call<LobbyStatusDto>('POST', `/lobby/invites/${encodeURIComponent(id)}/decline`);
   cancelInvite = (id: string) => this.call<LobbyStatusDto>('POST', `/lobby/invites/${encodeURIComponent(id)}/cancel`);
+  // Fase 7: teste externo
+  playtestConfig = () => this.call<PlaytestConfigDto>('GET', '/playtest/config');
+  rematch = (matchId: string) => this.call<RematchResponse>('POST', '/lobby/rematch', { matchId });
+  submitSurvey = (s: SurveyInput) => this.call<{ ok: boolean; duplicate: boolean }>('POST', '/feedback/survey', s);
+  reportBug = (b: BugReportInput) => this.call<{ ok: boolean; id: string; attached: boolean }>('POST', '/feedback/bug', b);
+  setConsent = (consent: boolean) => this.call<{ ok: boolean }>('POST', '/telemetry/consent', { consent });
 }
 
 // ---------------------------------------------------------------------------

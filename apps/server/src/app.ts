@@ -14,6 +14,8 @@ import { loadConfig, type ServerConfig } from './config.js';
 import { openDatabase } from './db/database.js';
 import { migrate } from './db/migrations.js';
 import { ProfileRepository } from './db/profile.js';
+import { PlaytestRepository } from './db/playtest.js';
+import { buildInfo } from './build.js';
 import { AccountsRepository, MatchesRepository } from './db/repositories.js';
 import { LobbyService } from './modules/lobby/LobbyService.js';
 import { ProgressionService } from './modules/progression/ProgressionService.js';
@@ -44,6 +46,9 @@ export async function createGameServer(overrides: Partial<ServerConfig> = {}): P
     hard: await accounts.ensure('bot-dificil', 'Bot difícil', '', 'bot'),
   };
   const profiles = new ProfileRepository(db);
+  // Fase 7: códigos de convite do INVITE_CODES (idempotente).
+  const playtest = new PlaytestRepository(db);
+  for (const c of config.inviteCodes) await playtest.ensureInvite(c.code, c.maxUses, 'INVITE_CODES');
   const matches = new MatchesRepository(db);
   // Fase 6: salas não sobrevivem ao reinício — as partidas que ficaram abertas são encerradas
   // como `aborted` (sem resultado nem recompensa), em vez de ficarem `active` para sempre.
@@ -56,6 +61,8 @@ export async function createGameServer(overrides: Partial<ServerConfig> = {}): P
     matches,
     profiles,
     progression: new ProgressionService(db, profiles, catalog),
+    playtest,
+    build: buildInfo(),
     botAccounts,
     internalKey: randomBytes(18).toString('base64url'),
     rng: Math.random,
@@ -80,6 +87,11 @@ export async function createGameServer(overrides: Partial<ServerConfig> = {}): P
   const http = (transport as unknown as { server: import('node:http').Server }).server;
   const port = (http.address() as AddressInfo).port;
   log(`ouvindo em http://${config.host}:${port} (banco: ${db.kind}${db.kind === 'pglite' ? ` em ${config.dataDir}` : ''}; turno ${config.turnSeconds} s; dev ${config.dev ? 'ligado' : 'desligado'})`);
+  // Fase 7: teste externo.
+  const b = services.build;
+  log(`versão v${b.version} · ${b.commit}; teste externo ${config.playtest ? 'ligado' : 'desligado'}; cadastro ${config.registration}${config.inviteCodes.length ? ` (${config.inviteCodes.length} código(s) do INVITE_CODES)` : ''}`);
+  if (config.staticDir) log(`cliente web servido de ${config.staticDir} → abra http://${config.host === '0.0.0.0' ? '127.0.0.1' : config.host}:${port}/`);
+  if (config.adminToken) log(`painel de administração: /admin${config.adminTokenGenerated ? ` — token gerado nesta execução: ${config.adminToken} (defina ADMIN_TOKEN para fixar)` : ' (token do ADMIN_TOKEN)'}`);
 
   let closed = false;
   return {

@@ -90,6 +90,8 @@ export interface MatchSessionOptions {
   /** Fase 5: modo da partida (pvp, private, bot, custom) e dificuldade do bot. */
   mode?: string;
   botDifficulty?: string | null;
+  /** Fase 7: revanche de outra partida (id). */
+  rematchOf?: string | null;
   /** Fase 5: assentos reservados (só estas contas entram); exige `teamSize` + `setupMap`. */
   reserved?: ReservedSeat[];
   /** Fase 5: chamado uma vez quando a partida termina (recompensas). */
@@ -131,7 +133,7 @@ export class MatchSession {
     this.official = buildScenario(o.catalog, { ...this.initialScenario(), dice: 'random', seed: o.seed, autoStart: false });
     const teams = [...new Set(Object.values(this.official.units).filter((u) => !u.flags.isDummy).map((u) => u.team))].sort();
     this.seats = teams.map((team, seat) => ({ seat, team, account: null, connected: false, sent: null, ack: null, sentHashes: new Map(), divergences: [], history: [], character: null, bot: null }));
-    const created = o.repo.create({ id: this.id, roomId: o.roomId, mapId: o.mapId, state: this.official, seed: o.seed, turnSeconds: o.turnSeconds, hash: stateHash(this.official), mode: o.mode ?? 'custom', botDifficulty: o.botDifficulty ?? null });
+    const created = o.repo.create({ id: this.id, roomId: o.roomId, mapId: o.mapId, state: this.official, seed: o.seed, turnSeconds: o.turnSeconds, hash: stateHash(this.official), mode: o.mode ?? 'custom', botDifficulty: o.botDifficulty ?? null, rematchOf: o.rematchOf ?? null });
     // Bots ocupam o assento desde o início (sempre "conectados").
     for (const r of o.reserved ?? []) {
       const seat = this.seats[r.seat];

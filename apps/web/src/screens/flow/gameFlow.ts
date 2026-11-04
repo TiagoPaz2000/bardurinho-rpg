@@ -7,6 +7,10 @@
  * O cliente só pede; o servidor valida tudo (preço, posse, recompensa, progresso). A sessão da
  * conta fica em `localStorage` (recarregar mantém o login); a sala da partida em
  * `sessionStorage` (recarregar volta à mesma partida).
+ *
+ * Fase 7 (teste externo, quando o servidor liga `playtest`): tela de privacidade/consentimento,
+ * cadastro com código de convite, telemetria (só com consentimento), pesquisa curta depois da
+ * partida, "reportar bug" (com o registro da partida) e **revanche** (bot e PvP), versão do build.
  */
 import {
   COSMETIC_SLOTS,
@@ -21,7 +25,10 @@ import {
   type CosmeticSlot,
 } from '@bardurinho/content';
 import type { GameState } from '@bardurinho/domain';
-import type { CharacterDto, HistoryEntryDto, LobbyStatusDto, MatchRewardDto, MeResponse, MissionDto, ShopItemDto } from '@bardurinho/protocol';
+import type { CharacterDto, HistoryEntryDto, LobbyStatusDto, MatchRewardDto, MeResponse, MissionDto, PlaytestConfigDto, ShopItemDto } from '@bardurinho/protocol';
+import { BUILD_LABEL, IS_PROD } from '../../build.js';
+import { MatchTracker, telemetry } from '../../telemetry/telemetry.js';
+import { showBugReport, showConsent, showSurvey } from './playtest.js';
 import { ApiError, GameApi, loadAccount, newRequestId, saveAccount } from '../../network/api.js';
 import { joinMatch, loadSession, rememberRoom, resumeMatch, saveSession, type Joined, type SavedSession } from '../../network/connect.js';
 import { NetworkMatch } from '../../network/NetworkMatch.js';
@@ -31,6 +38,8 @@ import { portraitHtml } from './portrait.js';
 import { CharacterPreview } from './preview3d.js';
 
 const ROOM_KEY = 'bardurinho.jogo';
+/** Fase 7: partidas cuja pesquisa já foi mostrada nesta aba (não pergunta de novo ao recarregar). */
+const SURVEY_KEY = 'bardurinho.pesquisas';
 const esc = (s: string) => s.replace(/[&<>"']/g, (c) => `&#${c.charCodeAt(0)};`);
 const SLOT_LABEL: Record<CosmeticSlot, string> = { color: 'Cor', outfit: 'Aparência de classe', portrait: 'Retrato', frame: 'Moldura', aura: 'Aura (equipamento)' };
 const MODE_LABEL: Record<string, string> = { bot: 'Contra bot', pvp: 'Online (fila)', private: 'Convite', custom: 'Personalizada' };
@@ -57,7 +66,11 @@ export class GameFlow {
   private busy = false;
   // Login
   private loginTab: 'login' | 'register' = 'login';
-  private form = { username: '', password: '', displayName: '', inviteTo: '' };
+  private form = { username: '', password: '', displayName: '', inviteTo: '', inviteCode: '' };
+  /** Fase 7: configuração do teste externo (servidor). */
+  private cfg: PlaytestConfigDto | null = null;
+  private rematchTimer: ReturnType<typeof setInterval> | null = null;
+  private rematchBox: HTMLDivElement | null = null;
   // Personagem
   private creating = false;
   private draft = { name: '', classId: 'warrior', appearance: { ...DEFAULT_APPEARANCE } as Record<string, string>, accessoryId: null as string | null, consumables: [...DEFAULT_CONSUMABLES] };
@@ -76,6 +89,7 @@ export class GameFlow {
   constructor(private readonly o: GameFlowOptions) {
     const stored = loadAccount();
     this.api = new GameApi(o.serverUrl, stored && stored.serverUrl === o.serverUrl ? stored.token : null);
+    telemetry.setToken(this.api.token);
     this.box = document.createElement('div');
     this.box.className = 'hud-lobby flow';
     o.hudRoot.append(this.box);
@@ -94,6 +108,10 @@ export class GameFlow {
   async start(): Promise<void> {
     document.body.dataset.flow = 'loading';
     this.render();
+    // Fase 7: teste externo — privacidade antes de tudo (uma vez por navegador).
+    this.cfg = await this.api.playtestConfig().catch(() => null);
+    telemetry.configure(this.o.serverUrl, !!this.cfg?.playtest);
+    if (this.cfg?.playtest && telemetry.consent === null) await this.askConsent();
     if (!this.api.token) return this.go('login');
     try {
       this.me = await this.api.me();
@@ -130,6 +148,7 @@ export class GameFlow {
   private go(screen: GameFlow['screen']) {
     this.screen = screen;
     document.body.dataset.flow = screen;
+    telemetry.track('screen_view', { screen });
     if (screen !== 'lobby') this.stopPoll();
     if (screen === 'lobby') {
       this.startPoll();
@@ -195,9 +214,39 @@ export class GameFlow {
       </div>
       <label class="flow-field">Usuário<input name="username" autocomplete="username" value="${esc(f.username)}" data-enter="${reg ? 'register' : 'login'}" placeholder="letras minúsculas, números, _ ou -"></label>
       ${reg ? `<label class="flow-field">Nome de exibição<input name="displayName" value="${esc(f.displayName)}" data-enter="register" placeholder="opcional"></label>` : ''}
+      ${reg && this.cfg?.registration === 'invite' ? `<label class="flow-field">Código de convite<input name="inviteCode" value="${esc(f.inviteCode)}" data-enter="register" placeholder="recebido de quem te convidou (ex.: BARD-XXXXXX)" autocomplete="off"></label>` : ''}
+      ${reg && this.cfg?.registration === 'closed' ? '<div class="flow-msg error">O cadastro está fechado neste servidor.</div>' : ''}
       <label class="flow-field">Senha<input name="password" type="password" autocomplete="${reg ? 'new-password' : 'current-password'}" value="${esc(f.password)}" data-enter="${reg ? 'register' : 'login'}" placeholder="${reg ? 'pelo menos 6 caracteres' : ''}"></label>
       <button type="button" class="hud-button" data-act="${reg ? 'register' : 'login'}" ${this.busy ? 'disabled' : ''}>${reg ? 'Criar conta e entrar' : 'Entrar'}</button>
-      <div class="sub">Servidor <code>${esc(this.o.serverUrl)}</code> · <a href="?mode=local">partida local (depuração)</a> · <a href="?mode=rede">lobby de desenvolvimento</a></div>`;
+      ${
+        IS_PROD
+          ? ''
+          : `<div class="sub">Servidor <code>${esc(this.o.serverUrl)}</code> · <a href="?mode=local">partida local (depuração)</a> · <a href="?mode=rede">lobby de desenvolvimento</a></div>`
+      }
+      ${this.footer(false)}`;
+  }
+
+  /** Fase 7: rodapé com a versão do build, privacidade e "reportar bug" (teste externo). */
+  private footer(withBug: boolean): string {
+    const pt = !!this.cfg?.playtest;
+    return `<div class="flow-foot sub"><span data-build>${esc(BUILD_LABEL)}</span>${pt ? ` · <button type="button" class="link" data-act="privacy">privacidade</button>` : ''}${pt && withBug ? ` · <button type="button" class="link" data-act="bug">reportar bug</button>` : ''}</div>`;
+  }
+
+  /** Fase 7: tela de privacidade (primeira visita ou pelo rodapé). */
+  private async askConsent(): Promise<void> {
+    this.box.hidden = true;
+    const v = await showConsent(this.o.hudRoot, telemetry.consent);
+    this.box.hidden = false;
+    telemetry.setConsent(v);
+    if (this.api.token) void this.api.setConsent(v === 'yes').catch(() => undefined);
+    document.body.dataset.flow = this.screen;
+  }
+
+  /** Fase 7: "reportar bug" (com o registro da partida, se houver). */
+  private async reportBug(matchId: string | null): Promise<void> {
+    telemetry.track('bug_report_open', {}, matchId ?? undefined);
+    const sent = await showBugReport(this.o.hudRoot, { matchId, submit: (b) => this.api.reportBug(b) });
+    if (sent) telemetry.track('bug_report_submit', {}, matchId ?? undefined);
   }
 
   private cosmeticOptions(slot: CosmeticSlot, selected: string, attr: string): string {
@@ -286,7 +335,8 @@ export class GameFlow {
         <div class="flow-head-links"><button type="button" class="link" data-act="switch-char">trocar personagem</button><button type="button" class="link" data-act="logout">sair</button></div>
       </div>
       <div class="opt-seg flow-tabs">${tabs.map(([id, label]) => `<button type="button" data-tab="${id}" class="${this.tab === id ? 'on' : ''}">${label}</button>`).join('')}</div>
-      <div class="flow-tab" data-tab-body="${this.tab}">${this.renderTab()}</div>`;
+      <div class="flow-tab" data-tab-body="${this.tab}">${this.renderTab()}</div>
+      ${this.footer(true)}`;
   }
 
   private renderTab(): string {
@@ -327,7 +377,7 @@ export class GameFlow {
       <div class="flow-section">
         <div class="flow-h">Convidar um amigo</div>
         <div class="flow-inline"><input name="inviteTo" value="${esc(this.form.inviteTo)}" placeholder="usuário ou código de amigo" data-enter="invite"><button type="button" class="hud-button" data-act="invite" ${locked ? 'disabled' : ''}>Convidar</button></div>
-        ${incoming.map((i) => `<div class="flow-invite" data-invite-in="${i.id}">Convite de <b>${esc(i.from.displayName)}</b> (${esc(i.from.username)}) <button type="button" class="hud-button" data-accept="${i.id}" ${locked ? 'disabled' : ''}>Aceitar</button><button type="button" class="hud-button opt-secondary" data-decline="${i.id}">Recusar</button></div>`).join('')}
+        ${incoming.map((i) => `<div class="flow-invite" data-invite-in="${i.id}">${i.rematchOf ? 'Pedido de revanche de' : 'Convite de'} <b>${esc(i.from.displayName)}</b> (${esc(i.from.username)}) <button type="button" class="hud-button" data-accept="${i.id}" ${locked ? 'disabled' : ''}>Aceitar</button><button type="button" class="hud-button opt-secondary" data-decline="${i.id}">Recusar</button></div>`).join('')}
         ${outgoing.map((i) => `<div class="flow-invite sub">Convite para ${esc(i.to.displayName)}: ${i.status === 'pending' ? 'aguardando resposta' : i.status === 'declined' ? 'recusado' : i.status === 'accepted' ? 'aceito' : i.status} ${i.status === 'pending' ? `<button type="button" class="link" data-cancel-invite="${i.id}">cancelar</button>` : ''}</div>`).join('')}
       </div>
       ${st?.match ? '<div class="flow-msg info" data-match-found>Partida encontrada — entrando…</div>' : ''}`;
@@ -404,6 +454,7 @@ export class GameFlow {
     else if (el.name === 'password') this.form.password = el.value;
     else if (el.name === 'displayName') this.form.displayName = el.value;
     else if (el.name === 'inviteTo') this.form.inviteTo = el.value;
+    else if (el.name === 'inviteCode') this.form.inviteCode = el.value;
     else if (el.name === 'charName') this.draft.name = el.value;
   }
 
@@ -487,19 +538,22 @@ export class GameFlow {
           const r = await this.api.login(this.form.username.trim(), this.form.password);
           saveAccount({ serverUrl: this.o.serverUrl, token: r.token, username: r.account.username, ...(r.expiresAt ? { expiresAt: r.expiresAt } : {}) });
           this.form.password = '';
+          this.afterAuth();
           await this.afterLogin();
         });
       case 'register':
         return this.run(async () => {
-          const r = await this.api.register(this.form.username.trim(), this.form.password, this.form.displayName.trim() || undefined);
+          const r = await this.api.register(this.form.username.trim(), this.form.password, this.form.displayName.trim() || undefined, this.form.inviteCode.trim() || undefined);
           saveAccount({ serverUrl: this.o.serverUrl, token: r.token, username: r.account.username, ...(r.expiresAt ? { expiresAt: r.expiresAt } : {}) });
           this.form.password = '';
+          this.afterAuth();
           this.flash('Conta criada! Você ganhou moedas de boas-vindas.');
           await this.afterLogin();
         });
       case 'logout':
         return this.run(async () => {
           await this.api.logout();
+          telemetry.setToken(null);
           saveAccount(null);
           saveSession(null, ROOM_KEY);
           this.me = null;
@@ -545,6 +599,10 @@ export class GameFlow {
         });
       case 'leave-queue':
         return this.run(async () => void (this.status = await this.api.leaveQueue()));
+      case 'privacy':
+        return void this.askConsent().then(() => this.render());
+      case 'bug':
+        return void this.reportBug(null);
       case 'invite':
         return this.run(async () => {
           const inv = await this.api.invite(this.form.inviteTo.trim());
@@ -553,6 +611,13 @@ export class GameFlow {
           this.status = await this.api.lobbyStatus();
         });
     }
+  }
+
+  /** Fase 7: token novo na telemetria e a decisão de privacidade gravada na conta. */
+  private afterAuth() {
+    telemetry.setToken(this.api.token);
+    const c = telemetry.consent;
+    if (this.cfg?.playtest && c) void this.api.setConsent(c === 'yes').catch(() => undefined);
   }
 
   private async afterLogin() {
@@ -639,13 +704,54 @@ export class GameFlow {
     this.box.remove();
     document.body.dataset.flow = 'match';
     const match = new NetworkMatch(catalog, joined.room, joined.snapshot);
+    // Fase 7: telemetria da partida (atritos de interface/câmera, tempo por turno, saída).
+    const playtest = !!this.cfg?.playtest;
+    const botSeat = match.seatList.find((s) => s.bot);
+    const mode = botSeat ? 'bot' : 'pvp';
+    const tracker = new MatchTracker(match.matchId);
+    tracker.attach(this.o.canvas);
+    let started = false;
+    let ended = false;
+    let leaving = false;
+    const onState = () => {
+      const s = match.state;
+      tracker.onState(s.turn.turnId, s.status === 'active', s.status === 'active' && match.canControl(s.turn.activeUnitId));
+      if (s.status === 'active' && !started) {
+        started = true;
+        telemetry.track('match_start', { mode, ...(botSeat?.bot ? { difficulty: botSeat.bot } : {}), resumed: match.version > 1 }, match.matchId);
+      }
+      if (s.status === 'finished' && !ended) {
+        ended = true;
+        telemetry.track('match_end', { mode, outcome: outcomeOf(s, match.team), rounds: s.turn.round }, match.matchId);
+        tracker.finish(false);
+        if (mode === 'pvp') this.watchRematch(match.matchId, backToLobby);
+      }
+    };
+    match.onChange(onState);
+    const leftActive = (reason: string) => {
+      if (match.state.status !== 'active') return;
+      telemetry.track('match_leave', { reason }, match.matchId);
+      tracker.finish(true);
+    };
+    window.addEventListener('pagehide', () => {
+      if (!leaving) leftActive('pagehide');
+    });
     const backToLobby = () => {
+      leaving = true;
+      leftActive('lobby_button');
+      telemetry.flush();
+      this.stopRematch();
       saveSession(null, ROOM_KEY);
       void joined.room.leave().finally(() => {
         const params = new URLSearchParams(location.search);
         location.search = params.toString();
       });
     };
+    onState();
+    /** Pesquisa (uma vez por partida) antes de sair da tela de resultado. */
+    const afterSurvey = (next: () => void) => () => void this.maybeSurvey(match, mode === 'bot').then(next);
+    const rematch = afterSurvey(() => void this.requestRematch(match.matchId, mode, backToLobby));
+    const bug = () => void this.reportBug(match.matchId);
     // Fase 6: partida cancelada antes de começar (o adversário não entrou no prazo) — volta ao
     // lobby, onde o servidor já devolveu este jogador à fila.
     joined.room.onLeave((code: number) => {
@@ -656,10 +762,14 @@ export class GameFlow {
     const screen = startArenaScreen(this.o.canvas, this.o.hudRoot, catalog, patioDasRuinas, {
       match,
       leave: backToLobby,
+      telemetry: tracker,
+      ...(playtest ? { reportBug: bug } : {}),
       game: {
         endActions: [
-          { id: 'rewards', label: 'Ver recompensas', run: () => this.showRewards(match, backToLobby) },
-          { id: 'lobby', label: 'Voltar ao lobby', secondary: true, run: backToLobby },
+          { id: 'rewards', label: 'Ver recompensas', run: () => this.showRewards(match, { back: afterSurvey(backToLobby), rematch, bug: playtest ? bug : null }) },
+          { id: 'rematch', label: 'Revanche', run: rematch },
+          { id: 'lobby', label: 'Voltar ao lobby', secondary: true, run: afterSurvey(backToLobby) },
+          ...(playtest ? [{ id: 'bug', label: 'Reportar bug', secondary: true, run: bug }] : []),
         ],
         endSubtitle: (state: GameState) => {
           const r = state.result;
@@ -673,7 +783,103 @@ export class GameFlow {
   }
 
   /** Tela de recompensas (depois do resultado): calculada pelo servidor; volta ao lobby. */
-  private showRewards(match: NetworkMatch, back: () => void) {
+  // -------------------------------------------------------------------------
+  // Fase 7: pesquisa e revanche
+  // -------------------------------------------------------------------------
+
+  private surveyed(): Set<string> {
+    try {
+      return new Set(JSON.parse(sessionStorage.getItem(SURVEY_KEY) ?? '[]') as string[]);
+    } catch {
+      return new Set();
+    }
+  }
+
+  /** Pesquisa curta (teste externo), uma vez por partida terminada. */
+  private async maybeSurvey(match: NetworkMatch, vsBot: boolean): Promise<void> {
+    if (!this.cfg?.playtest || match.state.status !== 'finished') return;
+    const done = this.surveyed();
+    if (done.has(match.matchId)) return;
+    done.add(match.matchId);
+    sessionStorage.setItem(SURVEY_KEY, JSON.stringify([...done].slice(-50)));
+    telemetry.track('survey_open', {}, match.matchId);
+    const outcome = outcomeOf(match.state, match.team);
+    const r = await showSurvey(this.o.hudRoot, {
+      matchId: match.matchId,
+      vsBot,
+      outcomeLabel: OUTCOME_LABEL[outcome] ?? outcome,
+      submit: async (input) => void (await this.api.submitSurvey(input)),
+    });
+    telemetry.track(r === 'sent' ? 'survey_submit' : 'survey_skip', {}, match.matchId);
+  }
+
+  /**
+   * "Revanche": contra o bot a partida nova nasce na hora; no PvP vira um pedido ao adversário
+   * (quando os dois pedem, ou ele aceita, a partida nasce). Entrar = recarregar a página, que
+   * encontra a partida montada no lobby (mesmo caminho de "Voltar ao lobby").
+   */
+  private async requestRematch(matchId: string, mode: string, go: () => void): Promise<void> {
+    telemetry.track('rematch_click', { mode }, matchId);
+    try {
+      const r = await this.api.rematch(matchId);
+      if (r.status === 'created') return go();
+      this.showRematchBox(`Revanche pedida — aguardando <b>${esc(r.opponent)}</b>… <button type="button" class="link" data-rematch-cancel="${r.inviteId}">cancelar</button>`);
+      this.watchRematch(matchId, go);
+    } catch (err) {
+      this.showRematchBox(`<span class="bad">${esc(err instanceof Error ? err.message : String(err))}</span>`);
+    }
+  }
+
+  private showRematchBox(html: string | null) {
+    if (!html) {
+      this.rematchBox?.remove();
+      this.rematchBox = null;
+      return;
+    }
+    if (!this.rematchBox) {
+      this.rematchBox = document.createElement('div');
+      this.rematchBox.className = 'hud-panel flow-rematch';
+      this.rematchBox.dataset.rematch = '1';
+      this.o.hudRoot.append(this.rematchBox);
+      this.rematchBox.addEventListener('click', (e) => {
+        const b = (e.target as HTMLElement).closest<HTMLElement>('button');
+        if (!b) return;
+        if (b.dataset.rematchAccept) void this.api.acceptInvite(b.dataset.rematchAccept).then(() => this.rematchGo?.(), (err: unknown) => this.showRematchBox(esc(String((err as Error).message ?? err))));
+        if (b.dataset.rematchDecline) void this.api.declineInvite(b.dataset.rematchDecline).then(() => this.showRematchBox(null));
+        if (b.dataset.rematchCancel) void this.api.cancelInvite(b.dataset.rematchCancel).then(() => this.showRematchBox('Pedido de revanche cancelado.'));
+      });
+    }
+    if (this.rematchBox.innerHTML !== html) this.rematchBox.innerHTML = html;
+  }
+
+  private rematchGo: (() => void) | null = null;
+
+  /** PvP: acompanha pedidos de revanche (do adversário ou o nosso) e entra quando a partida nasce. */
+  private watchRematch(matchId: string, go: () => void) {
+    this.rematchGo = go;
+    if (this.rematchTimer) return;
+    this.rematchTimer = setInterval(async () => {
+      const st = await this.api.lobbyStatus().catch(() => null);
+      if (!st) return;
+      if (st.match) {
+        this.stopRematch();
+        return go();
+      }
+      const inc = st.invites.incoming.find((i) => i.rematchOf === matchId && i.status === 'pending');
+      const out = st.invites.outgoing.find((i) => i.rematchOf === matchId);
+      if (inc) this.showRematchBox(`<b>${esc(inc.from.displayName)}</b> quer revanche! <button type="button" class="hud-button" data-rematch-accept="${inc.id}">Aceitar revanche</button> <button type="button" class="link" data-rematch-decline="${inc.id}">recusar</button>`);
+      else if (out?.status === 'pending') this.showRematchBox(`Revanche pedida — aguardando <b>${esc(out.to.displayName)}</b>… <button type="button" class="link" data-rematch-cancel="${out.id}">cancelar</button>`);
+      else if (out && out.status !== 'accepted') this.showRematchBox(`${esc(out.to.displayName)} não aceitou a revanche.`);
+    }, 1000);
+  }
+
+  private stopRematch() {
+    if (this.rematchTimer) clearInterval(this.rematchTimer);
+    this.rematchTimer = null;
+  }
+
+  private showRewards(match: NetworkMatch, act: { back: () => void; rematch: () => void; bug: (() => void) | null }) {
+    const back = act.back;
     const overlay = document.createElement('div');
     overlay.className = 'hud-lobby flow';
     this.o.hudRoot.append(overlay);
@@ -699,11 +905,13 @@ export class GameFlow {
            }
            ${r.unlocked.length ? `<div class="flow-new" data-unlocked>Desbloqueado: ${r.unlocked.map((id) => esc(cosmeticsById[id]?.name ?? id)).join(', ')}</div>` : ''}`
         : '<div class="flow-title">Recompensas</div><div class="sub" data-reward-wait>Calculando recompensas no servidor…</div>';
-      overlay.innerHTML = `<div class="hud-panel flow-box flow-rewards" data-screen="rewards">${body}<div class="flow-actions"><button type="button" class="hud-button" data-act="back-lobby">Voltar ao lobby</button></div></div>`;
+      overlay.innerHTML = `<div class="hud-panel flow-box flow-rewards" data-screen="rewards">${body}<div class="flow-actions"><button type="button" class="hud-button" data-act="rematch">Revanche</button><button type="button" class="hud-button" data-act="back-lobby">Voltar ao lobby</button></div>${act.bug ? '<div class="flow-foot sub"><button type="button" class="link" data-act="bug">reportar bug</button></div>' : ''}</div>`;
     };
     draw(match.rewards);
     overlay.addEventListener('click', (e) => {
       if ((e.target as HTMLElement).closest('[data-act="back-lobby"]')) back();
+      if ((e.target as HTMLElement).closest('[data-act="rematch"]')) act.rematch();
+      if ((e.target as HTMLElement).closest('[data-act="bug"]')) act.bug?.();
     });
     const off = match.onRewards((r) => draw(r));
     // Sem a mensagem (ex.: recarregou no fim): pergunta ao servidor.
@@ -722,6 +930,13 @@ export class GameFlow {
       );
     }, 1500);
   }
+}
+
+/** Resultado do ponto de vista da equipe (victory / defeat / draw). */
+function outcomeOf(state: GameState, team: string): string {
+  const r = state.result;
+  if (!r) return 'unknown';
+  return r.kind === 'victory' ? (r.winnerTeam === team ? 'victory' : 'defeat') : 'draw';
 }
 
 function toggleConsumable(list: string[], id: string): string[] {

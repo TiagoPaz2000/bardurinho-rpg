@@ -2,7 +2,7 @@
 
 MVP de um RPG tático por turnos para navegador. Plano completo em [docs/plano_mvp_rpg_tatico.md](docs/plano_mvp_rpg_tatico.md).
 
-**Fase atual:** 5 — Ciclo completo do jogo ([fase 5](docs/fase-05.md); anteriores: [1](docs/fase-01.md), [2](docs/fase-02.md), [3](docs/fase-03.md), [4](docs/fase-04.md)).
+**Fase atual:** 7 — Teste externo do MVP ([fase 7](docs/fase-07.md): kit do teste pronto, critério pendente até haver testadores reais; anteriores: [1](docs/fase-01.md), [2](docs/fase-02.md), [3](docs/fase-03.md), [4](docs/fase-04.md), [5](docs/fase-05.md), [6](docs/fase-06.md)).
 
 ```bash
 npm install
@@ -16,6 +16,9 @@ npm run e2e:rede          # critério da Fase 3: partida completa entre dois cli
 npm run e2e:rede-ui       # idem pela interface, em dois Chrome headless (precisa do npm run web)
 npm run e2e:ciclo         # critério da Fase 5: cadastro → personagem → loja → bot → recompensas → lobby + fila/convite
 npm run bots:sim          # simulação em lote bot × bot (fácil/normal/difícil)
+npm run start:prod        # Fase 7: teste externo — build de produção + servidor num endereço só (ou start-playtest.cmd)
+npm run metrics:report    # Fase 7: relatório de métricas do teste (painel em /admin)
+npm run e2e:playtest      # Fase 7: e2e do build de produção (consentimento → convite → bot → pesquisa → revanche)
 ```
 
 Monorepo com npm workspaces: `packages/domain` (regras), `packages/content` (catálogo), `packages/protocol` (rede e API HTTP), `packages/ai` (bots), `apps/combat-debug-lab` (laboratório 2D), `apps/web` (cliente 3D Babylon.js), `apps/server` (servidor autoritativo Colyseus + PostgreSQL/PGlite).

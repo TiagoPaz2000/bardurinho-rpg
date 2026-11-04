@@ -19,11 +19,18 @@ import { startArenaScreen, type ArenaScreen } from './screens/arenaScreen.js';
 import { showLobby } from './screens/lobby.js';
 import { encodeSetup, showLocalSetup } from './screens/matchSetup.js';
 import { GameFlow } from './screens/flow/gameFlow.js';
+import { BUILD_LABEL } from './build.js';
 import './style.css';
 
 const canvas = document.getElementById('renderCanvas') as HTMLCanvasElement;
 const hudRoot = document.getElementById('hud') as HTMLElement;
 const params = new URLSearchParams(location.search);
+// Fase 7: versão do build sempre visível (canto da tela) — relatórios de bug citam a versão.
+const buildTag = document.createElement('div');
+buildTag.className = 'build-tag';
+buildTag.dataset.build = BUILD_LABEL;
+buildTag.textContent = BUILD_LABEL;
+hudRoot.append(buildTag);
 const direct = params.has('setup') || params.has('seed') || params.has('units');
 const mode = params.get('mode') === 'rede' || params.get('mode') === 'network' ? 'rede' : params.get('mode') === 'local' || direct ? 'local' : 'jogo';
 

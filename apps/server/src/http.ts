@@ -13,10 +13,19 @@
  *   GET  /debug/matches/:id/export     (dev, Fase 6) relatório de bug: snapshot 0 + comandos aceitos
  *                                      (vira cenário de regressão no Combat Debug Lab)
  *   GET  /debug/metrics                (dev, Fase 6) tempos do core/banco/envio, memória, divergências
+ *   Fase 7 (teste externo): /playtest/config, /telemetry/*, /feedback/*, /lobby/rematch, /admin/*
+ *   (ver packages/protocol/src/playtest.ts e adminRoutes.ts) e o cliente web de produção como
+ *   arquivos estáticos (STATIC_DIR) na mesma porta.
  */
-import type { Application, NextFunction, Request, Response } from 'express';
+import { existsSync, readFileSync, statSync } from 'node:fs';
+import { extname, resolve, sep } from 'node:path';
+import { gzipSync } from 'node:zlib';
+import express, { type Application, type NextFunction, type Request, type Response } from 'express';
 import { matchMaker } from '@colyseus/core';
-import { MATCH_ROOM, stateHash, type LoginResponse, type MeResponse } from '@bardurinho/protocol';
+import { BUG_CATEGORIES, MATCH_ROOM, PLAY_AGAIN, parseTelemetryBatch, sanitizeProps, stateHash, type LoginResponse, type MeResponse, type PlaytestConfigDto } from '@bardurinho/protocol';
+import { InviteCodeError } from './db/accounts.js';
+import { markActiveDay } from './db/playtest.js';
+import { registerAdminRoutes } from './adminRoutes.js';
 import { WELCOME_COINS, passwordProblem, usernameProblem } from '@bardurinho/content';
 import type { Account } from './db/repositories.js';
 import { LobbyError } from './modules/lobby/LobbyService.js';
@@ -27,7 +36,7 @@ import { RateLimiter } from './modules/security/RateLimiter.js';
 import { metrics } from './metrics.js';
 import type { ServerServices } from './services.js';
 
-const ROUTE_PREFIXES = ['/health', '/auth', '/rooms', '/debug', '/me', '/characters', '/shop', '/missions', '/matches', '/lobby'];
+const ROUTE_PREFIXES = ['/health', '/auth', '/rooms', '/debug', '/me', '/characters', '/shop', '/missions', '/matches', '/lobby', '/playtest', '/telemetry', '/feedback', '/admin'];
 
 /** Token da sessão: `Authorization: Bearer <token>`. */
 const bearer = (req: Request): string => {
@@ -60,15 +69,28 @@ async function me(svc: ServerServices, accountId: string): Promise<MeResponse> {
   };
 }
 
-/** IP do pedido (sem proxy reverso no MVP: o endereço do socket). */
-const clientIp = (req: Request): string => req.socket.remoteAddress ?? 'desconhecido';
+/**
+ * IP do pedido (limites por IP): o endereço do socket. Fase 7: atrás de um túnel/proxy reverso
+ * (`TRUST_PROXY=1`) vale o primeiro endereço de `X-Forwarded-For` — senão todos os testadores
+ * chegariam com o IP do túnel e dividiriam o mesmo limite. Nunca é gravado no banco.
+ */
+let trustProxy = false;
+const clientIp = (req: Request): string => {
+  const fwd = trustProxy ? String(req.headers['x-forwarded-for'] ?? '').split(',')[0]!.trim() : '';
+  return fwd || (req.socket.remoteAddress ?? 'desconhecido');
+};
 
 export function registerRoutes(app: Application, svc: ServerServices): void {
   // Fase 6: limites de autenticação (força bruta / cadastro em massa).
+  trustProxy = svc.config.trustProxy;
   const rl = svc.config.rateLimit;
   const loginFailures = new RateLimiter(rl.loginFailuresPerUser, 5 * 60_000);
   const loginPerIp = new RateLimiter(rl.loginPerIpPerMinute, 60_000);
   const registerPerIp = new RateLimiter(rl.registerPerIpPer10Min, 10 * 60_000);
+  // Fase 7: telemetria e relatórios de bug também têm teto (lixo/abuso não enche o banco).
+  // Atrás de um túnel todos chegam pelo mesmo IP: o teto é folgado (≈ 30 testadores enviando a cada 10 s).
+  const telemetryPerIp = new RateLimiter(rl.loginPerIpPerMinute ? 1200 : 0, 60_000);
+  const bugsPerAccount = new RateLimiter(rl.loginPerIpPerMinute ? 10 : 0, 10 * 60_000);
   const tooMany = (res: Response, seconds: number, what: string) => {
     res.setHeader('Retry-After', String(seconds));
     res.status(429).json({ error: `Muitas tentativas de ${what}: tente de novo em ${seconds} s` });
@@ -90,7 +112,13 @@ export function registerRoutes(app: Application, svc: ServerServices): void {
 
   app.get('/health', async (_req, res) => {
     const ok = await svc.db.query('SELECT 1 AS ok').then(() => true, () => false);
-    res.json({ ok, db: svc.db.kind, rooms: svc.rooms.size, dev: svc.config.dev });
+    res.json({ ok, db: svc.db.kind, rooms: svc.rooms.size, dev: svc.config.dev, build: svc.build });
+  });
+
+  // Fase 7: o que o cliente precisa saber antes do login (consentimento, convite, versão).
+  app.get('/playtest/config', (_req, res) => {
+    const body: PlaytestConfigDto = { playtest: svc.config.playtest, registration: svc.config.registration, build: svc.build, contentVersion: svc.catalog.contentVersion };
+    res.json(body);
   });
 
   app.post('/auth/login', jsonBody, async (req, res) => {
@@ -120,13 +148,22 @@ export function registerRoutes(app: Application, svc: ServerServices): void {
   // ---------------------------------------------------------------------------
 
   app.post('/auth/register', jsonBody, async (req, res) => {
-    const { username, password, displayName } = (req.body ?? {}) as Record<string, unknown>;
+    const { username, password, displayName, inviteCode } = (req.body ?? {}) as Record<string, unknown>;
     const ip = clientIp(req);
     if (!registerPerIp.hit(ip)) return tooMany(res, registerPerIp.retryAfter(ip), 'cadastro');
+    // Fase 7: grupo controlado — cadastro fechado ou só com código de convite.
+    if (svc.config.registration === 'closed') return void res.status(403).json({ error: 'Cadastro fechado neste servidor' });
     const problem = usernameProblem(username) ?? passwordProblem(password);
     if (problem) return void res.status(400).json({ error: problem });
     const name = typeof displayName === 'string' && displayName.trim() ? displayName.trim().slice(0, 24) : String(username);
-    const account = await svc.accounts.register(String(username), String(password), name, WELCOME_COINS);
+    const code = typeof inviteCode === 'string' && inviteCode.trim() ? inviteCode : null;
+    let account;
+    try {
+      account = await svc.accounts.register(String(username), String(password), name, WELCOME_COINS, { code, required: svc.config.registration === 'invite' });
+    } catch (err) {
+      if (err instanceof InviteCodeError) return void res.status(403).json({ error: err.message });
+      throw err;
+    }
     if (!account) return void res.status(409).json({ error: 'Esse usuário já existe' });
     const session = await svc.accounts.openSession(account.id);
     svc.log(`[conta] cadastro de ${account.username}`);
@@ -139,7 +176,11 @@ export function registerRoutes(app: Application, svc: ServerServices): void {
     res.json({ ok: true });
   });
 
-  app.get('/me', authed(svc, (_req, _res, a) => me(svc, a.id)));
+  app.get('/me', authed(svc, async (_req, _res, a) => {
+    // Fase 7: dia ativo (retorno D1/D7).
+    if (a.kind === 'player') await markActiveDay(svc.db, a.id).catch(() => undefined);
+    return me(svc, a.id);
+  }));
 
   app.post('/characters', jsonBody, authed(svc, async (req, res, a) => {
     const c = await svc.progression.createCharacter(a.id, (req.body ?? {}) as Record<string, unknown>);
@@ -186,6 +227,142 @@ export function registerRoutes(app: Application, svc: ServerServices): void {
     svc.lobby.respond(a, String(req.params.id), 'cancel');
     return svc.lobby.status(a);
   }));
+
+  // ---------------------------------------------------------------------------
+  // Fase 7: revanche, telemetria (com consentimento), pesquisa e bug
+  // ---------------------------------------------------------------------------
+
+  app.post('/lobby/rematch', jsonBody, authed(svc, (req, _res, a) => svc.lobby.rematch(a, (req.body as Record<string, unknown>)?.matchId)));
+
+  app.post('/telemetry/events', jsonBodyOf(32 * 1024), async (req, res) => {
+    if (!svc.config.playtest) return void res.status(404).json({ error: 'Telemetria desligada' });
+    const ip = clientIp(req);
+    if (!telemetryPerIp.hit(ip)) return tooMany(res, telemetryPerIp.retryAfter(ip), 'envio');
+    const parsed = parseTelemetryBatch(req.body);
+    if (!parsed.ok) return void res.status(400).json({ error: parsed.error });
+    try {
+      const token = bearer(req);
+      const account = token ? await svc.accounts.bySession(token) : null;
+      const analyticsId = account && account.kind !== 'bot' ? await svc.playtest.analyticsId(account.id) : null;
+      const accepted = await svc.playtest.insertEvents(parsed.batch, analyticsId);
+      res.status(202).json({ ok: true, accepted });
+    } catch (err) {
+      svc.log(`[telemetria] ${String(err)}`);
+      res.status(500).json({ error: 'Erro interno' });
+    }
+  });
+
+  app.post('/telemetry/consent', jsonBody, authed(svc, async (req, _res, a) => {
+    const consent = (req.body as Record<string, unknown>)?.consent;
+    if (typeof consent !== 'boolean') throw new ProgressionError('Informe consent: true/false');
+    await svc.playtest.setConsent(a.id, consent);
+    return { ok: true };
+  }));
+
+  app.post('/feedback/survey', jsonBody, authed(svc, async (req, res, a) => {
+    if (!svc.config.playtest) return void res.status(404).json({ error: 'Pesquisa desligada' });
+    const b = (req.body ?? {}) as Record<string, unknown>;
+    const matchId = typeof b.matchId === 'string' && b.matchId.length <= 64 ? b.matchId : '';
+    const seat = matchId
+      ? (await svc.db.query<{ team: string; class_id: string | null }>("SELECT team, character->>'classId' AS class_id FROM match_players WHERE match_id = $1 AND account_id = $2", [matchId, a.id]))[0]
+      : undefined;
+    if (!seat) throw new ProgressionError('Partida não encontrada', 404);
+    const scale = (v: unknown, lo: number, hi: number) => (typeof v === 'number' && Number.isInteger(v) && v >= lo && v <= hi ? v : null);
+    const fun = scale(b.fun, 1, 5);
+    if (fun === null) throw new ProgressionError('Dê uma nota de diversão de 1 a 5');
+    const m = await svc.matches.get(matchId);
+    const info = await svc.matches.mode(matchId);
+    const r = m?.result;
+    const outcome = !r ? null : r.kind === 'victory' ? (r.winnerTeam === seat.team ? 'victory' : 'defeat') : 'draw';
+    const playAgain = (PLAY_AGAIN as readonly unknown[]).includes(b.playAgain) ? (b.playAgain as string) : null;
+    const analyticsId = (await svc.playtest.analyticsId(a.id))!;
+    const inserted = await svc.playtest.insertSurvey({
+      matchId,
+      analyticsId,
+      mode: info?.mode ?? null,
+      botDifficulty: info?.botDifficulty ?? null,
+      outcome,
+      classId: seat.class_id,
+      fun,
+      clarity: scale(b.clarity, 1, 5),
+      camera: scale(b.camera, 1, 5),
+      balance: scale(b.balance, -2, 2),
+      botRating: info?.mode === 'bot' ? scale(b.botRating, 1, 5) : null,
+      playAgain,
+      comment: cleanText(b.comment, 500),
+      build: typeof b.build === 'string' ? b.build.slice(0, 64) : null,
+    });
+    return { ok: true, duplicate: !inserted };
+  }));
+
+  app.post('/feedback/bug', jsonBody, authed(svc, async (req, res, a) => {
+    if (!svc.config.playtest) return void res.status(404).json({ error: 'Relatório de bug desligado' });
+    if (!bugsPerAccount.hit(a.id)) return tooMany(res, bugsPerAccount.retryAfter(a.id), 'relatório de bug');
+    const b = (req.body ?? {}) as Record<string, unknown>;
+    const description = cleanText(b.description, 2000);
+    if (!description || description.length < 3) throw new ProgressionError('Descreva o problema em poucas palavras');
+    const category = (BUG_CATEGORIES as readonly unknown[]).includes(b.category) ? (b.category as string) : 'outro';
+    let matchId: string | null = typeof b.matchId === 'string' && b.matchId.length <= 64 ? b.matchId : null;
+    // O relatório da partida (Fase 6) só é anexado se a conta jogou nela; fica só no servidor.
+    let report: unknown = null;
+    if (matchId) {
+      const players = await svc.matches.players(matchId);
+      if (players.some((p) => p.accountId === a.id)) report = await buildBugReport(svc.matches, matchId);
+      else matchId = null;
+    }
+    const id = await svc.playtest.insertBug({
+      analyticsId: await svc.playtest.analyticsId(a.id),
+      matchId,
+      category,
+      description,
+      client: sanitizeProps(b.client),
+      report,
+      build: typeof b.build === 'string' ? b.build.slice(0, 64) : null,
+    });
+    svc.log(`[feedback] bug ${id.slice(0, 8)} (${category})${report ? ' com relatório da partida' : ''}`);
+    return { ok: true, id, attached: !!report };
+  }));
+
+  registerAdminRoutes(app, svc);
+
+  // Fase 7: cliente web de produção (vite build) na mesma porta — um endereço só para o teste.
+  if (svc.config.staticDir) {
+    const dir = resolve(svc.config.staticDir);
+    // Texto (JS de ~8 MB, HTML, JSON) comprimido uma vez em memória: faz diferença num túnel.
+    const gz = new Map<string, Buffer>();
+    app.use((req: Request, res: Response, next: NextFunction) => {
+      if ((req.method !== 'GET' && req.method !== 'HEAD') || !/\bgzip\b/.test(String(req.headers['accept-encoding'] ?? ''))) return next();
+      let rel: string;
+      try {
+        rel = decodeURIComponent(req.path);
+      } catch {
+        return next();
+      }
+      if (rel.endsWith('/')) rel += 'index.html';
+      if (!/\.(js|css|html|json|svg|txt)$/.test(rel)) return next();
+      const file = resolve(dir, `.${rel}`);
+      if (!file.startsWith(dir + sep) || !existsSync(file) || !statSync(file).isFile()) return next();
+      let buf = gz.get(file);
+      if (!buf) gz.set(file, (buf = gzipSync(readFileSync(file))));
+      res.setHeader('Content-Encoding', 'gzip');
+      res.setHeader('Vary', 'Accept-Encoding');
+      res.setHeader('X-Content-Type-Options', 'nosniff');
+      res.setHeader('Cache-Control', rel.endsWith('index.html') ? 'no-cache' : 'public, max-age=3600');
+      res.type(extname(file));
+      res.send(buf);
+    });
+    app.use(
+      express.static(dir, {
+        index: 'index.html',
+        maxAge: '1h',
+        setHeaders: (res, path) => {
+          res.setHeader('X-Content-Type-Options', 'nosniff');
+          res.setHeader('Referrer-Policy', 'no-referrer');
+          if (path.endsWith('index.html')) res.setHeader('Cache-Control', 'no-cache');
+        },
+      }),
+    );
+  }
 
   app.get('/rooms', async (_req, res) => {
     const rooms = await matchMaker.query({ name: MATCH_ROOM });
@@ -277,13 +454,30 @@ export function registerRoutes(app: Application, svc: ServerServices): void {
   });
 }
 
+/** Texto livre do jogador: sem caracteres de controle (exceto quebra de linha), limitado. */
+function cleanText(v: unknown, max: number): string | null {
+  if (typeof v !== 'string') return null;
+  // eslint-disable-next-line no-control-regex
+  const s = v.replace(/[\u0000-\u0009\u000B-\u001F\u007F]/g, '').trim().slice(0, max);
+  return s || null;
+}
+
 /** Corpo JSON pequeno (sem depender do body-parser do Express). */
 function jsonBody(req: Request, res: Response, next: NextFunction): void {
+  readJson(req, res, next, 8192);
+}
+
+/** Fase 7: o mesmo com outro limite (lotes de telemetria). Aceita qualquer Content-Type (sendBeacon). */
+function jsonBodyOf(limit: number) {
+  return (req: Request, res: Response, next: NextFunction): void => readJson(req, res, next, limit);
+}
+
+function readJson(req: Request, res: Response, next: NextFunction, limit: number): void {
   let raw = '';
   req.setEncoding('utf8');
   req.on('data', (chunk: string) => {
     raw += chunk;
-    if (raw.length > 8192) req.destroy();
+    if (raw.length > limit) req.destroy();
   });
   req.on('end', () => {
     try {
