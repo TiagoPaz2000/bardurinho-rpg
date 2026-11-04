@@ -106,18 +106,35 @@ O projétil vem da arte editável `art/vfx/fireball/fireball-stylized.blend`. O 
 deixando a fumaça de fora porque o jogo pinta cada GLB com uma cor só. Ele aponta a cabeça para +Z,
 reduz o modelo a 1 400 triângulos (orçamento de efeito) e acrescenta a entrada ao manifesto sem
 reconstruir os outros efeitos. No jogo, a bola sobe em arco e cai no centro da área, maior que os
-outros projéteis. Ao tocar o chão, toca `explosion(center, area)`: clarão, onda de choque até a
-borda e as 3×3 células acendendo. A área chega em `ABILITY_USED.payload.area`. Cada teste de
-resistência (`SAVE_ROLLED`) mostra um selo sobre o personagem: "Resistência 14 vs CD 13 — PASSOU,
-metade do dano" ou "FALHOU". A animação de impacto no chão (`art/vfx/fireball-impact/`) continua
-como referência em .blend/MP4: o fogo que fica é o estado Queimando e as reações de calor, que já
-têm efeitos próprios.
+outros projéteis. Ao tocar o chão, toca `fireballImpact(center, area)` com a animação de impacto do
+Blender (`art/vfx/fireball-impact/fireball-impact.blend`, quadros 20–120 = ~4,2 s). A área chega em
+`ABILITY_USED.payload.area`. Cada teste de resistência (`SAVE_ROLLED`) mostra um selo sobre o
+personagem: "Resistência 14 vs CD 13 — PASSOU, metade do dano" ou "FALHOU".
+
+#### Impacto da Bola de fogo (`explosion.fireball`)
+
+`tools/vfx/export_fireball_impact.py` gera duas peças a partir do quadro do impacto:
+
+- `explosion.fireball.glb` (~7 000 triângulos, acima do orçamento de efeito de 1 500 por ser o
+  efeito principal do Mago e durar poucos segundos): a estrela do clarão, as pontas laranja, a
+  onda de choque e as 46 chamas, com as escalas animadas e as shape keys das chamas (morph targets).
+  As chamas perdem a subdivisão (shape keys não saem com modificador) e levam o degradê do material
+  como cor de vértice. Um plano `Chao | decal` traz as UVs do flipbook.
+- `explosion.fireball.ground.png`: o chão procedural (raio, Noise 4D, erosão) não cabe no glTF, então
+  a câmera de topo o renderiza num flipbook 8×8 (64 quadros de 256 px, fundo transparente).
+
+No jogo, as animações do glTF e o flipbook andam pelo mesmo relógio (fora do ritmo rápido); o anel
+apaga como no shader do Blender. Fumaça, faíscas e brasas usam as partículas do jogo, e a luz do
+impacto fica de fora (luz nova recompila os materiais da cena). A ação segue após o clarão
+(0,45 s); o fogo termina sozinho. `explosion()` continua para as explosões de barril. O fogo que
+fica depois é o estado Queimando e as reações de calor, que têm efeitos próprios.
 
 ## Reprodução e verificação
 
 ```powershell
 & 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --python tools/vfx/build.py
 & 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background art/vfx/fireball/fireball-stylized.blend --disable-autoexec --python tools/vfx/export_fireball_glb.py
+& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background art/vfx/fireball-impact/fireball-impact.blend --disable-autoexec --python tools/vfx/export_fireball_impact.py  # ~5 min; `-- --glb-only` pula o flipbook
 npx.cmd tsx tools/vfx/verify.ts
 npm.cmd run typecheck
 npm.cmd test
@@ -125,7 +142,7 @@ npm.cmd run build -w @bardurinho/web
 ```
 
 A animação é controlada pelo cliente Babylon; os GLBs contêm geometria e materiais,
-sem clipes de animação. A fonte Blender permite ajustar as formas; o script reproduz
+sem clipes de animação (exceto `explosion.fireball`, que traz os clipes do Blender). A fonte Blender permite ajustar as formas; o script reproduz
 os assets originais de maneira determinística e sobrescreve os arquivos gerados.
 O teste de assets usa Babylon NullEngine para validar carregamento, cobertura do
 catálogo, descarte das instâncias e cancelamento ao encerrar a cena. Ele não substitui

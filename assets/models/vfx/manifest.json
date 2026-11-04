@@ -113,5 +113,18 @@
     "path": "models/vfx/projectile.fireball.glb",
     "shape": "fireball",
     "color": "#ff5a12"
+  },
+  "explosion.fireball": {
+    "path": "models/vfx/explosion.fireball.glb",
+    "shape": "impact",
+    "color": "#ff890b",
+    "ground": "models/vfx/explosion.fireball.ground.png",
+    "fps": 24,
+    "frames": 100,
+    "flipbook": {
+      "grid": 8,
+      "tile": 256,
+      "extent": 10.0
+    }
   }
 }

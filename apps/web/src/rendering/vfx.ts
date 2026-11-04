@@ -19,7 +19,7 @@
  * `{ miss: true }` — o projétil desvia para o lado do alvo, passa direto e some; golpes
  * corpo a corpo não mostram o corte no alvo; o alvo se esquiva (`dodge`).
  */
-import { Color3, MeshBuilder, TransformNode, Vector3, type AbstractMesh, type Mesh, type Scene } from '@babylonjs/core';
+import { Color3, MeshBuilder, StandardMaterial, Texture, TransformNode, Vector3, type AbstractMesh, type AnimationGroup, type Mesh, type Scene } from '@babylonjs/core';
 import { catalog } from '@bardurinho/content';
 import type { Coord, GameEvent, GameState } from '@bardurinho/domain';
 import { bell, easeOut, tween, wait } from './anim.js';
@@ -35,8 +35,17 @@ const FALLBACK_COLORS: Record<string, string> = {
   'barrier.arcane': '#b491ff', 'stealth.transition': '#8063be', 'surface.thorns': '#86bd41', 'status.roots': '#b6d75c',
   'heal.nature': '#91ffad', 'item.health': '#ff729a', 'item.focus': '#65bdff', 'item.oil': '#a58c54',
   'damage.physical': '#ff6653', 'damage.fire': '#ff901e', 'damage.cold': '#a3f5ff', 'damage.arcane': '#c38aff',
-  'damage.nature': '#aeeb61', 'explosion.fire': '#ffac35',
+  'damage.nature': '#aeeb61', 'explosion.fire': '#ffac35', 'explosion.fireball': '#ff890b',
 };
+
+/** Impacto da Bola de fogo (Blender): GLB animado + flipbook do chão, a partir do quadro 20. */
+const IMPACT_ID = 'explosion.fireball';
+/** Raio máximo da frente de fogo na arte (m). */
+const IMPACT_RADIUS = 3.85;
+/** Flipbook 8×8 (64 quadros do impacto ao fim). */
+const IMPACT_GRID = 8;
+/** 100 quadros do Blender a 24 fps. */
+const IMPACT_SECONDS = 100 / 24;
 
 const ITEM_EFFECTS: Record<string, { vfx: string; anim: UnitAnimationId }> = {
   'consumable.health_potion': { vfx: 'item.health', anim: 'cast_self' },
@@ -120,6 +129,8 @@ export class CombatVfx {
   shake: ((amplitude: number, seconds: number) => void) | null = null;
   /** Explosão mais recente da reprodução atual (direção do recuo de quem foi atingido). */
   private lastBlast: { center: Vector3; via: string | null } | null = null;
+  private flameMat: StandardMaterial | null = null;
+  private groundTex: Texture | null = null;
 
   constructor(private readonly arena: ArenaView) {
     this.ready = this.preload();
@@ -139,6 +150,7 @@ export class CombatVfx {
     } catch {
       /* cores de reserva */
     }
+    if (!this.scene.isDisposed) this.groundFlipbook();
     await Promise.all(
       Object.keys(this.colors).map((id) =>
         this.arena.models.load(`/models/vfx/${id}.glb`).then(
@@ -159,7 +171,7 @@ export class CombatVfx {
   }
 
   /** Instancia um GLB de efeito com material sem luz na cor do manifesto. */
-  private async spawn(id: string): Promise<{ root: TransformNode; meshes: AbstractMesh[]; dispose: () => void } | null> {
+  private async spawn(id: string): Promise<{ root: TransformNode; meshes: AbstractMesh[]; animationGroups: AnimationGroup[]; dispose: () => void } | null> {
     const scene = this.scene;
     if (scene.isDisposed) return null;
     let container;
@@ -182,6 +194,7 @@ export class CombatVfx {
     return {
       root,
       meshes,
+      animationGroups: instance.animationGroups,
       dispose: () => {
         instance.dispose();
         root.dispose();
@@ -267,6 +280,130 @@ export class CombatVfx {
       if (type === 'cold') ps.gravity.set(0, -3, 0);
     });
     return this.burstGlb(id, at, big ? 1.3 : 1, 0.45);
+  }
+
+  /**
+   * Impacto da Bola de fogo exportado do Blender (`tools/vfx/export_fireball_impact.py`):
+   * estrela do clarão, onda de choque e 46 chamas com shape keys num GLB animado, mais o fogo
+   * se espalhando e erodindo no chão (flipbook 8×8 da câmera de topo). Fumaça e faíscas ficam
+   * nas partículas. A ação segue após o clarão; o fogo termina sozinho (~4 s, fora do ritmo).
+   */
+  async fireballImpact(center: Coord, cells: Coord[]): Promise<void> {
+    const scene = this.scene;
+    const ground = point(center);
+    const c = point(center, 0.8);
+    this.shake?.(0.4, 0.45);
+    const fireCol = this.color(IMPACT_ID);
+    this.arena.particles.burst('sparks', c, fireCol, 70, (ps) => {
+      ps.minEmitPower = 5;
+      ps.maxEmitPower = 11;
+      ps.maxLifeTime = 0.9;
+    });
+    this.arena.particles.burst('smoke', c, new Color3(0.16, 0.14, 0.13), 22);
+    const fx = await this.spawn(IMPACT_ID);
+    if (!fx) return this.explosion(center, cells);
+    // A arte cobre ~3,85 m de raio (a área 3×3 inteira); áreas cortadas pelo mapa encolhem.
+    let radius = 1.5;
+    for (const cell of cells) radius = Math.max(radius, Vector3.Distance(point(cell), point(center)) + 1);
+    fx.root.position.copyFrom(ground);
+    fx.root.scaling.setAll(Math.min(1, radius / IMPACT_RADIUS));
+    const ghost = this.ghostFactor(ground.y);
+    const mats = this.arena.mats;
+    const ring: AbstractMesh[] = [];
+    let decal: { mesh: AbstractMesh; texture: Texture; material: StandardMaterial } | null = null;
+    for (const mesh of fx.meshes) {
+      if (mesh.name.includes('Chama')) mesh.material = this.flameMaterial();
+      else if (mesh.name.includes('estrela')) mesh.material = mats.unlit('#fff0b1', { key: 'vfx:impact:star' });
+      else if (mesh.name.includes('pontas')) mesh.material = mats.unlit('#ff890b', { key: 'vfx:impact:envelope' });
+      else if (mesh.name.includes('Onda')) {
+        mesh.material = mats.unlit('#ffce55', { key: 'vfx:impact:ring' });
+        ring.push(mesh);
+      } else if (mesh.name.includes('Chao')) {
+        // Cada impacto anda pelo flipbook sozinho: textura clonada (mesma imagem na GPU).
+        const texture = this.groundFlipbook().clone();
+        texture.uScale = texture.vScale = 1 / IMPACT_GRID;
+        const material = new StandardMaterial(`vfx:impact:ground:${mesh.uniqueId}`, scene);
+        material.disableLighting = true;
+        material.emissiveColor = Color3.White();
+        material.specularColor = Color3.Black();
+        material.diffuseTexture = texture;
+        material.useAlphaFromDiffuseTexture = true;
+        material.backFaceCulling = false;
+        material.zOffset = -2;
+        mesh.material = material;
+        decal = { mesh, texture, material };
+      }
+    }
+    // Animações do glTF (0 → 250 quadros a 60/s = 100 quadros do Blender a 24/s), postas
+    // quadro a quadro pelo mesmo relógio do flipbook e do anel.
+    const groups = fx.animationGroups;
+    for (const g of groups) {
+      g.start(false, 1, g.from, g.to);
+      g.pause();
+    }
+    const end = Math.max(...groups.map((g) => g.to), 1);
+    const tiles = IMPACT_GRID * IMPACT_GRID;
+    const anim = tween(
+      scene,
+      IMPACT_SECONDS,
+      (t) => {
+        for (const g of groups) g.goToFrame(t * end);
+        // Anel: apaga entre os quadros 20 e 41 do Blender (o shader dele não vai no glTF).
+        const f = t * 100;
+        const ringAlpha = f < 8 ? 1 - f * 0.0125 : Math.max(0, 0.9 - (f - 8) * 0.0688);
+        for (const m of ring) m.visibility = ghost * ringAlpha;
+        for (const m of fx.meshes) if (!ring.includes(m) && m !== decal?.mesh) m.visibility = ghost;
+        if (decal) {
+          const tile = Math.min(tiles - 1, Math.round(t * (tiles - 1)));
+          decal.texture.uOffset = (tile % IMPACT_GRID) / IMPACT_GRID;
+          decal.texture.vOffset = Math.floor(tile / IMPACT_GRID) / IMPACT_GRID;
+          decal.mesh.visibility = ghost;
+        }
+      },
+      { unpaced: true },
+    ).then(() => {
+      for (const g of groups) g.stop();
+      if (decal) {
+        decal.material.dispose();
+        decal.texture.dispose();
+      }
+      fx.dispose();
+    });
+    void anim;
+    // Brasas que sobem enquanto o chão queima (as faíscas tardias da arte).
+    void wait(scene, 1, { unpaced: true }).then(() => {
+      if (!scene.isDisposed) this.arena.particles.burst('sparks', ground.add(new Vector3(0, 0.3, 0)), fireCol, 20, (ps) => {
+        ps.minEmitPower = 1;
+        ps.maxEmitPower = 3;
+      });
+    });
+    // A sequência segue com o clarão ainda no ar.
+    await wait(scene, 0.45);
+  }
+
+  /** Chamas: cor de vértice (degradê do Blender) sem luz. */
+  private flameMaterial(): StandardMaterial {
+    if (!this.flameMat) {
+      const m = new StandardMaterial('mat:vfx:impact:flame', this.scene);
+      m.disableLighting = true;
+      m.diffuseColor = Color3.Black();
+      m.specularColor = Color3.Black();
+      m.emissiveColor = Color3.White();
+      m.backFaceCulling = false;
+      this.flameMat = m;
+    }
+    return this.flameMat;
+  }
+
+  /** Flipbook do chão (carregado uma vez; cada impacto usa um clone com o próprio deslocamento). */
+  private groundFlipbook(): Texture {
+    if (!this.groundTex) {
+      // Mesma convenção dos glTF (UV com origem no topo): sem inverter Y.
+      this.groundTex = new Texture(`/models/vfx/${IMPACT_ID}.ground.png`, this.scene, false, false);
+      this.groundTex.hasAlpha = true;
+      this.groundTex.wrapU = this.groundTex.wrapV = Texture.CLAMP_ADDRESSMODE;
+    }
+    return this.groundTex;
   }
 
   /** Grande explosão: clarão, bola de fogo, onda de choque sobre `cells`, faíscas, fumaça. */
@@ -556,7 +693,7 @@ export class CombatVfx {
       }
       await this.projectile(projectileId, from, to);
       // Bola de fogo: explode no chão e o fogo se espalha pela área 3×3 (payload `area`).
-      if (vfxId === 'projectile.fireball') await this.explosion(target!, (p.area as Coord[] | undefined) ?? [target!]);
+      if (vfxId === 'projectile.fireball') await this.fireballImpact(target!, (p.area as Coord[] | undefined) ?? [target!]);
       if (vfxId === 'surface.thorns' || vfxId === 'status.roots') this.arena.particles.burst('sparks', to, this.color('projectile.nature'), 16);
       await anim.done;
       return;
