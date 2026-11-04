@@ -68,6 +68,7 @@ export function checkScenario(catalog: Catalog, s: LibraryScenario): string[] {
 export function openScenario(catalog: Catalog, s: LibraryScenario): { session: LabSession; failures: string[]; rejected: number } {
   const session = new LabSession(catalog, s.initial);
   let rejected = 0;
-  for (const c of s.commands) if (!session.execute(c, {})) rejected++;
+  // Fase 6: cenários de regressão (partidas do servidor) começam com START_MATCH — o LabSession já inicia.
+  for (const c of s.commands) if (c.type !== 'START_MATCH' && !session.execute(c, {})) rejected++;
   return { session, failures: checkScenario(catalog, s), rejected };
 }

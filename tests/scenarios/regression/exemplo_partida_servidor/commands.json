@@ -1,0 +1,736 @@
+[
+  {
+    "type": "START_MATCH"
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "kind": "self"
+    },
+    "actorId": "unit-a1",
+    "abilityId": "mage.arcane_barrier",
+    "expectedTurnId": 1
+  },
+  {
+    "to": {
+      "x": 11,
+      "y": 1,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 1
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 1
+  },
+  {
+    "to": {
+      "x": 8,
+      "y": 10,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 2
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-b1",
+    "expectedTurnId": 2
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 2
+  },
+  {
+    "to": {
+      "x": 13,
+      "y": 4,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 3
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 3
+  },
+  {
+    "to": {
+      "x": 4,
+      "y": 9,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 4
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-b1",
+    "expectedTurnId": 4
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 4
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-a1",
+    "expectedTurnId": 5
+  },
+  {
+    "to": {
+      "x": 13,
+      "y": 6,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 5
+  },
+  {
+    "type": "INTERACT",
+    "actorId": "unit-a1",
+    "objectId": "door-02",
+    "expectedTurnId": 5
+  },
+  {
+    "to": {
+      "x": 13,
+      "y": 9,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 5
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 5
+  },
+  {
+    "to": {
+      "x": 2,
+      "y": 8,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 6
+  },
+  {
+    "type": "INTERACT",
+    "actorId": "unit-b1",
+    "objectId": "door-01",
+    "expectedTurnId": 6
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-b1",
+    "expectedTurnId": 6
+  },
+  {
+    "to": {
+      "x": 2,
+      "y": 7,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 6
+  },
+  {
+    "to": {
+      "x": 2,
+      "y": 6,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 6
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 6
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "kind": "self"
+    },
+    "actorId": "unit-a1",
+    "abilityId": "mage.arcane_barrier",
+    "expectedTurnId": 7
+  },
+  {
+    "to": {
+      "x": 12,
+      "y": 13,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 7
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 7
+  },
+  {
+    "to": {
+      "x": 2,
+      "y": 1,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 8
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-b1",
+    "expectedTurnId": 8
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 8
+  },
+  {
+    "to": {
+      "x": 9,
+      "y": 15,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 9
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 9
+  },
+  {
+    "to": {
+      "x": 6,
+      "y": 0,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 10
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-b1",
+    "expectedTurnId": 10
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 10
+  },
+  {
+    "to": {
+      "x": 7,
+      "y": 12,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 11
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-a1",
+    "expectedTurnId": 11
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 11
+  },
+  {
+    "to": {
+      "x": 7,
+      "y": 2,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 12
+  },
+  {
+    "to": {
+      "x": 7,
+      "y": 4,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 12
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-b1",
+    "expectedTurnId": 12
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 12
+  },
+  {
+    "to": {
+      "x": 7,
+      "y": 9,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 13
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "kind": "self"
+    },
+    "actorId": "unit-a1",
+    "abilityId": "mage.arcane_barrier",
+    "expectedTurnId": 13
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "x": 7,
+      "y": 4,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-a1",
+    "abilityId": "mage.flame",
+    "expectedTurnId": 13
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 13
+  },
+  {
+    "to": {
+      "x": 3,
+      "y": 4,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 14
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-b1",
+    "expectedTurnId": 14
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 14
+  },
+  {
+    "to": {
+      "x": 3,
+      "y": 8,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 15
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 15
+  },
+  {
+    "to": {
+      "x": 2,
+      "y": 7,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 16
+  },
+  {
+    "type": "USE_ITEM",
+    "itemId": "consumable.health_potion",
+    "target": {
+      "kind": "self"
+    },
+    "actorId": "unit-b1",
+    "expectedTurnId": 16
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-b1",
+    "expectedTurnId": 16
+  },
+  {
+    "to": {
+      "x": 2,
+      "y": 8,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 16
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 16
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "x": 2,
+      "y": 8,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-a1",
+    "abilityId": "mage.flame",
+    "expectedTurnId": 17
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "target": {
+      "x": 2,
+      "y": 8,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-a1",
+    "weaponId": "weapon.arcane_wand",
+    "expectedTurnId": 17
+  },
+  {
+    "to": {
+      "x": 6,
+      "y": 8,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 17
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 17
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "x": 6,
+      "y": 8,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-b1",
+    "abilityId": "warrior.charge",
+    "expectedTurnId": 18
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-b1",
+    "expectedTurnId": 18
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 18
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "kind": "self"
+    },
+    "actorId": "unit-a1",
+    "abilityId": "mage.arcane_barrier",
+    "expectedTurnId": 19
+  },
+  {
+    "to": {
+      "x": 9,
+      "y": 8,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 19
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "x": 5,
+      "y": 8,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-a1",
+    "abilityId": "mage.flame",
+    "expectedTurnId": 19
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 19
+  },
+  {
+    "to": {
+      "x": 8,
+      "y": 8,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 20
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-b1",
+    "expectedTurnId": 20
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 20
+  },
+  {
+    "to": {
+      "x": 12,
+      "y": 8,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 21
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "x": 8,
+      "y": 8,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-a1",
+    "abilityId": "mage.flame",
+    "expectedTurnId": 21
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "target": {
+      "x": 8,
+      "y": 8,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-a1",
+    "weaponId": "weapon.arcane_wand",
+    "expectedTurnId": 21
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 21
+  },
+  {
+    "to": {
+      "x": 11,
+      "y": 8,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 22
+  },
+  {
+    "type": "DEFEND",
+    "actorId": "unit-b1",
+    "expectedTurnId": 22
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 22
+  },
+  {
+    "to": {
+      "x": 14,
+      "y": 9,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 23
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "x": 11,
+      "y": 8,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-a1",
+    "abilityId": "mage.flame",
+    "expectedTurnId": 23
+  },
+  {
+    "type": "USE_ITEM",
+    "itemId": "consumable.health_potion",
+    "target": {
+      "kind": "self"
+    },
+    "actorId": "unit-a1",
+    "expectedTurnId": 23
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 23
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "x": 14,
+      "y": 9,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-b1",
+    "abilityId": "warrior.charge",
+    "expectedTurnId": 24
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "target": {
+      "x": 14,
+      "y": 9,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-b1",
+    "weaponId": "weapon.iron_sword",
+    "expectedTurnId": 24
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 24
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "x": 14,
+      "y": 8,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-a1",
+    "abilityId": "mage.flame",
+    "expectedTurnId": 25
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "target": {
+      "x": 14,
+      "y": 8,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-a1",
+    "weaponId": "weapon.arcane_wand",
+    "expectedTurnId": 25
+  },
+  {
+    "to": {
+      "x": 15,
+      "y": 11,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-a1",
+    "expectedTurnId": 25
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-a1",
+    "expectedTurnId": 25
+  },
+  {
+    "to": {
+      "x": 15,
+      "y": 10,
+      "floor": 0
+    },
+    "type": "MOVE",
+    "actorId": "unit-b1",
+    "expectedTurnId": 26
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "target": {
+      "x": 15,
+      "y": 11,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-b1",
+    "weaponId": "weapon.iron_sword",
+    "expectedTurnId": 26
+  },
+  {
+    "type": "BASIC_ATTACK",
+    "target": {
+      "x": 15,
+      "y": 11,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-b1",
+    "weaponId": "weapon.iron_sword",
+    "expectedTurnId": 26
+  },
+  {
+    "type": "END_TURN",
+    "actorId": "unit-b1",
+    "expectedTurnId": 26
+  },
+  {
+    "type": "USE_ABILITY",
+    "target": {
+      "x": 15,
+      "y": 10,
+      "kind": "cell",
+      "floor": 0
+    },
+    "actorId": "unit-a1",
+    "abilityId": "mage.flame",
+    "expectedTurnId": 27
+  }
+]

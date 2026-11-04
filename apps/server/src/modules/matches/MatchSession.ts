@@ -15,13 +15,17 @@ import { randomUUID } from 'node:crypto';
 import {
   applyCommand,
   buildScenario,
+  computeTeamVision,
+  unitAt,
   type Catalog,
+  type CommandTarget,
   type GameEvent,
   type GameplayCommand,
   type GameState,
   projectEventsForTeam,
   projectStateForClient,
   type ScenarioInitial,
+  type TeamVision,
 } from '@bardurinho/domain';
 import {
   parseClientCommand,
@@ -36,6 +40,7 @@ import {
   type UpdateMessage,
 } from '@bardurinho/protocol';
 import type { Account, MatchesRepository } from '../../db/repositories.js';
+import { metrics, now as perfNow } from '../../metrics.js';
 import { normalizeTeam, scenarioFromSetup, type CharacterChoice, type MapDefinition, type TeamId } from '@bardurinho/content';
 
 export interface SeatState {
@@ -99,6 +104,9 @@ export interface MatchSessionOptions {
 }
 
 const RECENT_HASHES = 64;
+/** Fase 6: recusas lembradas (repetição) e gravadas (auditoria) por partida. */
+const MAX_REMEMBERED_REJECTIONS = 2000;
+const MAX_LOGGED_REJECTIONS = 5000;
 
 export class MatchSession {
   readonly id: string;
@@ -111,6 +119,8 @@ export class MatchSession {
   private readonly responses = new Map<string, { seat: number | null; response: CommandResultMessage }>();
   private timer: { turnId: number; deadline: number; handle: { clear(): void } } | null = null;
   private disposed = false;
+  private readonly rejectedIds: string[] = [];
+  private rejectedLogged = 0;
   readonly ready: Promise<void>;
   /** Escolha de personagens por assento (Fase 4). */
   private readonly loadouts = new Map<number, CharacterChoice[]>();
@@ -153,7 +163,7 @@ export class MatchSession {
     const size = this.o.teamSize;
     if (!size || !this.o.setupMap) return this.o.scenario;
     const team = (t: TeamId, seat: number) => normalizeTeam(this.o.catalog, t, this.loadouts.get(seat) ?? [], size);
-    return scenarioFromSetup(this.o.setupMap, this.o.catalog, { teams: { A: team('A', 0), B: team('B', 1) } });
+    return scenarioFromSetup(this.o.setupMap, this.o.catalog, { teams: { A: team('A', 0), B: team('B', 1) } }, { ids: 'opaque' });
   }
 
   /** Escolha do assento (antes do início): remonta o estado inicial e o snapshot 0. */
@@ -213,6 +223,11 @@ export class MatchSession {
     return this.o.mode ?? 'custom';
   }
 
+  /** Fase 6: contas humanas com assento reservado (partida montada pelo servidor). */
+  get reservedAccounts(): Account[] | null {
+    return this.o.reserved ? this.o.reserved.filter((r) => !r.bot).map((r) => r.account) : null;
+  }
+
   /** A conta pode entrar nesta partida (assento já dela, reservado para ela, ou vaga livre sem reserva). */
   canJoin(accountId: string): boolean {
     if (this.seatOf(accountId)) return true;
@@ -237,11 +252,26 @@ export class MatchSession {
     return { turnId: this.timer.turnId, deadline: this.timer.deadline, turnSeconds: this.o.turnSeconds, serverNow: this.now() };
   }
 
-  /** Projeção da equipe (estado enviado + hash). */
+  /**
+   * Projeção da equipe (estado enviado + hash). Fase 6: guardada por equipe para o estado oficial
+   * atual — o envio, o bot, o snapshot e o próximo comando (visão "antes") reaproveitam a visão,
+   * a cópia e o hash em vez de recalcular (era o maior custo por comando no teste de carga).
+   */
   projection(team: string): { state: GameState; hash: string; hiddenUnits: string[] } {
-    const p = projectStateForClient(this.official, this.o.catalog, team);
-    const hiddenUnits = Object.keys(this.official.units).filter((id) => !p.state.units[id]);
-    return { state: p.state, hash: stateHash(p.state), hiddenUnits };
+    const p = this.projected(team);
+    return { state: p.state, hash: p.hash, hiddenUnits: p.hiddenUnits };
+  }
+
+  private readonly projections = new Map<string, { of: GameState; state: GameState; hash: string; hiddenUnits: string[]; vision: TeamVision }>();
+
+  private projected(team: string) {
+    const cached = this.projections.get(team);
+    if (cached && cached.of === this.official) return cached;
+    const vision = computeTeamVision(this.official, this.o.catalog, team);
+    const p = projectStateForClient(this.official, this.o.catalog, team, vision);
+    const entry = { of: this.official, state: p.state, hash: stateHash(p.state), hiddenUnits: Object.keys(this.official.units).filter((id) => !p.state.units[id]), vision };
+    this.projections.set(team, entry);
+    return entry;
   }
 
   /** Snapshot autorizado para um assento (entrada, reconexão, ressincronização). */
@@ -265,8 +295,10 @@ export class MatchSession {
     s.ack = { version, hash };
     const expected = s.sentHashes.get(version);
     if (expected === undefined) return null;
+    metrics.inc('desync.acks');
     if (expected !== hash) {
       s.divergences.push({ version, expected, got: hash });
+      metrics.inc('desync.divergences');
       this.o.log?.(`[partida ${this.id.slice(0, 8)}] DIVERGÊNCIA no assento ${seat} (v${version}): esperado ${expected}, cliente ${hash}`);
       return false;
     }
@@ -301,8 +333,34 @@ export class MatchSession {
       const actorId = 'actorId' in cmd ? cmd.actorId : undefined;
       const actor = actorId ? this.official.units[actorId] : undefined;
       if (actor && actor.team !== s.team) return this.rejectNow(seat, cmd.commandId, { code: 'NOT_YOUR_UNIT', message: `O personagem ${actorId} não é da sua equipe` }, raw);
+      const hidden = this.hiddenTargetError(s.team, cmd);
+      if (hidden) return this.rejectNow(seat, cmd.commandId, hidden, raw);
       return this.process(stripEnvelope(cmd), cmd.commandId, { kind: 'player', seat }, raw);
     });
+  }
+
+  /**
+   * Fase 6: alvo que a equipe não vê. Um personagem inimigo oculto como alvo (`entity`, ou a
+   * célula dele numa habilidade de alvo "personagem") é recusado com o **mesmo erro** de um alvo
+   * inexistente — senão as respostas do core (fora de alcance, sem linha de visão, outro andar)
+   * revelariam onde ele está. Atacar uma célula às cegas continua valendo (regra do jogo).
+   */
+  private hiddenTargetError(team: string, cmd: { type: string; target?: CommandTarget; abilityId?: string; itemId?: string }): ServerError | null {
+    const target = cmd.target;
+    if (!target || target.kind === 'self') return null;
+    const official = this.official;
+    let vision: ReturnType<typeof computeTeamVision> | null = null;
+    const hidden = (id: string | undefined) => {
+      const u = id ? official.units[id] : undefined;
+      if (!u || u.team === team || !u.alive) return false;
+      vision ??= computeTeamVision(official, this.o.catalog, team);
+      return !vision.visibleUnits.has(u.id);
+    };
+    if (target.kind === 'entity') return hidden(target.id) ? { code: 'INVALID_TARGET', message: `Entidade desconhecida: ${target.id}` } : null;
+    const rule = cmd.type === 'USE_ABILITY' ? this.o.catalog.abilities[cmd.abilityId ?? '']?.target : cmd.type === 'USE_ITEM' ? (this.o.catalog.items[cmd.itemId ?? ''] as { target?: { kind: string } } | undefined)?.target : undefined;
+    if (rule?.kind !== 'unit') return null;
+    const u = unitAt(official, { x: target.x, y: target.y, floor: target.floor });
+    return u && hidden(u.id) ? { code: 'INVALID_TARGET', message: 'O alvo precisa ser um personagem vivo' } : null;
   }
 
   private duplicate(seat: number, commandId: string): CommandResultMessage {
@@ -316,6 +374,14 @@ export class MatchSession {
     const response: CommandResultMessage = { commandId, ok: false, error, duplicate: false };
     if (!commandId) return response;
     this.responses.set(commandId, { seat, response });
+    // Fase 6: memória e banco limitados contra um cliente que só manda lixo (o limite de
+    // mensagens por segundo da sala segura a taxa; isto segura o total).
+    this.rejectedIds.push(commandId);
+    if (this.rejectedIds.length > MAX_REMEMBERED_REJECTIONS) this.responses.delete(this.rejectedIds.shift()!);
+    if (++this.rejectedLogged > MAX_LOGGED_REJECTIONS) {
+      metrics.inc('commands.rejectedNotLogged');
+      return response;
+    }
     const payload = JSON.stringify(raw ?? null).length <= 4096 ? raw : { truncated: true };
     await this.o.repo
       .saveRejected(this.id, {
@@ -336,10 +402,18 @@ export class MatchSession {
     if (this.disposed) return { commandId, ok: false, duplicate: false, error: { code: 'MATCH_NOT_ACTIVE', message: 'Partida encerrada' } };
     const seat = author.kind === 'player' ? author.seat : null;
     const before = this.official;
+    const t0 = perfNow();
     const r = applyCommand(before, this.o.catalog, command, {});
-    if (!r.ok) return this.rejectNow(seat, commandId, r.error, raw);
+    const t1 = perfNow();
+    metrics.time('core.applyCommand', t1 - t0);
+    if (!r.ok) {
+      metrics.inc('commands.rejected');
+      return this.rejectNow(seat, commandId, r.error, raw);
+    }
     const version = this.ver + 1;
     const hash = stateHash(r.state);
+    const t2 = perfNow();
+    metrics.time('core.stateHash', t2 - t1);
     try {
       await this.o.repo.saveAccepted(
         this.id,
@@ -348,7 +422,9 @@ export class MatchSession {
         r.state,
         hash,
       );
+      metrics.time('db.saveAccepted', perfNow() - t2);
     } catch (err) {
+      metrics.inc('db.errors');
       this.o.log?.(`[partida ${this.id.slice(0, 8)}] falha ao persistir: ${String(err)}`);
       return { commandId, ok: false, duplicate: false, error: { code: 'PERSISTENCE_ERROR', message: 'Falha ao salvar o comando; nada foi aplicado' } };
     }
@@ -358,7 +434,12 @@ export class MatchSession {
     const response: CommandResultMessage = { commandId, ok: true, version, duplicate: false };
     this.responses.set(commandId, { seat, response });
     this.rescheduleTimer(before);
+    const t3 = perfNow();
     this.broadcastUpdate(before, r.events, command, commandId, author);
+    const t4 = perfNow();
+    metrics.time('net.projectAndSend', t4 - t3);
+    metrics.time('command.total', t4 - t0);
+    metrics.inc('commands.accepted');
     if (this.official.status === 'finished') {
       this.o.log?.(`[partida ${this.id.slice(0, 8)}] fim: ${JSON.stringify(this.official.result)} (v${version})`);
       // Recompensas depois da resposta (fora da fila da partida).
@@ -369,16 +450,26 @@ export class MatchSession {
 
   private broadcastUpdate(before: GameState, events: readonly GameEvent[], command: GameplayCommand, commandId: string, author: Author) {
     const timer = this.timerInfo();
+    // Visão "antes" de cada equipe = a do estado anterior, ainda no cache (antes de recalcular).
+    const beforeVision = new Map<string, TeamVision>();
+    for (const [team, c] of this.projections) if (c.of === before) beforeVision.set(team, c.vision);
     for (const s of this.seats) {
-      const p = this.projection(s.team);
-      const evs = projectEventsForTeam(events, before, this.official, this.o.catalog, s.team);
+      const p = this.projected(s.team);
+      const evs = projectEventsForTeam(events, before, this.official, this.o.catalog, s.team, { before: beforeVision.get(s.team), after: p.vision });
+      // Fase 6: numeração própria da equipe — as lacunas do `seq` oficial contavam quantos
+      // eventos ocultos (ex.: passos do inimigo fora da visão) aconteceram.
+      evs.forEach((e, i) => (e.seq = s.history.length + i + 1));
       s.history.push(...evs);
       this.recordSent(s, this.ver, p.hash);
+      // Comando de outra equipe cujo autor ela não conhece (não há COMMAND_ACCEPTED na visão): o
+      // tipo também fica oculto (ex.: "USE_ABILITY" de um inimigo fora da visão).
+      const ownSeat = author.kind === 'player' && author.seat === s.seat;
+      const hiddenType = author.kind === 'player' && !ownSeat && !evs.some((e) => e.type === 'COMMAND_ACCEPTED');
       const msg: UpdateMessage = {
         version: this.ver,
-        commandId: author.kind === 'player' && author.seat === s.seat ? commandId : null,
+        commandId: ownSeat ? commandId : null,
         author: { seat: author.kind === 'player' ? author.seat : null, kind: author.kind },
-        commandType: command.type,
+        commandType: hiddenType ? 'HIDDEN' : command.type,
         events: evs,
         state: p.state,
         hash: p.hash,
@@ -420,6 +511,31 @@ export class MatchSession {
       const command: GameplayCommand = { type: 'END_TURN', actorId: s.turn.activeUnitId, expectedTurnId: turnId };
       return this.process(command, `timer:${this.id}:${turnId}`, { kind: 'timer' }, command);
     });
+  }
+
+  /**
+   * Fase 6: abandono confirmado (a reserva da vaga acabou) — o servidor rende a equipe do
+   * assento. Vale fora da vez (SURRENDER é aceito a qualquer momento).
+   */
+  forfeit(seat: number): Promise<CommandResultMessage | null> {
+    return this.enqueue(async () => {
+      const s = this.official;
+      const team = this.seats[seat]?.team;
+      if (this.disposed || s.status !== 'active' || !team) return null;
+      const unit = Object.values(s.units).find((u) => u.team === team && u.alive && !u.flags.isDummy);
+      if (!unit) return null;
+      this.o.log?.(`[partida ${this.id.slice(0, 8)}] assento ${seat} abandonou (reserva esgotada): derrota`);
+      const command: GameplayCommand = { type: 'SURRENDER', actorId: unit.id };
+      return this.process(command, `server:forfeit:${this.id}:${seat}`, { kind: 'server' }, command);
+    });
+  }
+
+  /** Fase 6: encerra sem resultado (cancelada antes do início / sala abandonada). */
+  async abort(status: 'cancelled' | 'aborted'): Promise<void> {
+    await this.idle();
+    if (this.official.status === 'finished') return;
+    this.dispose();
+    await this.o.repo.abort(this.id, status).catch((err) => this.o.log?.(`falha ao encerrar a partida: ${String(err)}`));
   }
 
   /** Espera a fila esvaziar (testes). */

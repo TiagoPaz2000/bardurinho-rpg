@@ -55,6 +55,12 @@ export class MatchRoom extends Room {
   /** Fase 5: bot que ocupa um assento (partida contra bot). */
   private bot: BotSeat | null = null;
   private settled = false;
+  /** Fase 6: assento fora da sala → derrota quando a reserva acabar (abandono confirmado). */
+  private readonly forfeitTimers = new Map<number, ReturnType<typeof setTimeout>>();
+  /** Fase 6: prazo para os jogadores de uma partida montada entrarem. */
+  private joinTimer: ReturnType<typeof setTimeout> | null = null;
+  /** Código de saída enviado aos clientes quando a partida é cancelada antes de começar. */
+  static readonly CLOSE_CANCELLED = 4100;
 
   override maxClients = 4;
 
@@ -118,6 +124,10 @@ export class MatchRoom extends Room {
       this.bot = new BotSeat(this.session, botSeat.seat, brain, { delayMs: svc.config.botDelayMs, log: (m) => svc.log(`[sala ${this.roomId}] ${m}`) });
     }
     await this.setMetadata({ matchId: this.session.id, seats: this.session.seatInfo(), status: this.session.state.status, teamSize: this.session.teamSize });
+    // Fase 6: partida montada pelo servidor com jogadores humanos que precisam entrar.
+    if (internal && options.reserved!.some((r) => !r.bot)) {
+      this.joinTimer = setTimeout(() => void this.cancelNoShow(), svc.config.joinTimeoutSeconds * 1000);
+    }
     svc.log(`[sala ${this.roomId}] partida ${this.session.id} criada (semente ${seed}, turno ${turnSeconds} s)`);
 
     this.onMessage('command', async (client, message) => {
@@ -129,6 +139,10 @@ export class MatchRoom extends Room {
     this.onMessage('ack', (client, message: { version?: unknown; hash?: unknown }) => {
       const seat = this.seatOfClient(client);
       if (seat !== null && this.allow(client)) this.session.ack(seat, message?.version, message?.hash);
+    });
+    // Fase 6: tipo de mensagem desconhecido — ignorado (conta para o limite por segundo).
+    this.onMessage('*', (client, type) => {
+      if (this.allow(client)) svc.log(`[sala ${this.roomId}] mensagem de tipo desconhecido ignorada: ${String(type).slice(0, 40)}`);
     });
     this.onMessage('resync', (client) => {
       const seat = this.seatOfClient(client);
@@ -156,6 +170,7 @@ export class MatchRoom extends Room {
     client.userData = { seat: seat.seat };
     this.svc.lobby?.joined(account.id);
     this.cancelAbandon();
+    this.cancelForfeit(seat.seat);
     client.send('snapshot', this.session.snapshot(seat.seat, hadSeat ? 'reconnect' : 'join', this.roomId));
     // Fase 4: a montagem mudou com a escolha deste jogador — quem já estava na sala recebe o
     // estado inicial novo (ainda na versão 0, antes do START_MATCH).
@@ -167,6 +182,8 @@ export class MatchRoom extends Room {
     // Os dois assentos ocupados: inicia depois que a entrada terminar (o cliente já recebeu o snapshot).
     if (this.session.full && this.session.state.status === 'setup' && !this.starting) {
       this.starting = true;
+      if (this.joinTimer) clearTimeout(this.joinTimer);
+      this.joinTimer = null;
       this.clock.setTimeout(() => void this.startMatch(), 50);
     }
   }
@@ -178,6 +195,8 @@ export class MatchRoom extends Room {
       if (!r.ok) this.svc.log(`[sala ${this.roomId}] START_MATCH recusado: ${r.error.message}`);
       await this.updateMeta();
       this.bot?.notify();
+      // Fase 6: quem já saiu antes do início também tem a reserva contada a partir de agora.
+      for (const seat of this.session.seats) if (!seat.connected && !seat.bot) this.scheduleForfeit(seat.seat);
     } catch (err) {
       this.svc.log(`[sala ${this.roomId}] falha ao iniciar: ${String(err)}`);
     }
@@ -191,6 +210,7 @@ export class MatchRoom extends Room {
     this.svc.log(`[sala ${this.roomId}] assento ${seat} caiu; vaga reservada por ${this.svc.config.reconnectSeconds} s`);
     if (this.session.state.status !== 'finished') {
       this.allowReconnection(client, this.svc.config.reconnectSeconds).catch(() => undefined);
+      this.scheduleForfeit(seat);
     }
     this.checkAbandon();
   }
@@ -206,6 +226,7 @@ export class MatchRoom extends Room {
     this.seatClients.set(seat, client);
     this.session.seats[seat]!.connected = true;
     this.cancelAbandon();
+    this.cancelForfeit(seat);
     client.send('snapshot', this.session.snapshot(seat, 'reconnect', this.roomId));
     this.broadcastPresence();
     this.svc.log(`[sala ${this.roomId}] assento ${seat} reconectado`);
@@ -217,12 +238,18 @@ export class MatchRoom extends Room {
     if (this.seatClients.get(seat)?.sessionId === client.sessionId) {
       this.seatClients.delete(seat);
       this.session.seats[seat]!.connected = false;
+      // Saiu no meio (ex.: "voltar ao lobby" com a partida em andamento): pode voltar pelo lobby
+      // dentro da reserva; depois disso, derrota.
+      if (this.session.state.status === 'active') this.scheduleForfeit(seat);
     }
     this.broadcastPresence();
     this.checkAbandon();
   }
 
   override onDispose() {
+    for (const t of this.forfeitTimers.values()) clearTimeout(t);
+    this.forfeitTimers.clear();
+    if (this.joinTimer) clearTimeout(this.joinTimer);
     this.bot?.dispose();
     this.session?.dispose();
     if (this.abandonTimer) clearTimeout(this.abandonTimer);
@@ -296,8 +323,55 @@ export class MatchRoom extends Room {
     }
     this.abandonTimer = setTimeout(() => {
       this.svc.log(`[sala ${this.roomId}] sem jogadores por ${this.svc.config.abandonSeconds} s: encerrada`);
-      void this.disconnect();
+      // Fase 6: a partida sai de 'active' no banco (sem resultado nem recompensa).
+      void this.session.abort('aborted').finally(() => void this.disconnect());
     }, this.svc.config.abandonSeconds * 1000);
+  }
+
+  // -------------------------------------------------------------------------
+  // Fase 6: abandono confirmado e jogador que nunca entrou
+  // -------------------------------------------------------------------------
+
+  private scheduleForfeit(seat: number) {
+    if (!this.svc.config.forfeitOnAbandon || this.forfeitTimers.has(seat) || this.session.seats[seat]?.bot) return;
+    const ms = this.svc.config.reconnectSeconds * 1000;
+    this.forfeitTimers.set(
+      seat,
+      setTimeout(() => {
+        this.forfeitTimers.delete(seat);
+        const s = this.session;
+        if (s.state.status !== 'active' || s.seats[seat]?.connected) return;
+        // Os dois fora: ninguém para receber a vitória — fica com o encerramento por abandono.
+        const opponentHere = s.seats.some((x) => x.seat !== seat && x.team !== s.seats[seat]!.team && (x.connected || x.bot));
+        if (!opponentHere) return;
+        void s.forfeit(seat).then((r) => r && !r.ok && this.svc.log(`[sala ${this.roomId}] derrota por abandono recusada: ${r.error.message}`));
+      }, ms),
+    );
+  }
+
+  private cancelForfeit(seat: number) {
+    const t = this.forfeitTimers.get(seat);
+    if (t) clearTimeout(t);
+    this.forfeitTimers.delete(seat);
+  }
+
+  /**
+   * Prazo de entrada esgotado com a partida ainda em montagem: cancela (sem resultado), devolve
+   * à fila quem entrou (partida da fila) e fecha a sala com `CLOSE_CANCELLED`.
+   */
+  private async cancelNoShow() {
+    this.joinTimer = null;
+    const s = this.session;
+    if (s.state.status !== 'setup' || s.full) return;
+    const humans = s.seats.filter((x) => !x.bot);
+    const joined = humans.filter((x) => x.account).map((x) => x.account!);
+    const reserved = (s.reservedAccounts ?? []).filter((a) => !joined.some((j) => j.id === a.id));
+    this.svc.log(`[sala ${this.roomId}] prazo de entrada esgotado (faltou: ${reserved.map((a) => a.username).join(', ') || '?'}): partida cancelada`);
+    await s.abort('cancelled');
+    this.svc.rooms.delete(s.id);
+    this.svc.lobby?.matchCancelled(this.roomId, s.mode, joined, reserved);
+    for (const c of this.seatClients.values()) c.leave(MatchRoom.CLOSE_CANCELLED);
+    void this.disconnect(MatchRoom.CLOSE_CANCELLED);
   }
 
   private cancelAbandon() {

@@ -1,0 +1,12 @@
+{
+  "name": "Personagem da vez derrotado no próprio turno (2 × 2): a vez passa sozinha",
+  "description": "Fase 6 (regressão do lote de invariantes): o mago A, com 5 PV, ataca a própria célula com a varinha e é derrotado. O aliado (guerreiro A) está vivo, então a partida continua; antes o turno ficava preso no mago derrotado (END_TURN recusado com ACTOR_DEFEATED, nem o cronômetro do servidor passava a vez). Agora o turno é encerrado automaticamente e a vez vai para o próximo vivo.",
+  "map": { "floors": [["........", "........", "........", "........", "........", "........", "........", "........"]] },
+  "units": [
+    { "id": "mage-a", "classId": "mage", "team": "A", "pos": { "x": 1, "y": 1 }, "hp": 5 },
+    { "id": "warrior-b", "classId": "warrior", "team": "B", "pos": { "x": 6, "y": 6 } },
+    { "id": "warrior-a", "classId": "warrior", "team": "A", "pos": { "x": 1, "y": 6 } },
+    { "id": "rogue-b", "classId": "rogue", "team": "B", "pos": { "x": 6, "y": 1 } }
+  ],
+  "order": ["mage-a", "warrior-b", "warrior-a", "rogue-b"]
+}

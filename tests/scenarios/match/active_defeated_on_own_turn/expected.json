@@ -1,0 +1,7 @@
+{
+  "errors": 0,
+  "status": "active",
+  "activeUnitId": "warrior-a",
+  "units": { "mage-a": { "alive": false } },
+  "events": ["DAMAGE_APPLIED", "UNIT_DEFEATED", "TURN_ENDED", "TURN_STARTED", "TURN_ENDED", "TURN_STARTED"]
+}

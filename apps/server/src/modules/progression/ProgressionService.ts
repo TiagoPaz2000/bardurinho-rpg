@@ -110,8 +110,17 @@ export class ProgressionService {
       const acc = await this.profiles.account(accountId);
       return { ok: previous.status === 'completed', balance: acc?.coins ?? 0, duplicate: true, productId: previous.productId, ...(previous.error ? { error: previous.error } : {}) };
     }
-    const r = await this.profiles.buy(accountId, requestId, product.id, product.price);
-    return { ok: r.ok, balance: r.balance, duplicate: false, productId: product.id, ...(r.error ? { error: r.error } : {}) };
+    let r: Awaited<ReturnType<ProfileRepository['buy']>>;
+    try {
+      r = await this.profiles.buy(accountId, requestId, product.id, product.price);
+    } catch (err) {
+      // Corrida com o mesmo requestId (PostgreSQL com várias conexões): vale o registro gravado.
+      const again = await this.profiles.purchaseByRequest(accountId, requestId);
+      if (!again) throw err;
+      const acc = await this.profiles.account(accountId);
+      return { ok: again.status === 'completed', balance: acc?.coins ?? 0, duplicate: true, productId: again.productId, ...(again.error ? { error: again.error } : {}) };
+    }
+    return { ok: r.ok, balance: r.balance, duplicate: !!r.duplicate, productId: product.id, ...(r.error ? { error: r.error } : {}) };
   }
 
   // --- Missões ------------------------------------------------------------------------

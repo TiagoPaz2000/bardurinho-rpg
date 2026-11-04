@@ -1,0 +1,166 @@
+{
+  "errors": 0,
+  "status": "finished",
+  "round": 14,
+  "units": {
+    "unit-a1": {
+      "hp": 32,
+      "alive": true,
+      "focus": 4,
+      "shield": 0,
+      "pos": {
+        "x": 15,
+        "y": 11,
+        "floor": 0
+      },
+      "statuses": []
+    },
+    "unit-b1": {
+      "hp": 0,
+      "alive": false,
+      "focus": 8,
+      "shield": 0,
+      "pos": {
+        "x": 15,
+        "y": 10,
+        "floor": 0
+      },
+      "statuses": [
+        "burning"
+      ]
+    }
+  },
+  "objects": {
+    "door-01": {
+      "hp": 30,
+      "state": "open",
+      "burning": false
+    },
+    "door-02": {
+      "hp": 30,
+      "state": "open",
+      "burning": false
+    },
+    "gate-01": {
+      "state": "closed",
+      "burning": false
+    },
+    "altar-01": {
+      "state": "normal",
+      "burning": false
+    },
+    "altar-02": {
+      "state": "normal",
+      "burning": false
+    },
+    "chest-01": {
+      "state": "normal",
+      "burning": false
+    },
+    "chest-02": {
+      "state": "normal",
+      "burning": false
+    },
+    "crate-01": {
+      "hp": 20,
+      "state": "normal",
+      "burning": false
+    },
+    "crate-02": {
+      "hp": 20,
+      "state": "normal",
+      "burning": false
+    },
+    "crate-03": {
+      "hp": 20,
+      "state": "normal",
+      "burning": false
+    },
+    "crate-04": {
+      "hp": 20,
+      "state": "normal",
+      "burning": false
+    },
+    "lever-01": {
+      "state": "closed",
+      "burning": false
+    },
+    "barrel-01": {
+      "hp": 8,
+      "state": "normal",
+      "burning": false
+    },
+    "barrel-02": {
+      "hp": 8,
+      "state": "normal",
+      "burning": false
+    },
+    "barrel-03": {
+      "hp": 8,
+      "state": "normal",
+      "burning": false
+    },
+    "barrel-04": {
+      "hp": 8,
+      "state": "normal",
+      "burning": false
+    },
+    "cistern-01": {
+      "state": "normal",
+      "burning": false
+    },
+    "cistern-02": {
+      "state": "normal",
+      "burning": false
+    }
+  },
+  "cells": [
+    {
+      "x": 4,
+      "y": 4,
+      "floor": 0,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 4,
+      "y": 5,
+      "floor": 0,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 4,
+      "y": 6,
+      "floor": 0,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 11,
+      "y": 9,
+      "floor": 0,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 11,
+      "y": 10,
+      "floor": 0,
+      "surface": "oil",
+      "expiresAtRound": null
+    },
+    {
+      "x": 11,
+      "y": 11,
+      "floor": 0,
+      "surface": "oil",
+      "expiresAtRound": null
+    }
+  ],
+  "result": {
+    "kind": "victory",
+    "winnerTeam": "A",
+    "reason": "elimination"
+  }
+}

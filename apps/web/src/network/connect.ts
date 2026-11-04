@@ -5,6 +5,7 @@
  */
 import { Client, type Room } from '@colyseus/sdk';
 import { DEFAULT_SERVER_PORT, MATCH_ROOM, type LoginResponse, type SnapshotMessage } from '@bardurinho/protocol';
+import { bufferEarly } from './early.js';
 
 export const defaultServerUrl = (): string => {
   const host = typeof location !== 'undefined' ? location.hostname : '127.0.0.1';
@@ -43,6 +44,8 @@ export function waitSnapshot(room: Room, timeoutMs = 10000): Promise<SnapshotMes
     const off = room.onMessage('snapshot', (msg: SnapshotMessage) => {
       clearTimeout(t);
       off();
+      // Fase 6: o que chegar daqui até a partida ligar os ouvintes fica guardado (ver early.ts).
+      bufferEarly(room);
       resolve(msg);
     });
   });
@@ -75,6 +78,10 @@ export async function joinMatch(serverUrl: string, token: string, opts: JoinOpti
     : create
       ? await client.create(MATCH_ROOM, { token, ...rest })
       : await client.joinOrCreate(MATCH_ROOM, { token, ...rest });
+  // Fase 6: o SDK só reconecta sozinho se a sala estava aberta havia 5 s; uma queda logo depois
+  // de entrar deixava o cliente "offline" para sempre (achado no teste com quedas de conexão).
+  // O servidor guarda a vaga (reserva) e os comandos têm commandId: reconectar já é seguro.
+  room.reconnection.minUptime = 0;
   const snapshot = await waitSnapshot(room);
   return { client, room, snapshot };
 }

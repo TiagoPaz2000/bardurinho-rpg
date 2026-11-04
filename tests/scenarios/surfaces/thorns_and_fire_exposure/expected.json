@@ -2,7 +2,7 @@
   "errors": 0,
   "units": {
     "mage-01": {
-      "hp": 63,
+      "hp": 69,
       "pos": {
         "x": 4,
         "y": 2
@@ -15,6 +15,12 @@
       "targetId": "mage-01",
       "raw": 5,
       "damageType": "physical",
+      "hpAfter": 81
+    },
+    {
+      "targetId": "mage-01",
+      "raw": 6,
+      "damageType": "fire",
       "hpAfter": 75
     },
     {
@@ -22,12 +28,6 @@
       "raw": 6,
       "damageType": "fire",
       "hpAfter": 69
-    },
-    {
-      "targetId": "mage-01",
-      "raw": 6,
-      "damageType": "fire",
-      "hpAfter": 63
     }
   ],
   "events": [

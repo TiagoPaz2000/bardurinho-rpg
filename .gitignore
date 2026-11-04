@@ -4,3 +4,5 @@ dist/
 tests/output/
 .vite/
 .data/
+tools/batch/out/
+tools/balance/out/

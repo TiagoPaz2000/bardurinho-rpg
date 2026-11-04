@@ -10,7 +10,7 @@
       "statuses": []
     },
     "druid-01": {
-      "hp": 79
+      "hp": 82
     }
   },
   "damage": [
@@ -23,10 +23,10 @@
     },
     {
       "targetId": "druid-01",
-      "raw": 18,
+      "raw": 15,
       "damageType": "physical",
       "mitigation": 2,
-      "hpAfter": 79
+      "hpAfter": 82
     }
   ],
   "events": [

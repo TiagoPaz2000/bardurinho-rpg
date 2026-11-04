@@ -423,7 +423,7 @@ try {
   const s0 = await A.state();
   const teamA = (await A.net()).team;
   const mine0 = Object.values(s0.units).find((u) => u.team === teamA)!;
-  check(mine0.classId === 'mage' && mine0.name === 'Lyra Brasa' && mine0.maxHp === 88, 'na arena: o personagem da conta (Mago, nome, +8 PV do amuleto)');
+  check(mine0.classId === 'mage' && mine0.name === 'Lyra Brasa' && mine0.maxHp === 94, 'na arena: o personagem da conta (Mago 86 PV + 8 do amuleto — balanceamento da Fase 6)');
   check(Object.values(s0.units).every((u) => u.team === mine0.team), 'o bot começa fora da visão (nada vaza)');
   await sleep(1200);
   await shot(A, '06-partida-bot');

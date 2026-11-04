@@ -50,7 +50,8 @@ const JOBS: Job[] = [
   ...['mage', 'rogue', 'warrior', 'druid'].map((c) => ({
     source: `assets/models/source/characters/${c}.glb`,
     output: `assets/models/characters/${c}.glb`,
-    maxTriangles: 8000,
+    // Fase 6: 8 000 → 5 000 (orçamento de personagem de docs/fase-02-modelos-3d.md).
+    maxTriangles: 5000,
     textureSize: 1024,
   })),
   {

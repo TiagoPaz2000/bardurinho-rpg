@@ -2,7 +2,7 @@
   "errors": 0,
   "units": {
     "mage-b": {
-      "hp": 68,
+      "hp": 74,
       "statuses": [
         "slowed"
       ]
@@ -15,7 +15,7 @@
       "damageType": "cold",
       "mitigation": 2,
       "hpDamage": 12,
-      "hpAfter": 68
+      "hpAfter": 74
     }
   ]
 }

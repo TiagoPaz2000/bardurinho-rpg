@@ -2,5 +2,6 @@
   { "type": "END_TURN", "actorId": "warrior-a" },
   { "type": "DEFEND", "actorId": "warrior-b" },
   { "type": "END_TURN", "actorId": "warrior-b" },
+  { "type": "DEBUG_SET_RNG", "forced": [11, 8] },
   { "type": "BASIC_ATTACK", "actorId": "warrior-a", "weaponId": "weapon.iron_sword", "target": { "kind": "entity", "id": "warrior-b" } }
 ]

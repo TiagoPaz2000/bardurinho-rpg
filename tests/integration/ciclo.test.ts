@@ -163,7 +163,7 @@ describe('Fase 5 — partida contra bot, recompensa, missões e histórico', () 
     await waitFor(() => nm.state.status === 'active', 8000, 'início');
     // Personagem da conta na partida: classe, nome, acessório e consumíveis.
     const mine = Object.values(nm.state.units).find((u) => u.team === 'A')!;
-    expect(mine).toMatchObject({ classId: 'mage', name: character.name, accessoryId: 'accessory.vitality_amulet', maxHp: 88 });
+    expect(mine).toMatchObject({ classId: 'mage', name: character.name, accessoryId: 'accessory.vitality_amulet', maxHp: 94 }); // Mago 86 + Amuleto 8 (balanceamento da Fase 6)
     // Nada do bot vaza antes de ser visto.
     expect(Object.values(nm.state.units).every((u) => u.team === 'A')).toBe(true);
     await playClient(nm, 'hard');

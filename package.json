@@ -26,7 +26,16 @@
     "e2e:rede-ui": "tsx tools/e2e/rede-ui.ts",
     "e2e:conteudo": "tsx tools/e2e/conteudo.ts",
     "bots:sim": "tsx tools/bots/simulate.ts",
-    "e2e:ciclo": "tsx tools/e2e/ciclo.ts"
+    "e2e:ciclo": "tsx tools/e2e/ciclo.ts",
+    "perf:client": "tsx tools/perf/client.ts",
+    "perf:assets": "tsx tools/perf/assets.ts",
+    "batch:invariants": "tsx tools/batch/invariants.ts",
+    "balance": "tsx tools/balance/index.ts",
+    "perf:server": "tsx tools/perf/server.ts",
+    "netsim": "tsx tools/perf/netsim.ts",
+    "fuzz:server": "vitest run tests/integration/seguranca.test.ts",
+    "regression:from-match": "tsx tools/regression/from-match.ts",
+    "balance:difficulty": "tsx tools/balance/difficulty.ts"
   },
   "devDependencies": {
     "@gltf-transform/cli": "^4.5.1",

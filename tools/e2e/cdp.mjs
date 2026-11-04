@@ -4,10 +4,11 @@ import { mkdirSync, writeFileSync } from 'node:fs';
 
 export const sleep = (ms) => new Promise((r) => setTimeout(r, ms));
 
-export async function launch({ port = 9341, profile, width = 1400, height = 900, extraArgs = [] }) {
+// `gpu: true` (Fase 6, medição de desempenho): usa a GPU (ANGLE/D3D11) em vez do SwiftShader.
+export async function launch({ port = 9341, profile, width = 1400, height = 900, extraArgs = [], gpu = false }) {
   mkdirSync(profile, { recursive: true });
   const chrome = spawn('C:/Program Files/Google/Chrome/Application/chrome.exe', [
-    '--headless=new', '--use-angle=swiftshader', '--enable-unsafe-swiftshader', '--enable-webgl', '--ignore-gpu-blocklist',
+    '--headless=new', ...(gpu ? ['--use-angle=d3d11', '--enable-gpu'] : ['--use-angle=swiftshader', '--enable-unsafe-swiftshader']), '--enable-webgl', '--ignore-gpu-blocklist',
     `--remote-debugging-port=${port}`, `--user-data-dir=${profile}`, `--window-size=${width},${height}`, ...extraArgs, 'about:blank',
   ], { stdio: 'ignore' });
   let targets;

@@ -20,7 +20,7 @@ import { walkPath } from '../effects/movement.js';
 import { emitStimulus } from '../effects/reactions.js';
 import { setSurfaceDirect } from '../effects/surfaces.js';
 import { planDash } from '../effects/dash.js';
-import { checkVictory, endTurn, finishMatch, startMatch } from '../turns/turns.js';
+import { checkVictory, endTurn, endTurnIfActiveDefeated, finishMatch, startMatch } from '../turns/turns.js';
 import { resetDummy } from '../state/factory.js';
 import type { Command, CommandError, CommandErrorCode, CommandTarget, ExecutionOptions } from './types.js';
 import { VISIBILITY_TUNING, areEnemies, canDetectUnit, isHidden, isObserver, teamDetects } from '../visibility/visibility.js';
@@ -78,6 +78,7 @@ export function applyCommand(
     revealHiddenUnits(ctx);
     maintainDummies(ctx);
     checkVictory(ctx);
+    endTurnIfActiveDefeated(ctx);
     return { ok: true, state: candidate, events: ctx.events, ...(ctx.snapshots ? { snapshots: ctx.snapshots } : {}) };
   } catch (err) {
     if (err instanceof Rejection) return { ok: false, state, error: { code: err.code, message: err.message } };
@@ -121,7 +122,9 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
     reject('STALE_TURN', `Turno esperado ${command.expectedTurnId}, atual ${state.turn.turnId}`);
   }
 
-  const actor = requireActor(ctx, (command as { actorId: string }).actorId, options);
+  // Fase 6: desistir vale fora da vez (botão "desistir" a qualquer momento; abandono confirmado).
+  const actorOptions = command.type === 'SURRENDER' ? { ...options, ignoreTurn: true } : options;
+  const actor = requireActor(ctx, (command as { actorId: string }).actorId, actorOptions);
   emit(ctx, 'COMMAND_ACCEPTED', { command });
 
   switch (command.type) {

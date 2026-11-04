@@ -210,6 +210,25 @@ export class LobbyService {
     };
   }
 
+  /**
+   * Fase 6: a partida montada foi cancelada porque alguém não entrou no prazo. Quem entrou volta
+   * para o começo da fila (partida da fila) e quem faltou sai da fila; no convite, ninguém volta
+   * (o convite já foi aceito; basta convidar de novo).
+   */
+  matchCancelled(roomId: string, mode: string, joined: Account[], missing: Account[]): void {
+    for (const a of [...joined, ...missing]) if (this.pending.get(a.id)?.roomId === roomId) this.pending.delete(a.id);
+    for (const a of missing) this.queue.delete(a.id);
+    if (mode !== 'pvp') return;
+    const now = this.now();
+    const front = new Map<string, QueueEntry>();
+    for (const a of joined) front.set(a.id, { account: a, since: now, lastPoll: now });
+    for (const [id, e] of this.queue) if (!front.has(id)) front.set(id, e);
+    this.queue.clear();
+    for (const [id, e] of front) this.queue.set(id, e);
+    this.svc.log(`[lobby] sala ${roomId} cancelada; de volta à fila: ${joined.map((a) => a.username).join(', ') || 'ninguém'}`);
+    void this.pair();
+  }
+
   /** A conta entrou na sala: a partida pendente foi entregue. */
   joined(accountId: string): void {
     this.pending.delete(accountId);

@@ -74,7 +74,7 @@ describe('itens: armaduras fixas por classe e acessórios (seção 3.2)', () => 
 
   it('acessórios: +8 PV máximos, resistência a fogo 2, resistência a frio 2', () => {
     const make = (accessoryId: string) => createUnitFromClass(catalog, { id: 'u', classId: 'mage', team: 'A', pos: { x: 0, y: 0, floor: 0 }, accessoryId });
-    expect([make('accessory.vitality_amulet').maxHp, make('accessory.vitality_amulet').hp]).toEqual([88, 88]);
+    expect([make('accessory.vitality_amulet').maxHp, make('accessory.vitality_amulet').hp]).toEqual([94, 94]); // Mago 86 + 8 (Fase 6)
     expect(make('accessory.ash_medallion').resistances).toEqual({ fire: 2 });
     expect(make('accessory.frost_medallion').resistances).toEqual({ cold: 2 });
   });

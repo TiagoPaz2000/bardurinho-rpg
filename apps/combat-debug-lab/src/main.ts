@@ -40,6 +40,8 @@ import { CELL, render, renderLegend, type Layers } from './render.js';
 const legendPanel = renderLegend(); // estática: criada uma vez
 import { LabSession } from './session.js';
 import { checkScenario, openScenario, scenarioLibrary, type LibraryScenario } from './scenarioLibrary.js';
+import { bugReportToScenario } from './regression.js';
+import { isBugReport } from '@bardurinho/protocol';
 
 // ---------------------------------------------------------------------------
 // Estado da interface (não é estado de jogo)
@@ -980,14 +982,27 @@ function renderTimeline(): void {
         },
       }, 'GERAR TESTE'),
       h('button', { onclick: () => { ui.session = newSession(defaultScenario); ui.message = null; refresh(); } }, 'Reiniciar cenário'),
-      h('label', { class: 'btn' }, 'Importar initial.json', h('input', {
+      h('label', { class: 'btn' }, 'Importar initial.json / relatório de bug', h('input', {
         type: 'file', accept: '.json', style: 'display:none',
         onchange: async (e: Event) => {
           const file = (e.target as HTMLInputElement).files?.[0];
           if (!file) return;
           try {
-            ui.session = new LabSession(catalog, JSON.parse(await file.text())); // mantém dados/semente do arquivo
-            ui.message = { text: `Cenário ${file.name} carregado`, kind: 'ok' };
+            const data = JSON.parse(await file.text());
+            if (isBugReport(data)) {
+              // Fase 6: relatório de bug do servidor → partida reproduzida na timeline (STEP/REPLAY).
+              const sc = bugReportToScenario(catalog, data);
+              const session = new LabSession(catalog, sc.initial);
+              // O LabSession já inicia a partida (START_MATCH); o resto vai para a timeline.
+              for (const c of sc.commands) if (c.type !== 'START_MATCH') session.execute(c, {});
+              ui.session = session;
+              ui.message = sc.check.identical
+                ? { text: `Relatório de bug ${data.matchId.slice(0, 8)}: ${sc.commands.length} comandos reproduzidos, estado final idêntico ao do servidor. GERAR TESTE salva o cenário de regressão.`, kind: 'ok' }
+                : { text: `Relatório ${data.matchId.slice(0, 8)}: replay DIVERGE do servidor (snapshot 0 ${sc.check.initialMatches ? 'ok' : 'diferente'}, ${sc.check.errors} recusados, hash ${sc.check.replayHash} ≠ ${sc.check.serverHash})`, kind: 'error' };
+            } else {
+              ui.session = new LabSession(catalog, data); // mantém dados/semente do arquivo
+              ui.message = { text: `Cenário ${file.name} carregado`, kind: 'ok' };
+            }
           } catch (err) {
             ui.message = { text: String(err), kind: 'error' };
           }

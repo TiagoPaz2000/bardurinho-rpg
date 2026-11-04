@@ -49,6 +49,21 @@ export function endTurn(ctx: ResolutionContext): void {
   if (ctx.state.status === 'active') advanceToNextUnit(ctx);
 }
 
+/**
+ * Fase 6: o personagem da vez foi derrotado durante o próprio turno (ex.: atacou a própria célula,
+ * explosão de um barril ao lado, fogo) e a partida continua (2 × 2: o aliado está vivo). Sem isto
+ * o turno ficava preso num personagem derrotado: END_TURN dele é recusado (ACTOR_DEFEATED) e nem o
+ * cronômetro do servidor conseguia passar a vez. O turno é encerrado automaticamente, como na
+ * derrota no início do turno. Encontrado pelo lote de invariantes (tools/batch).
+ */
+export function endTurnIfActiveDefeated(ctx: ResolutionContext): void {
+  const unit = currentUnit(ctx);
+  if (ctx.state.status !== 'active' || !unit || unit.alive) return;
+  onStatusesTurnEnd(ctx, unit);
+  emit(ctx, 'TURN_ENDED', { unitId: unit.id, automatic: true });
+  advanceToNextUnit(ctx);
+}
+
 function currentUnit(ctx: ResolutionContext): Unit | undefined {
   const id = ctx.state.turn.activeUnitId;
   return id ? ctx.state.units[id] : undefined;

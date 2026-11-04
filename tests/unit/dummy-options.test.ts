@@ -22,7 +22,7 @@ describe('opções do Test Dummy', () => {
     ], debug);
     expect(r.errors).toEqual([]);
     expect(r.state.units.dummy!.hp).toBe(100);
-    expect(r.events.some((e) => e.type === 'DAMAGE_APPLIED' && e.payload.hpDamage === 18)).toBe(true);
+    expect(r.events.some((e) => e.type === 'DAMAGE_APPLIED' && e.payload.hpDamage === 15)).toBe(true); // espada 1d8+10 (média 15; Fase 6)
   });
 
   it('imune a empurrão, estados e superfícies', () => {

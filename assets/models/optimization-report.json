@@ -1,7 +1,7 @@
 {
   "assets/models/characters/mage.glb": {
     "source": "assets/models/source/characters/mage.glb",
-    "ratio": 0.10873,
+    "ratio": 0.05361,
     "simplifyError": 0.02,
     "before": {
       "triangles": 48760,
@@ -11,8 +11,8 @@
       "meshes": 22
     },
     "after": {
-      "triangles": 6303,
-      "bytes": 398632,
+      "triangles": 4119,
+      "bytes": 377524,
       "materials": 22,
       "textures": 22,
       "meshes": 22
@@ -20,7 +20,7 @@
   },
   "assets/models/characters/rogue.glb": {
     "source": "assets/models/source/characters/rogue.glb",
-    "ratio": 0.10756,
+    "ratio": 0.05059,
     "simplifyError": 0.02,
     "before": {
       "triangles": 47910,
@@ -30,8 +30,8 @@
       "meshes": 17
     },
     "after": {
-      "triangles": 6269,
-      "bytes": 455848,
+      "triangles": 4293,
+      "bytes": 436848,
       "materials": 17,
       "textures": 17,
       "meshes": 17
@@ -39,7 +39,7 @@
   },
   "assets/models/characters/warrior.glb": {
     "source": "assets/models/source/characters/warrior.glb",
-    "ratio": 0.10954,
+    "ratio": 0.05145,
     "simplifyError": 0.02,
     "before": {
       "triangles": 49682,
@@ -49,8 +49,8 @@
       "meshes": 16
     },
     "after": {
-      "triangles": 6272,
-      "bytes": 420896,
+      "triangles": 4132,
+      "bytes": 400360,
       "materials": 16,
       "textures": 16,
       "meshes": 16
@@ -58,7 +58,7 @@
   },
   "assets/models/characters/druid.glb": {
     "source": "assets/models/source/characters/druid.glb",
-    "ratio": 0.10727,
+    "ratio": 0.04825,
     "simplifyError": 0.02,
     "before": {
       "triangles": 47816,
@@ -68,8 +68,8 @@
       "meshes": 22
     },
     "after": {
-      "triangles": 6086,
-      "bytes": 585848,
+      "triangles": 4296,
+      "bytes": 567904,
       "materials": 22,
       "textures": 22,
       "meshes": 22

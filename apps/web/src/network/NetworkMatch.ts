@@ -29,6 +29,7 @@ import {
   type UpdateMessage,
 } from '@bardurinho/protocol';
 import type { ExecuteResult, MatchChange, MatchDriver, MatchPresenter } from '../game/MatchController.js';
+import { takeEarly } from './early.js';
 
 type Incoming = { kind: 'snapshot'; msg: SnapshotMessage } | { kind: 'update'; msg: UpdateMessage };
 
@@ -61,7 +62,7 @@ export class NetworkMatch implements MatchDriver {
   private readonly inbox: Incoming[] = [];
   private readonly listeners = new Set<(change: MatchChange) => void>();
   private readonly statusListeners = new Set<(s: NetworkStatus) => void>();
-  private readonly pending = new Map<string, { resolve: (r: ExecuteResult) => void; version?: number; timer: ReturnType<typeof setTimeout> }>();
+  private readonly pending = new Map<string, { resolve: (r: ExecuteResult) => void; version?: number; timer: ReturnType<typeof setTimeout>; envelope?: unknown }>();
   private connection: NetworkStatus['connection'] = 'online';
   private seats: SeatInfo[];
   private timer: TurnTimer | null;
@@ -69,6 +70,7 @@ export class NetworkMatch implements MatchDriver {
   private clockOffset = 0;
   private synced = true;
   private divergences = 0;
+  private resyncedAt = -1;
   presenter: MatchPresenter | null = null;
   /** Snapshot recebido (reconexão/ressincronização): a tela reconstrói a cena. */
   onSnapshot: ((msg: SnapshotMessage) => void) | null = null;
@@ -100,6 +102,8 @@ export class NetworkMatch implements MatchDriver {
     this.room = room;
     room.onMessage('snapshot', (msg: SnapshotMessage) => this.push({ kind: 'snapshot', msg }));
     room.onMessage('update', (msg: UpdateMessage) => this.push({ kind: 'update', msg }));
+    // Fase 6: mensagens que chegaram antes destes ouvintes (entre o snapshot e agora).
+    for (const early of takeEarly(room)) this.push(early);
     room.onMessage('result', (msg: CommandResultMessage) => this.onResult(msg));
     room.onMessage('presence', (msg: PresenceMessage) => {
       this.seats = msg.seats;
@@ -116,6 +120,10 @@ export class NetworkMatch implements MatchDriver {
     room.onReconnect(() => {
       this.connection = 'online';
       this.emitStatus();
+      // Fase 6: comandos sem resposta quando a conexão caiu são reenviados com o mesmo commandId —
+      // o servidor não reaplica (devolve a resposta gravada, `duplicate`) e o cliente não fica
+      // esperando o tempo-limite de um resultado que se perdeu na queda.
+      for (const p of this.pending.values()) if (p.envelope && p.version === undefined) this.room.send('command', p.envelope);
     });
     room.onLeave(() => {
       this.connection = 'offline';
@@ -205,7 +213,7 @@ export class NetworkMatch implements MatchDriver {
         this.pending.delete(commandId);
         resolve({ ok: false, error: { code: 'TIMEOUT', message: 'O servidor não respondeu' } });
       }, COMMAND_TIMEOUT_MS);
-      this.pending.set(commandId, { resolve, timer });
+      this.pending.set(commandId, { resolve, timer, envelope });
       this.room.send('command', envelope);
     });
   }
@@ -317,6 +325,11 @@ export class NetworkMatch implements MatchDriver {
       console.error(`[rede] divergência na versão ${version}: local ${hash} ≠ servidor ${expected}`);
     }
     this.room?.send('ack', { version, hash });
+    // Fase 6: estado local diferente do oficial → pede um snapshot novo (uma vez por versão).
+    if (!this.synced && this.resyncedAt !== version) {
+      this.resyncedAt = version;
+      this.room?.send('resync', {});
+    }
   }
 
   private setClock(timer: TurnTimer | null) {

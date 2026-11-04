@@ -8,7 +8,7 @@
  * - unidades derrotadas continuam, com a posição (a derrota é pública; decisão da Fase 3);
  * - com a partida encerrada (`finished`) todas as unidades são enviadas (nada mais a esconder);
  * - a semente do gerador de dados é zerada (com ela o cliente poderia prever as rolagens);
- * - `surfaceHitsThisTurn` só mantém as unidades enviadas.
+ * - `surfaceHitsThisTurn` só mantém as unidades enviadas; `nextEventSeq` é zerado (Fase 6).
  * Terreno, objetos e superfícies continuam públicos (MVP, seção 6.2), assim como a ordem de
  * iniciativa e de quem é a vez (`turn.order` / `turn.activeUnitId`, só identificadores).
  *
@@ -45,8 +45,9 @@ export interface ClientProjection {
 }
 
 /** Estado que pode ser enviado à equipe (ver o cabeçalho). */
-export function projectStateForClient(state: GameState, catalog: Catalog, team: string): ClientProjection {
-  const vision = computeTeamVision(state, catalog, team);
+export function projectStateForClient(state: GameState, catalog: Catalog, team: string, precomputed?: TeamVision): ClientProjection {
+  // Fase 6: o servidor pode passar a visão já calculada (a mesma do estado) para não refazê-la.
+  const vision = precomputed ?? computeTeamVision(state, catalog, team);
   const projected = structuredClone(state);
   // Partida encerrada: não há mais o que esconder (tela de resultado com todos os personagens).
   if (state.status !== 'finished') {
@@ -55,6 +56,8 @@ export function projectStateForClient(state: GameState, catalog: Catalog, team: 
     }
   }
   projected.rng = { mode: projected.rng.mode, seed: 0, draws: 0, forced: [] };
+  // Fase 6: o contador de eventos oficial revelaria quantos eventos ocultos aconteceram.
+  projected.nextEventSeq = 0;
   for (const id of Object.keys(projected.surfaceHitsThisTurn)) if (!projected.units[id]) delete projected.surfaceHitsThisTurn[id];
   return { state: projected, vision };
 }
@@ -67,9 +70,16 @@ function knownUnits(before: GameState, after: GameState, vb: TeamVision, va: Tea
 }
 
 /** Eventos de um comando que podem ser enviados à equipe (ver o cabeçalho). */
-export function projectEventsForTeam(events: readonly GameEvent[], before: GameState, after: GameState, catalog: Catalog, team: string): GameEvent[] {
-  const vb = computeTeamVision(before, catalog, team);
-  const va = computeTeamVision(after, catalog, team);
+export function projectEventsForTeam(
+  events: readonly GameEvent[],
+  before: GameState,
+  after: GameState,
+  catalog: Catalog,
+  team: string,
+  visions: { before?: TeamVision; after?: TeamVision } = {},
+): GameEvent[] {
+  const vb = visions.before ?? computeTeamVision(before, catalog, team);
+  const va = visions.after ?? computeTeamVision(after, catalog, team);
   const known = knownUnits(before, after, vb, va, team);
   const isUnit = (id: unknown): id is string => typeof id === 'string' && (id in after.units || id in before.units);
   const unknownUnit = (id: unknown) => isUnit(id) && !known.has(id);

@@ -1,0 +1,4 @@
+[
+  { "type": "BASIC_ATTACK", "actorId": "mage-a", "weaponId": "weapon.arcane_wand", "target": { "kind": "cell", "x": 1, "y": 1, "floor": 0 } },
+  { "type": "END_TURN", "actorId": "warrior-b" }
+]

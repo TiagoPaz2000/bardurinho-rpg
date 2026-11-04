@@ -1,0 +1,370 @@
+{
+  "name": "regression/exemplo_partida_servidor",
+  "map": {
+    "floors": [
+      [
+        "..............dd",
+        "..............dd",
+        "................",
+        "................",
+        "................",
+        "................",
+        "................",
+        "##.####.#####.##",
+        "................",
+        "................",
+        "................",
+        "................",
+        "................",
+        "................",
+        "dd..............",
+        "dd.............."
+      ],
+      [
+        "________________",
+        "________________",
+        "________________",
+        "________________",
+        "..______________",
+        "..______________",
+        "..____________..",
+        "..____________..",
+        "..____________..",
+        "..____________..",
+        "______________..",
+        "______________..",
+        "________________",
+        "________________",
+        "________________",
+        "________________"
+      ]
+    ],
+    "connections": [
+      {
+        "a": {
+          "x": 0,
+          "y": 3,
+          "floor": 0
+        },
+        "b": {
+          "x": 0,
+          "y": 4,
+          "floor": 1
+        },
+        "cost": 2
+      },
+      {
+        "a": {
+          "x": 15,
+          "y": 12,
+          "floor": 0
+        },
+        "b": {
+          "x": 15,
+          "y": 11,
+          "floor": 1
+        },
+        "cost": 2
+      }
+    ]
+  },
+  "units": [
+    {
+      "id": "unit-a1",
+      "classId": "mage",
+      "team": "A",
+      "pos": {
+        "x": 7,
+        "y": 0,
+        "floor": 0
+      },
+      "accessoryId": null,
+      "consumables": [
+        "consumable.health_potion",
+        "consumable.oil_flask"
+      ],
+      "hp": 86,
+      "focus": 10,
+      "name": "Lyra"
+    },
+    {
+      "id": "unit-b1",
+      "classId": "warrior",
+      "team": "B",
+      "pos": {
+        "x": 8,
+        "y": 15,
+        "floor": 0
+      },
+      "accessoryId": "accessory.frost_medallion",
+      "consumables": [
+        "consumable.health_potion",
+        "consumable.focus_potion"
+      ],
+      "hp": 110,
+      "focus": 8,
+      "name": "Bot normal"
+    }
+  ],
+  "objects": [
+    {
+      "id": "door-01",
+      "defId": "door",
+      "pos": {
+        "x": 2,
+        "y": 7,
+        "floor": 0
+      },
+      "state": "closed"
+    },
+    {
+      "id": "door-02",
+      "defId": "door",
+      "pos": {
+        "x": 13,
+        "y": 7,
+        "floor": 0
+      },
+      "state": "closed"
+    },
+    {
+      "id": "gate-01",
+      "defId": "gate",
+      "pos": {
+        "x": 7,
+        "y": 7,
+        "floor": 0
+      },
+      "state": "closed"
+    },
+    {
+      "id": "altar-01",
+      "defId": "focus_altar",
+      "pos": {
+        "x": 1,
+        "y": 1,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "altar-02",
+      "defId": "focus_altar",
+      "pos": {
+        "x": 14,
+        "y": 14,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "chest-01",
+      "defId": "chest",
+      "pos": {
+        "x": 14,
+        "y": 4,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "chest-02",
+      "defId": "chest",
+      "pos": {
+        "x": 1,
+        "y": 11,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "crate-01",
+      "defId": "crate",
+      "pos": {
+        "x": 6,
+        "y": 3,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "crate-02",
+      "defId": "crate",
+      "pos": {
+        "x": 9,
+        "y": 12,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "crate-03",
+      "defId": "crate",
+      "pos": {
+        "x": 3,
+        "y": 11,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "crate-04",
+      "defId": "crate",
+      "pos": {
+        "x": 12,
+        "y": 4,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "lever-01",
+      "defId": "lever",
+      "pos": {
+        "x": 8,
+        "y": 6,
+        "floor": 0
+      },
+      "state": "closed",
+      "linkedId": "gate-01"
+    },
+    {
+      "id": "barrel-01",
+      "defId": "barrel",
+      "pos": {
+        "x": 5,
+        "y": 5,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "barrel-02",
+      "defId": "barrel",
+      "pos": {
+        "x": 10,
+        "y": 10,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "barrel-03",
+      "defId": "barrel",
+      "pos": {
+        "x": 4,
+        "y": 10,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "barrel-04",
+      "defId": "barrel",
+      "pos": {
+        "x": 11,
+        "y": 5,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "cistern-01",
+      "defId": "cistern",
+      "pos": {
+        "x": 9,
+        "y": 2,
+        "floor": 0
+      },
+      "state": "normal"
+    },
+    {
+      "id": "cistern-02",
+      "defId": "cistern",
+      "pos": {
+        "x": 6,
+        "y": 13,
+        "floor": 0
+      },
+      "state": "normal"
+    }
+  ],
+  "surfaces": [
+    {
+      "cells": [
+        {
+          "x": 4,
+          "y": 4,
+          "floor": 0
+        }
+      ],
+      "surface": "oil",
+      "durationRounds": null
+    },
+    {
+      "cells": [
+        {
+          "x": 4,
+          "y": 5,
+          "floor": 0
+        }
+      ],
+      "surface": "oil",
+      "durationRounds": null
+    },
+    {
+      "cells": [
+        {
+          "x": 4,
+          "y": 6,
+          "floor": 0
+        }
+      ],
+      "surface": "oil",
+      "durationRounds": null
+    },
+    {
+      "cells": [
+        {
+          "x": 11,
+          "y": 9,
+          "floor": 0
+        }
+      ],
+      "surface": "oil",
+      "durationRounds": null
+    },
+    {
+      "cells": [
+        {
+          "x": 11,
+          "y": 10,
+          "floor": 0
+        }
+      ],
+      "surface": "oil",
+      "durationRounds": null
+    },
+    {
+      "cells": [
+        {
+          "x": 11,
+          "y": 11,
+          "floor": 0
+        }
+      ],
+      "surface": "oil",
+      "durationRounds": null
+    }
+  ],
+  "order": [
+    "unit-a1",
+    "unit-b1"
+  ],
+  "maxRounds": 20,
+  "dice": "random",
+  "seed": 779978068,
+  "initiative": "roll",
+  "description": "Reproduz a partida 8bb9d6f7-40d0-4db3-9e95-78e2e67347a0 (semente 779978068, 92 comandos aceitos, status finished). Gerado de um relatório de bug do servidor.",
+  "autoStart": false
+}

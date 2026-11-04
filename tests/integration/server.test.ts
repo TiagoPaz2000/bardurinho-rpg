@@ -291,15 +291,17 @@ describe('escolha de personagens em rede (Fase 4)', () => {
       teamB: [{ classId: 'warrior', accessoryId: 'weapon.dagger', consumables: ['consumable.health_potion', 'consumable.health_potion'] }, { classId: 'paladino' }, { classId: 'mage' }],
     });
     const units = p.session.state.units;
-    expect(Object.keys(units).sort()).toEqual(['druid-01', 'druid-02', 'rogue-01', 'warrior-01']);
-    expect(units['rogue-01']).toMatchObject({ team: 'A', maxHp: 98, consumables: ['consumable.oil_flask'] });
-    expect(units['warrior-01']).toMatchObject({ team: 'B', accessoryId: null, consumables: ['consumable.health_potion'] });
-    expect(units['druid-02']!.team).toBe('B');
+    // Fase 6: ids opacos no servidor (a ordem de iniciativa não revela a classe).
+    expect(Object.keys(units).sort()).toEqual(['unit-a1', 'unit-a2', 'unit-b1', 'unit-b2']);
+    expect(units['unit-a1']).toMatchObject({ classId: 'rogue', team: 'A', maxHp: 98, consumables: ['consumable.oil_flask'] });
+    expect(units['unit-a2']).toMatchObject({ classId: 'druid', team: 'A' });
+    expect(units['unit-b1']).toMatchObject({ classId: 'warrior', team: 'B', accessoryId: null, consumables: ['consumable.health_potion'] });
+    expect(units['unit-b2']).toMatchObject({ classId: 'druid', team: 'B' });
     // Cada cliente só controla e só recebe (no início) a própria equipe.
     await p.synced();
-    expect(Object.keys(p.a.state.units).sort()).toEqual(['druid-01', 'rogue-01']);
-    expect(Object.keys(p.b.state.units).sort()).toEqual(['druid-02', 'warrior-01']);
-    expect(p.a.canControl('rogue-01') && !p.a.canControl('warrior-01')).toBe(true);
+    expect(Object.keys(p.a.state.units).sort()).toEqual(['unit-a1', 'unit-a2']);
+    expect(Object.keys(p.b.state.units).sort()).toEqual(['unit-b1', 'unit-b2']);
+    expect(p.a.canControl('unit-a1') && !p.a.canControl('unit-b1')).toBe(true);
     // Snapshot 0 = montagem final (o replay parte dele).
     const loser = p.active();
     expect((await loser.execute({ type: 'SURRENDER', actorId: loser.state.turn.activeUnitId! })).ok).toBe(true);
@@ -307,7 +309,7 @@ describe('escolha de personagens em rede (Fase 4)', () => {
     const report = await verifyMatchReplay(gs.services.matches, catalog, p.session.id);
     expect(report.ok).toBe(true);
     const initial = await gs.services.matches.snapshot(p.session.id, 0);
-    expect(Object.keys(initial!.state.units).sort()).toEqual(['druid-01', 'druid-02', 'rogue-01', 'warrior-01']);
+    expect(Object.keys(initial!.state.units).sort()).toEqual(['unit-a1', 'unit-a2', 'unit-b1', 'unit-b2']);
     await p.A.room.leave();
     await p.B.room.leave();
   });

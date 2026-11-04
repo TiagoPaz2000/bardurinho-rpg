@@ -2,18 +2,18 @@
   "errors": 0,
   "units": {
     "mage-01": {
-      "hp": 80,
-      "shield": 0,
+      "hp": 86,
+      "shield": 3,
       "ap": 0
     }
   },
   "damage": [
     {
       "targetId": "mage-01",
-      "raw": 18,
-      "shieldAbsorbed": 18,
+      "raw": 15,
+      "shieldAbsorbed": 15,
       "hpDamage": 0,
-      "hpAfter": 80
+      "hpAfter": 86
     }
   ],
   "events": [

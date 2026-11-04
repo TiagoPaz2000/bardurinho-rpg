@@ -61,10 +61,13 @@ export interface BotDecision {
 }
 
 const DIFFICULTY = {
-  easy: { moves: 3, randomMoves: 3, expected: false, randomPick: 0.3, earlyEnd: 0.15, beam: 0, depth: 0, threat: false },
-  normal: { moves: 8, randomMoves: 0, expected: true, randomPick: 0, earlyEnd: 0, beam: 0, depth: 0, threat: false },
-  hard: { moves: 10, randomMoves: 0, expected: true, randomPick: 0, earlyEnd: 0, beam: 4, depth: 2, threat: true },
+  easy: { moves: 3, randomMoves: 3, expected: false, randomPick: 0.3, earlyEnd: 0.15, secondBest: 0, beam: 0, depth: 0, threat: false },
+  normal: { moves: 8, randomMoves: 0, expected: true, randomPick: 0, earlyEnd: 0, secondBest: 0.25, beam: 0, depth: 0, threat: false },
+  hard: { moves: 10, randomMoves: 0, expected: true, randomPick: 0, earlyEnd: 0, secondBest: 0, beam: 4, depth: 2, threat: true },
 } as const;
+
+/** Fase 6: o normal só troca pela 2ª opção quando ela está a até esta distância da melhor (deslize, não erro grosseiro). */
+export const SECOND_BEST_MARGIN = 12;
 
 /** Máximo de comandos do bot num turno (segurança; cada ação gasta PA ou PM). */
 export const MAX_COMMANDS_PER_TURN = 12;
@@ -162,6 +165,11 @@ export class BotBrain {
     if (cfg.beam > 0) {
       const plan = this.planSequence(view, ctx, me, scored, base);
       if (plan) return finish(plan, considered);
+    }
+    // Fase 6: o normal às vezes fica com a segunda melhor opção (ver DIFFICULTY.secondBest).
+    const second = considered[1];
+    if (cfg.secondBest > 0 && second && second.command.type !== 'END_TURN' && second.score > base + 0.5 && second.score >= considered[0]!.score - SECOND_BEST_MARGIN && this.rand() < cfg.secondBest) {
+      return finish({ command: second.command, label: `${second.label} (2ª opção)`, score: second.score }, considered);
     }
     const best = considered[0]!;
     if (best.command.type === 'END_TURN' || best.score <= base + 0.5) return finish({ command: endTurn, label: 'Encerrar turno', score: base }, considered);
@@ -282,6 +290,9 @@ export class BotBrain {
       // Barris (explosão perto de inimigos), caixas/portas no caminho.
       if (def?.explosion ? enemies.some((e) => distance(e.pos, o.pos) <= 3) : def?.hp != null && distance(o.pos, me.pos) <= 2) addCell(o.pos);
     }
+    // Fase 6: nunca mira a própria célula (o core aceita e o personagem se fere; o fácil chegava a
+    // se derrotar assim por escolha ao acaso — encontrado pelo lote de invariantes).
+    cells.delete(coordKey(me.pos));
     const targets = [...cells.values()];
     const inRange = (rule: { range?: number; minRange?: number }, c: Coord) => {
       const d = distance(me.pos, c);
@@ -379,15 +390,23 @@ export class BotBrain {
     const roots = scored.slice(0, cfg.beam);
     for (const x of scored) if (x.setup && !roots.includes(x) && roots.length < cfg.beam + 3) roots.push(x);
     for (const root of roots) {
+      // Fase 6: o valor da sequência parte do valor *esperado* da raiz (chance de acerto) e soma
+      // o ganho esperado de cada ação seguinte. Antes a folha era avaliada no estado "acertou"
+      // (p ≥ 0,5), o que superestimava ataques arriscados: o difícil perdia para o normal
+      // (45 % em 320 partidas). O estado seguido continua sendo o mais provável.
       let state = root.state;
+      let value = root.score;
       for (let d = 0; d < cfg.depth; d++) {
         const unit = state.units[me.id];
         if (state.status !== 'active' || state.turn.activeUnitId !== me.id || !unit?.alive) break;
         const next = this.scoreCandidates(state, ctx, unit, true)[0];
-        if (!next || next.score <= evaluate(state, ctx) + 0.5) break;
+        const here = evaluate(state, ctx);
+        if (!next || next.score <= here + 0.5) break;
+        value += next.score - here;
         state = next.state;
       }
-      const score = leaf(state);
+      // Ameaça do adversário no fim da sequência (leaf = avaliação − ameaça).
+      const score = value - (state.status === 'finished' ? 0 : evaluate(state, ctx) - leaf(state));
       if (!best || score > best.score) best = { score, first: root };
     }
     if (!best || best.score <= endValue + 0.5 || best.first.score <= base - 25) return { command: { type: 'END_TURN', actorId: me.id, expectedTurnId: view.turn.turnId }, label: 'Encerrar turno', score: endValue };

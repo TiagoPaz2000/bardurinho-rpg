@@ -64,6 +64,21 @@ export class MatchesRepository {
     ]);
   }
 
+  /**
+   * Fase 6: partida que não vai continuar (cancelada antes do início, sala abandonada sem
+   * ninguém, ou deixada pelo processo anterior): sai de `setup`/`active` para `status`
+   * (`cancelled` / `aborted`), sem resultado nem recompensa.
+   */
+  async abort(matchId: string, status: 'cancelled' | 'aborted'): Promise<void> {
+    await this.db.query("UPDATE matches SET status = $2, finished_at = now() WHERE id = $1 AND status IN ('setup', 'active')", [matchId, status]);
+  }
+
+  /** Fase 6: na inicialização, partidas do processo anterior (salas em memória perdidas) → `aborted`. */
+  async abortStale(): Promise<number> {
+    const rows = await this.db.query("UPDATE matches SET status = 'aborted', finished_at = now() WHERE status IN ('setup', 'active') RETURNING id");
+    return rows.length;
+  }
+
   async mode(matchId: string): Promise<{ mode: string; botDifficulty: string | null } | null> {
     const rows = await this.db.query<{ mode: string; bot_difficulty: string | null }>('SELECT mode, bot_difficulty FROM matches WHERE id = $1', [matchId]);
     return rows[0] ? { mode: rows[0].mode, botDifficulty: rows[0].bot_difficulty } : null;

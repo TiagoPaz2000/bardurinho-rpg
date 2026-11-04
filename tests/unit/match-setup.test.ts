@@ -53,7 +53,7 @@ describe('escolha de personagens (Fase 4)', () => {
     expect(Object.keys(u).sort()).toEqual(['druid-01', 'mage-01', 'rogue-01', 'warrior-01']);
     expect(u['warrior-01']).toMatchObject({ team: 'A', pos: { x: 7, y: 0, floor: 0 }, maxHp: 118, hp: 118, armor: 4, consumables: ['consumable.health_potion', 'consumable.oil_flask'] });
     expect(u['rogue-01']).toMatchObject({ team: 'A', pos: { x: 6, y: 0, floor: 0 }, resistances: { fire: 2 }, armor: 2, weapons: ['weapon.dagger', 'weapon.short_bow'] });
-    expect(u['mage-01']).toMatchObject({ team: 'B', pos: { x: 8, y: 15, floor: 0 }, resistances: { cold: 2 }, armor: 0, maxHp: 80 });
+    expect(u['mage-01']).toMatchObject({ team: 'B', pos: { x: 8, y: 15, floor: 0 }, resistances: { cold: 2 }, armor: 0, maxHp: 86 });
     expect(u['druid-01']).toMatchObject({ team: 'B', pos: { x: 9, y: 15, floor: 0 }, maxHp: 95, consumables: ['consumable.health_potion', 'consumable.focus_potion'] });
     // As quatro classes jogáveis: cada uma tem a barra de ações com as próprias habilidades.
     for (const unit of Object.values(u)) {

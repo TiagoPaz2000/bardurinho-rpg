@@ -6,7 +6,8 @@ import { dummies, objects } from './objects/index.js';
 import { statuses, surfaces } from './statuses/index.js';
 
 /** Versão do pacote de conteúdo. Cada partida registra a versão usada (princípio 7). */
-export const CONTENT_VERSION = '0.1.0';
+/** 0.2.0 (Fase 6, balanceamento): Espada de ferro 1d8+13 → 1d8+10; Cajado natural 1d4+9 → 1d4+10; Mago 80 → 86 PV (docs/balanceamento.md). */
+export const CONTENT_VERSION = '0.2.0';
 
 const byId = <T extends DefinitionBase>(list: T[]): Record<string, T> => {
   const out: Record<string, T> = {};

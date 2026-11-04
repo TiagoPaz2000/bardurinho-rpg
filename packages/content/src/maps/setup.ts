@@ -73,13 +73,25 @@ export function normalizeSetup(catalog: Catalog, raw: Partial<MatchSetup> | null
   return { teams: { A: normalizeTeam(catalog, 'A', raw?.teams?.A), B: normalizeTeam(catalog, 'B', raw?.teams?.B) } };
 }
 
+export interface SetupOptions {
+  /**
+   * Fase 6: `opaque` gera ids sem a classe (`unit-a1`, `unit-b1`…) — usado pelo servidor, para
+   * que a ordem de iniciativa / `activeUnitId` (públicos) não revele a classe do adversário
+   * oculto. Padrão `class` (`warrior-01`), usado no modo local, no Lab e nos cenários.
+   */
+  ids?: 'class' | 'opaque';
+}
+
+/** Id opaco de um personagem: só a equipe e a posição (públicas). */
+export const opaqueUnitId = (team: TeamId, index: number): string => `unit-${team.toLowerCase()}${index + 1}`;
+
 /**
  * Cenário do mapa com os personagens escolhidos nos pontos de início da equipe (o 1º no
  * ponto principal). Ids: `<classe>-0N`, N contado por classe na ordem A1, A2, B1, B2 (o duelo
  * padrão continua `warrior-01` × `mage-01`; classes repetidas ganham 02). A ordem de turnos
  * continua decidida pelo d20 da iniciativa do mapa.
  */
-export function scenarioFromSetup(mapDef: MapDefinition, catalog: Catalog, setup: MatchSetup): ScenarioInitial {
+export function scenarioFromSetup(mapDef: MapDefinition, catalog: Catalog, setup: MatchSetup, options: SetupOptions = {}): ScenarioInitial {
   const norm = normalizeSetup(catalog, setup);
   const units: NonNullable<ScenarioInitial['units']> = [];
   const perClass = new Map<string, number>();
@@ -91,7 +103,7 @@ export function scenarioFromSetup(mapDef: MapDefinition, catalog: Catalog, setup
       const n = (perClass.get(c.classId) ?? 0) + 1;
       perClass.set(c.classId, n);
       units.push({
-        id: `${c.classId}-${String(n).padStart(2, '0')}`,
+        id: options.ids === 'opaque' ? opaqueUnitId(team, i) : `${c.classId}-${String(n).padStart(2, '0')}`,
         classId: c.classId,
         team,
         pos: { ...pos },

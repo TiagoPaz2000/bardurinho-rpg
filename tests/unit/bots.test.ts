@@ -6,7 +6,7 @@
 import { describe, expect, it } from 'vitest';
 import { BOT_DIFFICULTIES, BotBrain, runBotMatch, type BotDifficulty } from '@bardurinho/ai';
 import { DEFAULT_CONSUMABLES, catalog, patioDasRuinas } from '@bardurinho/content';
-import { buildScenario, projectStateForClient, type GameplayCommand } from '@bardurinho/domain';
+import { applyCommand, buildScenario, projectStateForClient, type GameplayCommand } from '@bardurinho/domain';
 import { openMap } from './helpers.js';
 
 const CLASSES = ['warrior', 'mage', 'rogue', 'druid'];
@@ -59,8 +59,25 @@ describe('bots: decisão', () => {
       const bot = new BotBrain(catalog, 'A', { difficulty, seed: 1 });
       const d = bot.decide(projectStateForClient(state, catalog, 'A').state);
       // Varinha (sem Foco) ou Chama no barril: a explosão (20 de fogo) atinge o Guerreiro sem jogada de ataque.
-      expect(['BASIC_ATTACK', 'USE_ABILITY']).toContain(d.command.type);
-      expect((d.command as { target?: unknown }).target).toMatchObject({ kind: 'cell', x: 5, y: 5 });
+      // Fase 6: o normal pode "deslizar" para a 2ª opção (DIFFICULTY.secondBest), então a conferência é na
+      // melhor opção avaliada; o difícil planeja o turno inteiro (valor esperado) e pode atacar o
+      // inimigo antes — o barril tem de aparecer entre as ações do turno.
+      const onBarrel = (c: GameplayCommand) => ['BASIC_ATTACK', 'USE_ABILITY'].includes(c.type) && (c as { target?: { x?: number; y?: number } }).target?.x === 5 && (c as { target?: { y?: number } }).target?.y === 5;
+      if (difficulty === 'normal') expect(onBarrel(d.considered[0]!.command)).toBe(true);
+      else {
+        let s = state;
+        let cmd = d.command;
+        const used: GameplayCommand[] = [];
+        for (let i = 0; i < 4 && cmd.type !== 'END_TURN'; i++) {
+          used.push(cmd);
+          const r = applyCommand(s, catalog, cmd);
+          expect(r.ok).toBe(true);
+          if (!r.ok || r.state.turn.activeUnitId !== 'mage-01') break;
+          s = r.state;
+          cmd = bot.decide(projectStateForClient(s, catalog, 'A').state).command;
+        }
+        expect(used.some(onBarrel)).toBe(true);
+      }
       // Avaliação explicável (painel "AI"): opções ordenadas pela nota.
       expect(d.considered.length).toBeGreaterThan(3);
       expect(d.considered[0]!.score).toBeGreaterThanOrEqual(d.considered[1]!.score);

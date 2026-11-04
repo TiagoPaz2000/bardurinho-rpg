@@ -44,11 +44,16 @@ export async function createGameServer(overrides: Partial<ServerConfig> = {}): P
     hard: await accounts.ensure('bot-dificil', 'Bot difícil', '', 'bot'),
   };
   const profiles = new ProfileRepository(db);
+  const matches = new MatchesRepository(db);
+  // Fase 6: salas não sobrevivem ao reinício — as partidas que ficaram abertas são encerradas
+  // como `aborted` (sem resultado nem recompensa), em vez de ficarem `active` para sempre.
+  const stale = await matches.abortStale();
+  if (stale) log(`${stale} partida(s) do processo anterior encerrada(s) como 'aborted'`);
   const services = {
     config,
     db,
     accounts,
-    matches: new MatchesRepository(db),
+    matches,
     profiles,
     progression: new ProgressionService(db, profiles, catalog),
     botAccounts,

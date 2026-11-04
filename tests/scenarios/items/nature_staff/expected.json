@@ -2,7 +2,7 @@
   "errors": 1,
   "units": {
     "warrior-01": {
-      "hp": 98
+      "hp": 97
     },
     "druid-01": {
       "ap": 1,
@@ -12,11 +12,11 @@
   "damage": [
     {
       "targetId": "warrior-01",
-      "raw": 12,
+      "raw": 13,
       "damageType": "nature",
       "mitigation": 0,
-      "hpDamage": 12,
-      "hpAfter": 98
+      "hpDamage": 13,
+      "hpAfter": 97
     }
   ]
 }

@@ -19,6 +19,18 @@ export interface ServerConfig {
   /** Fase 5: pausa do bot entre comandos (ms), para o jogador acompanhar as animações. */
   botDelayMs: number;
   /**
+   * Fase 6: prazo (s) para os jogadores de uma partida montada (fila/convite) entrarem na sala;
+   * esgotado, a partida é cancelada e quem entrou (ou continua no lobby) volta à fila.
+   */
+  joinTimeoutSeconds: number;
+  /**
+   * Fase 6: abandono = derrota. Quem caiu e não voltou dentro da reserva (`reconnectSeconds`)
+   * perde a partida por desistência (só se o adversário estiver conectado ou for bot).
+   */
+  forfeitOnAbandon: boolean;
+  /** Fase 6: limites de autenticação por IP/usuário (0 desliga). */
+  rateLimit: { loginFailuresPerUser: number; loginPerIpPerMinute: number; registerPerIpPer10Min: number };
+  /**
    * Rotas e opções de desenvolvimento: `/debug/*` (modo NETWORK do Combat Debug Lab), semente
    * e duração de turno escolhidas pelo cliente ao criar a sala. Desligado em produção.
    */
@@ -43,6 +55,11 @@ export function loadConfig(env: NodeJS.ProcessEnv = process.env, overrides: Part
     reconnectSeconds: num(env.RECONNECT_SECONDS, 90),
     abandonSeconds: num(env.ABANDON_SECONDS, 600),
     botDelayMs: num(env.BOT_DELAY_MS, 700),
+    joinTimeoutSeconds: num(env.JOIN_TIMEOUT_SECONDS, 45),
+    forfeitOnAbandon: env.FORFEIT_ON_ABANDON !== '0',
+    rateLimit: env.AUTH_RATE_LIMIT === '0'
+      ? { loginFailuresPerUser: 0, loginPerIpPerMinute: 0, registerPerIpPer10Min: 0 }
+      : { loginFailuresPerUser: num(env.LOGIN_FAILURES_PER_USER, 8), loginPerIpPerMinute: num(env.LOGIN_PER_IP_PER_MINUTE, 30), registerPerIpPer10Min: num(env.REGISTER_PER_IP_PER_10MIN, 30) },
     dev,
     devAccounts: dev
       ? [

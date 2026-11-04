@@ -1,6 +1,6 @@
 {
   "name": "Espada de ferro: corpo a corpo, mesmo andar",
-  "description": "weapon.iron_sword contra boneco no andar de cima (DIFFERENT_FLOOR) e depois contra boneco adjacente no mesmo andar (18 físico).",
+  "description": "weapon.iron_sword contra boneco no andar de cima (DIFFERENT_FLOOR) e depois contra boneco adjacente no mesmo andar (15 físico).",
   "map": {
     "floors": [
       [

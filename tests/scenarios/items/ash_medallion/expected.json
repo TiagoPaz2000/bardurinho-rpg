@@ -2,7 +2,7 @@
   "errors": 0,
   "units": {
     "mage-b": {
-      "hp": 62,
+      "hp": 68,
       "statuses": [
         "burning"
       ]
@@ -15,7 +15,7 @@
       "damageType": "fire",
       "mitigation": 2,
       "hpDamage": 16,
-      "hpAfter": 64
+      "hpAfter": 70
     },
     {
       "targetId": "mage-b",
@@ -23,7 +23,7 @@
       "damageType": "fire",
       "mitigation": 2,
       "hpDamage": 2,
-      "hpAfter": 62
+      "hpAfter": 68
     }
   ],
   "events": [

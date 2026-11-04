@@ -4,8 +4,8 @@ import type { ItemDefinition } from '@bardurinho/domain';
 export const items: ItemDefinition[] = [
   // --- Armas: todos os ataques básicos custam 1 PA e nenhum Foco ---
   {
-    kind: 'weapon', id: 'weapon.iron_sword', version: 1, name: 'Espada de ferro', tags: ['sword', 'melee'],
-    classIds: ['warrior'], cost: { ap: 1 }, damage: '1d8+13', damageType: 'physical',
+    kind: 'weapon', id: 'weapon.iron_sword', version: 2, name: 'Espada de ferro', tags: ['sword', 'melee'],
+    classIds: ['warrior'], cost: { ap: 1 }, damage: '1d8+10', damageType: 'physical',
     target: { kind: 'cell', range: 1, sameFloor: true },
     presentation: { iconId: 'icon.weapon.iron_sword', animationId: 'melee', vfxId: 'impact.physical' },
   },
@@ -28,8 +28,8 @@ export const items: ItemDefinition[] = [
     presentation: { iconId: 'icon.weapon.arcane_wand', animationId: 'cast_forward', vfxId: 'projectile.arcane' },
   },
   {
-    kind: 'weapon', id: 'weapon.nature_staff', version: 1, name: 'Cajado natural', tags: ['staff', 'ranged'],
-    classIds: ['druid'], cost: { ap: 1 }, damage: '1d4+9', damageType: 'nature',
+    kind: 'weapon', id: 'weapon.nature_staff', version: 2, name: 'Cajado natural', tags: ['staff', 'ranged'],
+    classIds: ['druid'], cost: { ap: 1 }, damage: '1d4+10', damageType: 'nature',
     target: { kind: 'cell', range: 4, requiresLineOfSight: true },
     presentation: { iconId: 'icon.weapon.nature_staff', animationId: 'cast_forward', vfxId: 'projectile.nature' },
   },

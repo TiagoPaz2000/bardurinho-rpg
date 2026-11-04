@@ -323,7 +323,8 @@ try {
   check(na.team === 'A' && nb.team === 'B', 'equipes A e B');
   const sa0 = await A.state();
   const sb0 = await B.state();
-  check(Object.keys(sa0.units).join() === 'warrior-01' && Object.keys(sb0.units).join() === 'mage-01', 'no início cada aba só tem o próprio personagem (o inimigo está fora da visão)');
+  // Fase 6: ids opacos (unit-a1 / unit-b1) — o id não revela a classe do adversário.
+  check(Object.keys(sa0.units).join() === 'unit-a1' && Object.keys(sb0.units).join() === 'unit-b1' && sa0.units['unit-a1']?.classId === 'warrior' && sb0.units['unit-b1']?.classId === 'mage', 'no início cada aba só tem o próprio personagem (o inimigo está fora da visão; ids opacos)');
   check(sa0.rng.seed === 0 && sb0.rng.seed === 0, 'semente dos dados não chega ao navegador');
   await sideBySide('03-inicio', A, B, ['Jogador A — vê só o Guerreiro', 'Jogador B — vê só o Mago']);
 

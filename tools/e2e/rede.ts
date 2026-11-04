@@ -341,7 +341,10 @@ for (let v = 0; v <= dbg.version; v++) {
       const exp = projectStateForClient(off.state, catalog, team).state;
       if (stateHash(exp) !== got.hash || stateHash(got.state) !== got.hash) leakFree = false;
       const expEvents = projectEventsForTeam(off.events, prev, off.state, catalog, team);
-      if (stableStringify(expEvents) !== stableStringify(got.events)) eventsMatch = false;
+      // Fase 6: cada equipe recebe os eventos numerados em sequência própria (o seq oficial revelaria
+      // quantos eventos ocultos houve) — compara sem o seq.
+      const noSeq = (evs: GameEvent[]) => evs.map(({ seq: _s, ...e }) => e);
+      if (stableStringify(noSeq(expEvents)) !== stableStringify(noSeq(got.events))) eventsMatch = false;
       const hidden = Object.values(off.state.units).filter((u) => u.alive && u.team !== team && !got.state.units[u.id]);
       // Inimigo vivo no estado recebido precisa estar na visão da equipe (exceto com a partida encerrada).
       if (off.state.status !== 'finished') {

@@ -1,6 +1,6 @@
 {
   "name": "Túnica (armadura 0) do mago",
-  "description": "armor.tunic: o mago não mitiga dano físico; a espada (18) tira 18 PV.",
+  "description": "armor.tunic: o mago não mitiga dano físico; a espada (15) tira 15 PV.",
   "map": {
     "floors": [
       [

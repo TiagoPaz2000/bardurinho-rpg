@@ -18,7 +18,7 @@ describe('Investida (guerreiro)', () => {
   it('desloca até a célula adjacente e causa 16 físico, sem gastar PM', () => {
     const { state, events } = run(lane(), charge);
     expect(state.units.war!.pos).toEqual({ x: 3, y: 0, floor: 0 });
-    expect(state.units.mage!.hp).toBe(80 - 16);
+    expect(state.units.mage!.hp).toBe(86 - 16); // Mago 86 PV (Fase 6)
     expect(state.units.war).toMatchObject({ mp: 5, ap: 1, focus: 6 });
     expect(events.filter((e) => e.type === 'UNIT_MOVED' && e.payload.dash)).toHaveLength(3);
   });
@@ -26,7 +26,7 @@ describe('Investida (guerreiro)', () => {
   it('já adjacente: ataca sem se mover', () => {
     const { state } = run(lane({}, 1), charge);
     expect(state.units.war!.pos).toEqual({ x: 0, y: 0, floor: 0 });
-    expect(state.units.mage!.hp).toBe(64);
+    expect(state.units.mage!.hp).toBe(70);
   });
 
   it('percurso limitado a 4 PM, contando o custo do terreno', () => {
@@ -55,7 +55,7 @@ describe('Investida (guerreiro)', () => {
     const state0 = lane({ surfaces: [{ cells: [{ x: 1, y: 0 }], surface: 'fire', durationRounds: 3 }] }, 4, 5);
     const { state, events } = run(state0, charge);
     expect(state.units.war!.alive).toBe(false);
-    expect(state.units.mage!.hp).toBe(80);
+    expect(state.units.mage!.hp).toBe(86);
     expect(events.some((e) => e.type === 'DAMAGE_APPLIED' && e.payload.targetId === 'mage')).toBe(false);
     expect(state.result).toEqual({ kind: 'victory', winnerTeam: 'B', reason: 'elimination' });
   });

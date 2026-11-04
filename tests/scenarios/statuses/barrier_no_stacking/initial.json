@@ -1,6 +1,6 @@
 {
   "name": "Barreiras não somam: Defender (6) não aumenta a Barreira arcana (18)",
-  "description": "Barreira arcana 18 e depois Defender 6 no mesmo turno: o Defender não se aplica; a espada (18) consome toda a barreira e o mago fica com 80 PV.",
+  "description": "Barreira arcana 18 e depois Defender 6 no mesmo turno: o Defender não se aplica; a espada (15) é toda absorvida pela barreira (sobram 3) e o mago fica com 86 PV.",
   "map": {
     "floors": [
       [

@@ -1,5 +1,6 @@
 {
   "name": "Exemplo da seção 2.3: espada 18 contra armadura 4 e barreira 6",
+  "description": "Fase 6: a Espada de ferro passou a 1d8+10; o d8 é forçado em 8 (DEBUG_SET_RNG, d20 11) para manter os 18 do exemplo do plano: 18 − 6 (barreira) − 4 (armadura) = 8.",
   "map": { "floors": [["........","........","........","........","........","........","........","........"]] },
   "units": [
     { "id": "warrior-a", "classId": "warrior", "team": "A", "pos": { "x": 3, "y": 3 } },

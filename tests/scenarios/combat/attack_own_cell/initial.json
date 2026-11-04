@@ -1,6 +1,6 @@
 {
   "name": "Comportamento atual: ataque básico na própria célula atinge o atacante",
-  "description": "Documenta (sem endosso) que o motor aceita weapon.iron_sword na célula do próprio guerreiro: sem jogada de ataque, 18 − 4 = 14 nele mesmo. O plano não proíbe explicitamente; questão em aberto.",
+  "description": "Documenta (sem endosso) que o motor aceita weapon.iron_sword na célula do próprio guerreiro: sem jogada de ataque, 15 − 4 = 11 nele mesmo. O plano não proíbe explicitamente; questão em aberto.",
   "map": {
     "floors": [
       [

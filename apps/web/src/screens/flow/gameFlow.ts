@@ -646,6 +646,13 @@ export class GameFlow {
         location.search = params.toString();
       });
     };
+    // Fase 6: partida cancelada antes de começar (o adversário não entrou no prazo) — volta ao
+    // lobby, onde o servidor já devolveu este jogador à fila.
+    joined.room.onLeave((code: number) => {
+      if (code !== 4100) return;
+      saveSession(null, ROOM_KEY);
+      location.search = new URLSearchParams(location.search).toString();
+    });
     const screen = startArenaScreen(this.o.canvas, this.o.hudRoot, catalog, patioDasRuinas, {
       match,
       leave: backToLobby,

@@ -1,6 +1,6 @@
 {
   "name": "Enraizar: 8 de natureza; o alvo não anda no próximo turno, mas pode atacar",
-  "description": "druid.root contra guerreiro adjacente: 8 de natureza (102). No turno dele o MOVE é recusado (ROOTED), mas o ataque com espada é aceito (18 − 2 = 16 no druida). Enraizado expira ao final desse turno.",
+  "description": "druid.root contra guerreiro adjacente: 8 de natureza (102). No turno dele o MOVE é recusado (ROOTED), mas o ataque com espada é aceito (15 − 2 = 13 no druida). Enraizado expira ao final desse turno.",
   "map": {
     "floors": [
       [

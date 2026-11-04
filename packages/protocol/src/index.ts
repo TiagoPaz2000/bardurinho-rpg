@@ -10,6 +10,7 @@ import type { CommandError, CommandTarget, Coord, GameEvent, GameplayCommand, Ga
 import type { AppearanceDto, MatchRewardDto } from './api.js';
 
 export * from './api.js';
+export * from './bugReport.js';
 
 export const PROTOCOL_VERSION = 1;
 /** Endereço padrão do servidor de jogo (seção 10.1). */

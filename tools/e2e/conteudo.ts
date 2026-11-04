@@ -305,6 +305,10 @@ try {
       if (stateHash(after) !== stateHash(sim)) {
         const diff = Object.keys(sim.units).filter((id) => JSON.stringify(sim.units[id]) !== JSON.stringify(after.units[id]));
         check(false, `[${k.name}] passo ${n}: estado do cliente ≠ core (unidades divergentes: ${diff.join(', ') || 'objetos/mapa'})`);
+        for (const id of diff) {
+          const keys = Object.keys(sim.units[id] ?? {}).filter((k2) => JSON.stringify((sim.units[id] as unknown as Record<string, unknown>)[k2]) !== JSON.stringify((after.units[id] as unknown as Record<string, unknown> | undefined)?.[k2]));
+          for (const k2 of keys) log(`    ${id}.${k2}: core ${JSON.stringify((sim.units[id] as unknown as Record<string, unknown>)[k2])} · cliente ${JSON.stringify((after.units[id] as unknown as Record<string, unknown> | undefined)?.[k2])}`);
+        }
       }
     }
     check(true, `[${k.name}] ${k.steps.length} jogadas pela interface, estado do cliente = core em todas`);

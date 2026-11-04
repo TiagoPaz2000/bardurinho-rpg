@@ -10,6 +10,9 @@
  *                                      cliente confirmou (modo NETWORK do Combat Debug Lab)
  *   GET  /debug/matches/:id/versions/:v (dev) estado oficial + eventos oficiais de uma versão
  *   GET  /debug/matches/:id/verify     (dev) replay do registro de comandos × snapshots
+ *   GET  /debug/matches/:id/export     (dev, Fase 6) relatório de bug: snapshot 0 + comandos aceitos
+ *                                      (vira cenário de regressão no Combat Debug Lab)
+ *   GET  /debug/metrics                (dev, Fase 6) tempos do core/banco/envio, memória, divergências
  */
 import type { Application, NextFunction, Request, Response } from 'express';
 import { matchMaker } from '@colyseus/core';
@@ -18,7 +21,10 @@ import { WELCOME_COINS, passwordProblem, usernameProblem } from '@bardurinho/con
 import type { Account } from './db/repositories.js';
 import { LobbyError } from './modules/lobby/LobbyService.js';
 import { verifyMatchReplay } from './modules/matches/replay.js';
+import { buildBugReport } from './modules/matches/bugReport.js';
 import { ProgressionError } from './modules/progression/ProgressionService.js';
+import { RateLimiter } from './modules/security/RateLimiter.js';
+import { metrics } from './metrics.js';
 import type { ServerServices } from './services.js';
 
 const ROUTE_PREFIXES = ['/health', '/auth', '/rooms', '/debug', '/me', '/characters', '/shop', '/missions', '/matches', '/lobby'];
@@ -54,7 +60,20 @@ async function me(svc: ServerServices, accountId: string): Promise<MeResponse> {
   };
 }
 
+/** IP do pedido (sem proxy reverso no MVP: o endereço do socket). */
+const clientIp = (req: Request): string => req.socket.remoteAddress ?? 'desconhecido';
+
 export function registerRoutes(app: Application, svc: ServerServices): void {
+  // Fase 6: limites de autenticação (força bruta / cadastro em massa).
+  const rl = svc.config.rateLimit;
+  const loginFailures = new RateLimiter(rl.loginFailuresPerUser, 5 * 60_000);
+  const loginPerIp = new RateLimiter(rl.loginPerIpPerMinute, 60_000);
+  const registerPerIp = new RateLimiter(rl.registerPerIpPer10Min, 10 * 60_000);
+  const tooMany = (res: Response, seconds: number, what: string) => {
+    res.setHeader('Retry-After', String(seconds));
+    res.status(429).json({ error: `Muitas tentativas de ${what}: tente de novo em ${seconds} s` });
+  };
+
   // CORS só nas rotas próprias (o matchmaking do Colyseus cuida das dele).
   app.use((req: Request, res: Response, next: NextFunction) => {
     if (!ROUTE_PREFIXES.some((p) => req.path.startsWith(p))) return next();
@@ -79,8 +98,19 @@ export function registerRoutes(app: Application, svc: ServerServices): void {
     if (typeof username !== 'string' || typeof password !== 'string' || username.length > 64 || password.length > 128) {
       return void res.status(400).json({ error: 'Informe usuário e senha' });
     }
+    const ip = clientIp(req);
+    const userKey = username.trim().toLowerCase();
+    if (!loginPerIp.hit(ip)) return tooMany(res, loginPerIp.retryAfter(ip), 'login');
+    if (loginFailures.blocked(userKey)) {
+      svc.log(`[conta] login de ${userKey} bloqueado (falhas demais)`);
+      return tooMany(res, loginFailures.retryAfter(userKey), 'login');
+    }
     const r = await svc.accounts.login(username, password);
-    if (!r) return void res.status(401).json({ error: 'Usuário ou senha inválidos' });
+    if (!r) {
+      loginFailures.hit(userKey);
+      return void res.status(401).json({ error: 'Usuário ou senha inválidos' });
+    }
+    loginFailures.reset(userKey);
     const body: LoginResponse = { token: r.token, account: r.account, expiresAt: r.expiresAt };
     res.json(body);
   });
@@ -91,6 +121,8 @@ export function registerRoutes(app: Application, svc: ServerServices): void {
 
   app.post('/auth/register', jsonBody, async (req, res) => {
     const { username, password, displayName } = (req.body ?? {}) as Record<string, unknown>;
+    const ip = clientIp(req);
+    if (!registerPerIp.hit(ip)) return tooMany(res, registerPerIp.retryAfter(ip), 'cadastro');
     const problem = usernameProblem(username) ?? passwordProblem(password);
     if (problem) return void res.status(400).json({ error: problem });
     const name = typeof displayName === 'string' && displayName.trim() ? displayName.trim().slice(0, 24) : String(username);
@@ -162,6 +194,16 @@ export function registerRoutes(app: Application, svc: ServerServices): void {
 
   if (!svc.config.dev) return;
 
+  // Fase 6: métricas do processo (teste de carga). `POST /debug/metrics/reset` zera.
+  app.get('/debug/metrics', (_req, res) => {
+    const seats = [...svc.rooms.values()].flatMap((r) => r.session.seats);
+    res.json({ ...metrics.snapshot(), rooms: svc.rooms.size, divergences: seats.reduce((n, s) => n + s.divergences.length, 0), db: svc.db.kind });
+  });
+  app.post('/debug/metrics/reset', (_req, res) => {
+    metrics.reset();
+    res.json({ ok: true });
+  });
+
   app.get('/debug/matches', async (_req, res) => {
     const live = [...svc.rooms.values()].map((room) => ({
       matchId: room.session.id,
@@ -221,6 +263,13 @@ export function registerRoutes(app: Application, svc: ServerServices): void {
     const snap = await svc.matches.snapshot(id, version);
     if (!snap) return void res.status(404).json({ error: 'Versão não encontrada' });
     res.json({ version, state: snap.state, hash: snap.hash, events: await svc.matches.eventsOfVersion(id, version) });
+  });
+
+  app.get('/debug/matches/:id/export', async (req, res) => {
+    const report = await buildBugReport(svc.matches, String(req.params.id));
+    if (!report) return void res.status(404).json({ error: 'Partida não encontrada' });
+    res.setHeader('Content-Disposition', `attachment; filename="partida-${report.matchId.slice(0, 8)}.bug.json"`);
+    res.json(report);
   });
 
   app.get('/debug/matches/:id/verify', async (req, res) => {

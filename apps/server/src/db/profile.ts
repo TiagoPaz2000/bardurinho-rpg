@@ -120,8 +120,12 @@ export class ProfileRepository {
    * Compra numa transação: registra a solicitação, debita (sem saldo negativo), concede o item.
    * Qualquer falha grava a compra como recusada, sem mexer no saldo nem no inventário.
    */
-  buy(accountId: string, requestId: string, productId: string, price: number): Promise<{ ok: boolean; error?: string; balance: number }> {
+  buy(accountId: string, requestId: string, productId: string, price: number): Promise<{ ok: boolean; error?: string; balance: number; duplicate?: boolean }> {
     return this.db.transaction(async (tx) => {
+      // Fase 6: dois pedidos com o mesmo requestId ao mesmo tempo — o segundo vê o primeiro aqui
+      // (PGlite serializa as transações; no PostgreSQL o UNIQUE (account_id, request_id) recusa).
+      const prev = await tx.query<{ status: string; error: string | null }>('SELECT status, error FROM purchases WHERE account_id = $1 AND request_id = $2', [accountId, requestId]);
+      if (prev[0]) return { ok: prev[0].status === 'completed', duplicate: true, balance: (await this.account(accountId, tx))?.coins ?? 0, ...(prev[0].error ? { error: prev[0].error } : {}) };
       const record = async (status: string, error: string | null) =>
         tx.query('INSERT INTO purchases (id, account_id, request_id, product_id, price, status, error) VALUES ($1, $2, $3, $4, $5, $6, $7)', [randomUUID(), accountId, requestId, productId, price, status, error]);
       const balance = async () => (await this.account(accountId, tx))?.coins ?? 0;
