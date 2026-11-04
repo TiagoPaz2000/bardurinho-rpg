@@ -26,15 +26,26 @@ export type EntitySelector =
   /** Entidade alvo (alvo do tipo `entity`) ou ocupantes da célula alvo. */
   | 'targetCellOccupants'
   | 'crossAreaOccupants'
+  /** Ocupantes do quadrado 3×3 ao redor do alvo, sem paredes e com linha de visão do centro. */
+  | 'blastAreaOccupants'
   /** Unidades atingidas por operações anteriores desta mesma ação e ainda vivas. */
   | 'survivingUnitsHit';
 
-export type CellSelector = 'targetCell' | 'crossArea' | 'selfCell';
+export type CellSelector = 'targetCell' | 'crossArea' | 'blastArea' | 'selfCell';
 
 export const ENTITY_SELECTORS: readonly EntitySelector[] = [
-  'self', 'targetCellOccupants', 'crossAreaOccupants', 'survivingUnitsHit',
+  'self', 'targetCellOccupants', 'crossAreaOccupants', 'blastAreaOccupants', 'survivingUnitsHit',
 ];
-export const CELL_SELECTORS: readonly CellSelector[] = ['targetCell', 'crossArea', 'selfCell'];
+export const CELL_SELECTORS: readonly CellSelector[] = ['targetCell', 'crossArea', 'blastArea', 'selfCell'];
+
+/**
+ * Teste de resistência: cada personagem atingido rola d20 contra a CD; se passar, sofre
+ * metade do dano (arredondado para baixo). 1 natural falha sempre; 20 natural passa sempre.
+ */
+export interface SavingThrow {
+  dc: number;
+  onSuccess: 'half';
+}
 
 export type Stimulus = 'heat' | 'cold' | 'water';
 export type ResourceKind = 'hp' | 'ap' | 'mp' | 'focus';
@@ -43,7 +54,19 @@ export type ObjectStateKind = 'normal' | 'open' | 'closed' | 'destroyed' | 'used
 
 export type EffectOp =
   /** `amount`: valor fixo ou fórmula de dados (ex.: `2d6+10`). */
-  | { op: 'damage'; selector: EntitySelector; amount: DiceExpr; damageType: DamageType; ignoreArmor?: boolean }
+  /**
+   * `sharedRoll`: os dados são rolados uma vez e o mesmo valor vale para todos os atingidos.
+   * `save`: personagens atingidos fazem teste de resistência (objetos não).
+   */
+  | {
+      op: 'damage';
+      selector: EntitySelector;
+      amount: DiceExpr;
+      damageType: DamageType;
+      ignoreArmor?: boolean;
+      sharedRoll?: boolean;
+      save?: SavingThrow;
+    }
   | { op: 'heal'; selector: EntitySelector; amount: DiceExpr }
   | { op: 'applyStatus'; selector: EntitySelector; statusId: string }
   | { op: 'removeStatus'; selector: EntitySelector; statusId: string; reason?: string }

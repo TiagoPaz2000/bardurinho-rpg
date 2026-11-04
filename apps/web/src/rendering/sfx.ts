@@ -79,6 +79,7 @@ export const SOUNDS: Record<string, Layer[]> = {
 
 const CAST_BY_VFX: Record<string, string> = {
   'projectile.fire': 'cast.fire',
+  'projectile.fireball': 'cast.fire',
   'projectile.frost': 'cast.frost',
   'projectile.arcane': 'cast.arcane',
   'projectile.nature': 'cast.nature',

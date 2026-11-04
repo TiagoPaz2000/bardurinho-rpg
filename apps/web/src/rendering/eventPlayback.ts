@@ -9,6 +9,8 @@
  *   ao executor.
  * - `ATTACK_ROLLED`: selo do d20 sobre o alvo ("17 + 5 = 22 vs Def 14 — ACERTO / ERRO /
  *   CRÍTICO!"); no erro, "ERROU" flutuante.
+ * - `SAVE_ROLLED`: teste de resistência sobre quem está na área ("14 vs CD 13 — PASSOU,
+ *   metade do dano" / "FALHOU").
  * - `DICE_ROLLED`: fórmula e dados ("2d6+10: [3,5]+10 = 18").
  * - `DAMAGE_APPLIED` (vermelho), `HEALED` (verde), barreira absorvida/concedida (azul),
  *   `OBJECT_DAMAGED` / `OBJECT_DESTROYED` nos objetos, `STATUS_APPLIED` (nome do estado).
@@ -229,6 +231,21 @@ export async function playEvents(ctx: PlaybackContext, events: readonly GameEven
             const head = anchor(ctx, r.targetId, -0.35);
             if (head) ctx.labels.float('ERROU', head, 'miss', 1700);
           }
+        }
+        await wait(ctx.scene, ROLL_PAUSE);
+        break;
+      }
+      case 'SAVE_ROLLED': {
+        const r = p as { unitId: string; natural: number; dc: number; success: boolean };
+        involve(r.unitId);
+        const at = anchor(ctx, r.unitId, 1.25);
+        if (at) {
+          const nat = r.natural === 20 || r.natural === 1 ? ' nat' : '';
+          const verdict = r.success ? 'PASSOU — metade do dano' : r.natural === 1 ? 'FALHOU (1 natural)' : 'FALHOU';
+          ctx.labels.float(
+            `Resistência <span class="d20${nat}" title="d20">${r.natural}</span> vs CD ${r.dc} — <b>${verdict}</b>`,
+            at, `roll ${r.success ? 'miss' : 'hit'}`, 1900, true,
+          );
         }
         await wait(ctx.scene, ROLL_PAUSE);
         break;

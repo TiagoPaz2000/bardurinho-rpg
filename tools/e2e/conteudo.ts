@@ -15,7 +15,7 @@
  *    da animação, confere que o estado do cliente é idêntico (hash) ao do core.
  * 4. Rede: servidor próprio (porta 2570), dois Chrome escolhem 2 × 2 no lobby com as quatro
  *    classes e a partida começa com elas (cada aba só com a própria equipe).
- * No fim: cobertura (10 habilidades, 14 itens, 5 estados, 3 superfícies, reações, objetos,
+ * No fim: cobertura (11 habilidades, 14 itens, 5 estados, 3 superfícies, reações, objetos,
  * área escura, recargas, ícones, VFX/SFX) e nenhum erro/aviso no console. Sai ≠ 0 se faltar algo.
  */
 import { spawn } from 'node:child_process';

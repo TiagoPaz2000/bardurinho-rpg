@@ -43,6 +43,7 @@ export type GameEventType =
   | 'EFFECT_IGNORED'
   | 'DICE_ROLLED'
   | 'ATTACK_ROLLED'
+  | 'SAVE_ROLLED'
   | 'INITIATIVE_ROLLED';
 
 /** De onde veio o evento: qual comando, qual entidade e qual definição de conteúdo. */

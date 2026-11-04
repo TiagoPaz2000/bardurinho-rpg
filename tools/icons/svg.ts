@@ -2,7 +2,7 @@
  * Gerador determinístico dos ícones vetoriais (seção 7.3 do plano, Fase 4).
  *
  * Escreve SVGs 256×256 (fundo transparente) em:
- *   assets/icons/abilities/<nome>.svg   — 10 habilidades
+ *   assets/icons/abilities/<nome>.svg   — 11 habilidades
  *   assets/icons/items/<itemId>.svg     — 9 itens não-arma (as armas seguem em PNG)
  *   assets/icons/statuses/<id>.svg      — 5 estados (medalhas redondas)
  *   assets/icons/classes/<id>.svg       — 4 classes (estandartes)
@@ -404,6 +404,29 @@ const abilities: Record<string, (s: Icon) => void> = {
     s.fill(circle(170, 82, 22), '#fff', 0.9);
     s.shine(150, 62, 14, 7, -35, 0.8);
     for (const [x, y, r] of [[60, 108, 7], [92, 200, 6], [40, 190, 9], [200, 168, 5]] as const) {
+      s.part(circle(x, y, r), M.fireMid, { sw: 2, gloss: 0 });
+    }
+  },
+
+  fireball(s) {
+    // Bola de fogo caindo em diagonal sobre a área: rastro de chamas, esfera e explosão no chão.
+    s.glow(ellipse(128, 206, 104, 30), '#FF7A20', 0.5, 12);
+    s.part(ellipse(128, 206, 96, 26), M.fireOut, { sw: 4, gloss: 0, angle: 'down' });
+    s.part(ellipse(128, 204, 62, 15), M.fireMid, { sw: 2, gloss: 0, angle: 'down' });
+    for (const [x, sx, sy] of [[64, 18, 30], [100, 22, 40], [158, 22, 40], [194, 18, 30]] as const) flame(s, x, 192 - sy * 0.45, sx, sy, 2, 3);
+    const tails: [Pt[], number][] = [
+      [[[150, 108], [104, 76], [72, 40], [34, 22]], 50],
+      [[[132, 126], [90, 112], [56, 92], [22, 88]], 30],
+      [[[166, 98], [146, 60], [136, 30], [118, 10]], 30],
+    ];
+    for (const [ctrl, w] of tails) s.part(new Curve(ctrl).tapered((t) => w * (1 - t) ** 0.9 + 0.5), M.fireOut, { sw: 4, gloss: 0, angle: 'diag' });
+    s.part(new Curve([[150, 112], [110, 84], [76, 54]]).tapered((t) => 22 * (1 - t) + 0.5), M.fireMid, { sw: 0, gloss: 0, angle: 'diag' });
+    s.glow(circle(158, 120, 62), '#FFB040', 0.55, 14);
+    s.part(circle(158, 120, 50), M.fireOut, { sw: 4.5, gloss: 0.3, angle: 'down' });
+    s.part(circle(164, 126, 36), M.fireMid, { sw: 2, gloss: 0, angle: 'down' });
+    s.part(circle(170, 132, 20), M.fireIn, { sw: 0, gloss: 0, angle: 'down' });
+    s.shine(140, 98, 16, 8, -35, 0.85);
+    for (const [x, y, r] of [[40, 150, 6], [222, 150, 7], [210, 64, 5], [92, 160, 5]] as const) {
       s.part(circle(x, y, r), M.fireMid, { sw: 2, gloss: 0 });
     }
   },

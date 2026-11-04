@@ -30,7 +30,7 @@ import type { UnitAnimationId } from './unitAnimator.js';
 
 /** Cores de reserva (iguais ao manifesto) caso o JSON não carregue. */
 const FALLBACK_COLORS: Record<string, string> = {
-  'projectile.fire': '#ff721c', 'projectile.frost': '#79eaff', 'projectile.arcane': '#b784ff', 'projectile.nature': '#9cfa65',
+  'projectile.fire': '#ff721c', 'projectile.fireball': '#ff5a12', 'projectile.frost': '#79eaff', 'projectile.arcane': '#b784ff', 'projectile.nature': '#9cfa65',
   'trail.arrow': '#ffe4a1', 'impact.physical': '#fff1b9', 'impact.wave': '#ffd295', 'charge.dust': '#c3a886',
   'barrier.arcane': '#b491ff', 'stealth.transition': '#8063be', 'surface.thorns': '#86bd41', 'status.roots': '#b6d75c',
   'heal.nature': '#91ffad', 'item.health': '#ff729a', 'item.focus': '#65bdff', 'item.oil': '#a58c54',
@@ -221,9 +221,11 @@ export class CombatVfx {
     if (!fx) return;
     const color = this.color(id);
     const dist = Vector3.Distance(from, to);
-    const seconds = Math.min(fadeOut ? 0.7 : 0.55, Math.max(0.3, dist / 18));
-    const arc = id === 'item.oil' ? Math.min(2.5, 0.6 + dist * 0.18) : id === 'trail.arrow' ? Math.min(0.8, dist * 0.04) : 0;
-    const halo = MeshBuilder.CreateSphere(`vfx:${id}:halo`, { diameter: id === 'trail.arrow' ? 0.3 : 0.7, segments: 8 }, this.scene);
+    const seconds = id === 'projectile.fireball' ? Math.min(0.85, Math.max(0.5, dist / 12)) : Math.min(fadeOut ? 0.7 : 0.55, Math.max(0.3, dist / 18));
+    const fireball = id === 'projectile.fireball';
+    // Bola de fogo sobe e cai sobre o centro da área (arco alto, como na arte de referência).
+    const arc = id === 'item.oil' ? Math.min(2.5, 0.6 + dist * 0.18) : fireball ? Math.min(2.6, 0.9 + dist * 0.22) : id === 'trail.arrow' ? Math.min(0.8, dist * 0.04) : 0;
+    const halo = MeshBuilder.CreateSphere(`vfx:${id}:halo`, { diameter: id === 'trail.arrow' ? 0.3 : fireball ? 1.15 : 0.7, segments: 8 }, this.scene);
     // Halo em mistura comum (aditivo estourava para branco sobre o piso claro).
     halo.material = this.arena.mats.unlit(this.colors[id] ?? '#ffffff', { alpha: 0.3 });
     halo.isPickable = false;
@@ -233,7 +235,7 @@ export class CombatVfx {
     if (id === 'trail.arrow') trail.system.minSize = trail.system.maxSize = 0.12;
     const prev = from.clone();
     fx.root.position.copyFrom(from);
-    fx.root.scaling.setAll(id === 'item.oil' ? 0.7 : id === 'trail.arrow' ? 1 : 1.25);
+    fx.root.scaling.setAll(id === 'item.oil' ? 0.7 : id === 'trail.arrow' ? 1 : fireball ? 1.6 : 1.25);
     try {
       await tween(this.scene, seconds, (t) => {
         prev.copyFrom(fx.root.position);
@@ -542,7 +544,7 @@ export class CombatVfx {
       // Sai das mãos (frente do personagem), chega no peito do alvo / no chão da célula.
       const f = actor.facing();
       const from = origin.add(new Vector3(f.x * 0.55, 0, f.z * 0.55));
-      const to = vfxId === 'item.oil' || vfxId === 'surface.thorns' ? point(target!, 0.25) : at;
+      const to = vfxId === 'item.oil' || vfxId === 'surface.thorns' || vfxId === 'projectile.fireball' ? point(target!, 0.25) : at;
       if (hint.miss) {
         // Errou: desvia ~1,5 m para o lado do alvo e segue ~4 m além dele, sumindo.
         await Promise.all([
@@ -553,6 +555,8 @@ export class CombatVfx {
         return;
       }
       await this.projectile(projectileId, from, to);
+      // Bola de fogo: explode no chão e o fogo se espalha pela área 3×3 (payload `area`).
+      if (vfxId === 'projectile.fireball') await this.explosion(target!, (p.area as Coord[] | undefined) ?? [target!]);
       if (vfxId === 'surface.thorns' || vfxId === 'status.roots') this.arena.particles.burst('sparks', to, this.color('projectile.nature'), 16);
       await anim.done;
       return;

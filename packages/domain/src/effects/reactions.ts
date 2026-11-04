@@ -2,11 +2,11 @@
  * Reações ambientais (seções 5.3 e 8.3). Magias apenas emitem estímulos
  * (calor, frio, água); este módulo decide o que acontece com cada célula e objeto.
  */
-import { coordKey, orthogonalNeighbors, squareArea } from '../core/coords.js';
+import { coordKey, orthogonalNeighbors } from '../core/coords.js';
 import type { Coord } from '../core/types.js';
 import { damageEntity } from '../combat/damage.js';
 import { getCell } from '../map/grid.js';
-import { hasLineOfSight } from '../map/lineOfSight.js';
+import { blastArea } from '../map/lineOfSight.js';
 import type { Stimulus } from '../rules/definitions.js';
 import { emit, withCause, type ResolutionContext } from '../state/context.js';
 import { activeObjects, entitiesAt, objectsAt, unitAt } from '../state/queries.js';
@@ -136,10 +136,7 @@ export function destroyObject(ctx: ResolutionContext, obj: MapObject, reason: st
 function explode(ctx: ResolutionContext, obj: MapObject): void {
   const def = ctx.catalog.objects[obj.defId]!;
   const blast = def.explosion!;
-  const cells = squareArea(obj.pos, blast.radius).filter((c) => {
-    const cell = getCell(ctx.state.map, c);
-    return !!cell && cell.terrain !== 'wall' && hasLineOfSight(ctx.state, ctx.catalog, obj.pos, c);
-  });
+  const cells = blastArea(ctx.state, ctx.catalog, obj.pos, blast.radius);
   withCause(ctx, { sourceId: obj.id, definitionId: def.id }, () => {
     emit(ctx, 'EXPLOSION', { objectId: obj.id, center: obj.pos, cells, damage: blast.damage });
     for (const c of cells) {

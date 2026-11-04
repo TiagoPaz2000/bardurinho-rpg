@@ -1,4 +1,4 @@
-import { sameCoord } from '../core/coords.js';
+import { sameCoord, squareArea } from '../core/coords.js';
 import type { Coord } from '../core/types.js';
 import type { Catalog } from '../rules/definitions.js';
 import { objectBlocksVision, objectsAt } from '../state/queries.js';
@@ -138,3 +138,14 @@ function candidates(v: number): number[] {
 
 export const hasLineOfSight = (state: GameState, catalog: Catalog, from: Coord, to: Coord): boolean =>
   sameCoord(from, to) || lineOfSight(state, catalog, from, to).visible;
+
+/**
+ * Área de explosão: quadrado de raio lógico `radius` no andar do centro, só células que não
+ * são parede e têm linha de visão a partir do centro (paredes e portas fechadas protegem).
+ * Usada pelos barris explosivos e pela Bola de fogo.
+ */
+export const blastArea = (state: GameState, catalog: Catalog, center: Coord, radius = 1): Coord[] =>
+  squareArea(center, radius).filter((c) => {
+    const cell = getCell(state.map, c);
+    return !!cell && cell.terrain !== 'wall' && hasLineOfSight(state, catalog, center, c);
+  });

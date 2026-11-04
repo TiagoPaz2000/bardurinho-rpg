@@ -1,0 +1,28 @@
+{
+  "errors": 0,
+  "units": {
+    "mage-01": { "ap": 1, "focus": 6 },
+    "warrior-01": { "hp": 92, "statuses": ["burning"] }
+  },
+  "objects": {
+    "crate-01": { "hp": 2, "state": "normal", "burning": true }
+  },
+  "cells": [
+    { "x": 4, "y": 4, "surface": "fire", "expiresAtRound": 4 }
+  ],
+  "damage": [
+    { "targetId": "warrior-01", "raw": 18, "damageType": "fire", "hpAfter": 92 }
+  ],
+  "events": [
+    "ABILITY_USED",
+    "DICE_ROLLED",
+    "OBJECT_DAMAGED",
+    "SAVE_ROLLED",
+    "DAMAGE_APPLIED",
+    "STATUS_APPLIED",
+    "OBJECT_IGNITED",
+    "REACTION_TRIGGERED",
+    "SURFACE_CREATED"
+  ],
+  "forbiddenEvents": ["ATTACK_ROLLED"]
+}

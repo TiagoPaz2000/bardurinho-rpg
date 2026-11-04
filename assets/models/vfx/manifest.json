@@ -108,5 +108,10 @@
     "path": "models/vfx/explosion.fire.glb",
     "shape": "burst",
     "color": "#ffac35"
+  },
+  "projectile.fireball": {
+    "path": "models/vfx/projectile.fireball.glb",
+    "shape": "fireball",
+    "color": "#ff5a12"
   }
 }

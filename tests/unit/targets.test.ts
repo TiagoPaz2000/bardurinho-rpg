@@ -7,6 +7,7 @@ import {
   listValidTargets,
   previewArea,
   previewTargets,
+  saveSuccessChance,
   targetedCommand,
 } from '@bardurinho/domain';
 import { catalog, scenario } from './helpers.js';
@@ -90,6 +91,41 @@ describe('mira: área afetada e chance de acerto', () => {
     expect(keys(previewArea(s, catalog, 'druid', { kind: 'ability', id: 'mage.flame' }, center))).toEqual(['3,3,0']);
     // Na borda do mapa a cruz é cortada.
     expect(previewArea(s, catalog, 'druid', { kind: 'ability', id: 'druid.thorns' }, { x: 0, y: 7, floor: 0 })).toHaveLength(3);
+  });
+
+  it('Bola de fogo afeta o quadrado 3×3, sem as células atrás de parede', () => {
+    const fireball = { kind: 'ability', id: 'mage.fireball' } as const;
+    const open = scenario({ units: [{ id: 'mage', classId: 'mage', team: 'A', pos: { x: 0, y: 0 } }] });
+    expect(previewArea(open, catalog, 'mage', fireball, { x: 3, y: 3, floor: 0 })).toHaveLength(9);
+    expect(previewArea(open, catalog, 'mage', fireball, { x: 0, y: 7, floor: 0 })).toHaveLength(4);
+    const walled = scenario({
+      map: { floors: [['........', '........', '....#...', '....#...', '....#...', '........', '........', '........']] },
+      units: [{ id: 'mage', classId: 'mage', team: 'A', pos: { x: 0, y: 0 } }],
+    });
+    const cells = keys(previewArea(walled, catalog, 'mage', fireball, { x: 3, y: 3, floor: 0 }));
+    expect(cells).toHaveLength(6);
+    expect(cells.some((k) => k.startsWith('4,'))).toBe(false);
+  });
+
+  it('Bola de fogo: todos na área (aliados também) sem jogada de ataque, com chance do teste de resistência', () => {
+    const s = scenario({
+      units: [
+        { id: 'mage', classId: 'mage', team: 'A', pos: { x: 0, y: 3 } },
+        { id: 'ally', classId: 'druid', team: 'A', pos: { x: 3, y: 2 } },
+        { id: 'war', classId: 'warrior', team: 'B', pos: { x: 4, y: 3 } },
+        { id: 'far', classId: 'rogue', team: 'B', pos: { x: 7, y: 3 } },
+      ],
+      objects: [{ id: 'barrel', defId: 'barrel', pos: { x: 5, y: 4 } }],
+    });
+    const targets = previewTargets(s, catalog, 'mage', { kind: 'ability', id: 'mage.fireball' }, { x: 4, y: 3, floor: 0 });
+    expect(targets.map((t) => t.entityId).sort()).toEqual(['ally', 'barrel', 'war']);
+    for (const t of targets) expect(t).toMatchObject({ attackRoll: false, hitChance: 1 });
+    // CD 13: passa com 13–20 (8 em 20).
+    expect(targets.find((t) => t.entityId === 'war')!.save).toEqual({ dc: 13, successChance: 0.4 });
+    expect(targets.find((t) => t.entityId === 'barrel')!.save).toBeUndefined();
+    expect(saveSuccessChance(13)).toBeCloseTo(0.4);
+    expect(saveSuccessChance(1)).toBeCloseTo(0.95); // 1 natural falha sempre
+    expect(saveSuccessChance(25)).toBeCloseTo(0.05); // 20 natural passa sempre
   });
 
   it('chance de acerto: d20 + bônus ≥ Defesa, limitada a 5%–95%', () => {

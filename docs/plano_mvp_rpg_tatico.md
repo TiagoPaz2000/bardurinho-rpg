@@ -159,7 +159,7 @@ Esses itens serão recursos temporários da partida. Não será necessário comp
 
 ---
 
-## 4. Catálogo das dez habilidades
+## 4. Catálogo das habilidades (dez do MVP + Bola de fogo)
 
 Para evitar ambiguidade, a recarga será definida como quantidade de turnos próprios seguintes em que a habilidade permanece bloqueada.
 
@@ -170,6 +170,7 @@ Cada habilidade especial poderá ser usada, no máximo, uma vez por turno, mesmo
 | Classe e habilidade | Custo | Alcance | Efeito | Recarga |
 |---|---|---|---|---:|
 | Mago — Chama concentrada | 1 PA + 2 Foco | Seis células | 18 de fogo no alvo da célula; aplica Queimando; produz calor capaz de incendiar óleo e materiais inflamáveis | 0 |
+| Mago — Bola de fogo | 1 PA + 4 Foco | Três a seis células | Explosão no quadrado 3×3 ao redor da célula alvo: **uma** rolagem de 3d6+6 de fogo vale para todos na área (aliados também); cada personagem faz teste de resistência d20 contra CD 13 e, se passar, sofre metade; os atingidos ficam Queimando; calor em todas as células da área (incendeia óleo, espinhos e objetos, detona barris) | 2 |
 | Mago — Raio de geada | 1 PA + 2 Foco | Seis células | 14 de frio; aplica Lentidão; apaga fogo na célula atingida e remove Queimando do alvo | 1 |
 | Mago — Barreira arcana | 1 PA + 3 Foco | Próprio personagem | Concede barreira de 18 pontos até o início do segundo turno próprio seguinte | 2 |
 | Ladino — Tiro preciso | 1 PA + 3 Foco | Duas a sete células | 22 de dano físico; exige arco e linha de visão | 1 |
@@ -191,6 +192,7 @@ Cada habilidade especial poderá ser usada, no máximo, uma vez por turno, mesmo
 - O efeito de ocultação termina ao final do próximo turno próprio, ao atacar, receber dano ou ser revelado.
 - Espinheiro terá formato de cruz: célula central e quatro vizinhas.
 - Células incompatíveis não serão substituídas.
+- Bola de fogo não tem jogada de ataque: todos na área são atingidos. O teste de resistência é d20 puro contra a CD (1 natural falha sempre; 20 natural passa sempre); metade é arredondada para baixo, antes de armadura/resistência. Objetos não fazem teste. Paredes e portas fechadas protegem (mesma área da explosão de barril: sem paredes e com linha de visão a partir do centro). Alcance mínimo 3 para o mago nunca estar no próprio quadrado.
 
 ---
 

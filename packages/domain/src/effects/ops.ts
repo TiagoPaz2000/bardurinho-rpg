@@ -3,6 +3,7 @@
  * Debug Lab descrevem efeitos como listas de `EffectOp`; nenhuma magia tem código próprio.
  */
 import { crossArea } from '../core/coords.js';
+import { blastArea } from '../map/lineOfSight.js';
 import type { Coord, EntityId } from '../core/types.js';
 import { damageEntity, grantShield, healUnit } from '../combat/damage.js';
 import type { CellSelector, EffectOp, EntitySelector, ResourceKind } from '../rules/definitions.js';
@@ -10,7 +11,7 @@ import { emit, withCause, type ResolutionContext } from '../state/context.js';
 import { entitiesAt } from '../state/queries.js';
 import type { Entity, MapObject, Unit } from '../state/types.js';
 import { forceMove } from './movement.js';
-import { rollAmount } from '../combat/rolls.js';
+import { rollAmount, rollSave } from '../combat/rolls.js';
 import { executeDash, planDash } from './dash.js';
 import { emitStimulus } from './reactions.js';
 import { applyStatus, removeStatus } from './statuses.js';
@@ -36,6 +37,8 @@ export interface EffectScope {
   missedUnits?: Set<EntityId>;
   /** Personagens atingidos por crítico: dados de dano rolados em dobro. */
   criticalUnits?: Set<EntityId>;
+  /** Área da explosão (`blastArea`), calculada uma vez por execução — antes dos efeitos alterarem o mapa. */
+  blastCells?: Coord[];
 }
 
 export function createScope(
@@ -64,21 +67,33 @@ function selectEntitiesRaw(ctx: ResolutionContext, scope: EffectScope, selector:
         : entitiesAt(ctx.state, scope.target.cell);
     case 'crossAreaOccupants':
       return crossArea(scope.target.cell).flatMap((c) => entitiesAt(ctx.state, c));
+    case 'blastAreaOccupants':
+      return blastCellsOf(ctx, scope).flatMap((c) => entitiesAt(ctx.state, c));
     case 'survivingUnitsHit':
       return [...scope.hitUnits].sort().map((id) => ctx.state.units[id]!).filter((u) => u?.alive);
   }
 }
 
-export function selectCells(_ctx: ResolutionContext, scope: EffectScope, selector: CellSelector): Coord[] {
+function blastCellsOf(ctx: ResolutionContext, scope: EffectScope): Coord[] {
+  return (scope.blastCells ??= blastArea(ctx.state, ctx.catalog, scope.target.cell));
+}
+
+export function selectCells(ctx: ResolutionContext, scope: EffectScope, selector: CellSelector): Coord[] {
   switch (selector) {
     case 'targetCell':
       return [scope.target.cell];
     case 'crossArea':
       return crossArea(scope.target.cell);
+    case 'blastArea':
+      return blastCellsOf(ctx, scope);
     case 'selfCell':
       return scope.actor ? [scope.actor.pos] : [];
   }
 }
+
+/** A ação afeta o quadrado 3×3 da explosão (seletores `blastArea`/`blastAreaOccupants`). */
+export const usesBlastArea = (effects: EffectOp[]): boolean =>
+  effects.some((e) => 'selector' in e && (e.selector === 'blastArea' || e.selector === 'blastAreaOccupants'));
 
 const unitsOf = (entities: Entity[]): Unit[] => entities.filter((e): e is Unit => e.entity === 'unit');
 const objectsOf = (entities: Entity[]): MapObject[] => entities.filter((e): e is MapObject => e.entity === 'object');
@@ -96,9 +111,14 @@ export function executeOp(ctx: ResolutionContext, op: EffectOp, scope: EffectSco
   const source = { sourceId: scope.sourceId, definitionId: scope.definitionId };
   switch (op.op) {
     case 'damage': {
-      for (const e of selectEntities(ctx, scope, op.selector)) {
-        const amount = rollAmount(ctx, op.amount, 'damage', { critical: scope.criticalUnits?.has(e.id) ?? false, targetId: e.id });
-        const r = damageEntity(ctx, e, amount + (scope.rawDamageBonus ?? 0), op.damageType, {
+      const targets = selectEntities(ctx, scope, op.selector);
+      // Rolagem única: o mesmo dano para todos na área (sem crítico — não há jogada de ataque).
+      const shared = op.sharedRoll && targets.length > 0 ? rollAmount(ctx, op.amount, 'damage') : null;
+      for (const e of targets) {
+        let amount = (shared ?? rollAmount(ctx, op.amount, 'damage', { critical: scope.criticalUnits?.has(e.id) ?? false, targetId: e.id }))
+          + (scope.rawDamageBonus ?? 0);
+        if (op.save && e.entity === 'unit' && rollSave(ctx, e, op.save.dc).success) amount = Math.floor(amount / 2);
+        const r = damageEntity(ctx, e, amount, op.damageType, {
           ignoreArmor: op.ignoreArmor ?? false,
           via: scope.definitionId ?? undefined,
         });

@@ -3,12 +3,12 @@ import type { ClassDefinition } from '@bardurinho/domain';
 /** Classes (seção 2.1). A armadura vem do equipamento inicial. */
 export const classes: ClassDefinition[] = [
   {
-    kind: 'class', id: 'mage', version: 2, name: 'Mago', tags: ['caster'],
+    kind: 'class', id: 'mage', version: 3, name: 'Mago', tags: ['caster'],
     hp: 86, ap: 2, mp: 5, maxFocus: 10, defense: 11, attackBonus: 5,
     loadout: {
       weapons: ['weapon.arcane_wand'],
       armor: 'armor.tunic',
-      abilities: ['mage.flame', 'mage.frost_ray', 'mage.arcane_barrier'],
+      abilities: ['mage.flame', 'mage.fireball', 'mage.frost_ray', 'mage.arcane_barrier'],
     },
   },
   {

@@ -26,6 +26,28 @@ export const abilities: AbilityDefinition[] = [
   },
   {
     kind: 'ability',
+    id: 'mage.fireball',
+    version: 1,
+    name: 'Bola de fogo',
+    classId: 'mage',
+    tags: ['FIRE', 'PROJECTILE', 'AREA', 'HEAT', 'DAMAGE', 'STATUS', 'SAVE'],
+    cost: { ap: 1, focus: 4 },
+    maxUsesPerTurn: 1,
+    blockedOwnTurnsAfterUse: 2,
+    // Mínimo 3: o conjurador nunca fica dentro do quadrado 3×3 da explosão.
+    target: { kind: 'cell', minRange: 3, range: 6, requiresLineOfSight: true },
+    effects: [
+      {
+        op: 'damage', selector: 'blastAreaOccupants', amount: '3d6+6', damageType: 'fire',
+        sharedRoll: true, save: { dc: 13, onSuccess: 'half' },
+      },
+      { op: 'applyStatus', selector: 'survivingUnitsHit', statusId: 'burning' },
+      { op: 'emitStimulus', selector: 'blastArea', stimulus: 'heat' },
+    ],
+    presentation: { iconId: 'icon.fireball', animationId: 'cast_forward', vfxId: 'projectile.fireball' },
+  },
+  {
+    kind: 'ability',
     id: 'mage.frost_ray',
     version: 1,
     name: 'Raio de geada',

@@ -7,7 +7,8 @@ import { statuses, surfaces } from './statuses/index.js';
 
 /** Versão do pacote de conteúdo. Cada partida registra a versão usada (princípio 7). */
 /** 0.2.0 (Fase 6, balanceamento): Espada de ferro 1d8+13 → 1d8+10; Cajado natural 1d4+9 → 1d4+10; Mago 80 → 86 PV (docs/balanceamento.md). */
-export const CONTENT_VERSION = '0.2.0';
+/** 0.3.0: Bola de fogo do Mago (área 3×3, rolagem única, teste de resistência d20 CD 13 para metade, Queimando). */
+export const CONTENT_VERSION = '0.3.0';
 
 const byId = <T extends DefinitionBase>(list: T[]): Record<string, T> => {
   const out: Record<string, T> = {};

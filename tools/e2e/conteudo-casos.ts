@@ -137,6 +137,25 @@ export const CASES: ContentCase[] = [
       { t: 'end' },
     ],
   },
+  {
+    name: 'bola-de-fogo',
+    title: 'Bola de fogo: área 3×3, uma rolagem para todos, teste de resistência d20 (metade), Queimando',
+    setup: {
+      teams: {
+        A: [{ classId: 'mage', accessoryId: null, consumables: [] }],
+        B: [{ classId: 'warrior', accessoryId: null, consumables: [] }],
+      },
+    },
+    positions: [c(8, 2), c(8, 5)],
+    steps: [
+      { t: 'card', key: 'ability:mage.fireball', at: c(8, 5), note: 'explosão 3×3; d20 médio (11) falha a CD 13: 18 de fogo + Queimando' },
+      { t: 'end' },
+      { t: 'card', key: 'defend' },
+      { t: 'end' },
+      { t: 'blocked', key: 'ability:mage.fireball', reason: 'recarga' },
+      { t: 'end' },
+    ],
+  },
 ];
 
 export function caseUrl(k: ContentCase, base = 'http://127.0.0.1:5173/', seed = 4): string {

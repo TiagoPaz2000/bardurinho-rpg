@@ -20,7 +20,7 @@ describe('efeitos sonoros (Fase 4): evento aceito → som', () => {
       if (it.kind === 'weapon') expect(SOUNDS[soundsForEvent(ev('ATTACK_PERFORMED', { weaponId: it.id }))[0]!], it.id).toBeDefined();
       if (it.kind === 'consumable') expect(SOUNDS[soundsForEvent(ev('ITEM_USED', { itemId: it.id }))[0]!], it.id).toBeDefined();
     }
-    // As dez habilidades não soam todas iguais.
+    // As habilidades não soam todas iguais.
     expect(cast.size).toBeGreaterThanOrEqual(8);
   });
 

@@ -36,6 +36,7 @@ export const icons = {
 
   // Habilidades (= `presentation.iconId` no catálogo de conteúdo)
   'icon.flame': 'icons/abilities/flame.svg',
+  'icon.fireball': 'icons/abilities/fireball.svg',
   'icon.frost_ray': 'icons/abilities/frost_ray.svg',
   'icon.arcane_barrier': 'icons/abilities/arcane_barrier.svg',
   'icon.precise_shot': 'icons/abilities/precise_shot.svg',

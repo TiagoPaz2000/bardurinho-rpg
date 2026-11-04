@@ -63,9 +63,9 @@ describe('cobertura de conteúdo por cenários (Fase 4)', () => {
     expect(without.filter((n) => !legacy.includes(n)), 'cenários sem name/description').toEqual([]);
   });
 
-  it('as 10 habilidades são usadas em cenários', () => {
+  it('as 11 habilidades são usadas em cenários', () => {
     const ids = Object.keys(catalog.abilities);
-    expect(ids).toHaveLength(10);
+    expect(ids).toHaveLength(11);
     expect(missing(ids, (id) => scenarios.some((s) => inSetup(s, id))), 'habilidades sem cenário').toEqual([]);
   });
 

@@ -881,6 +881,8 @@ function eventSummary(e: GameEvent): string {
   switch (e.type) {
     case 'ATTACK_ROLLED':
       return `  ${p.attackerId}→${p.targetId}: d20=${p.natural}+${p.bonus}=${p.total} vs Def ${p.defense} ${p.critical ? 'CRÍTICO' : p.hit ? 'ACERTO' : 'ERRO'}`;
+    case 'SAVE_ROLLED':
+      return `  ${p.unitId}: resistência d20=${p.natural} vs CD ${p.dc} ${p.success ? 'PASSOU (metade)' : 'FALHOU'}`;
     case 'DICE_ROLLED': {
       const rolls = (p.rolls as Array<{ value: number }>).map((r) => r.value).join(',');
       const bonus = Number(p.bonus);

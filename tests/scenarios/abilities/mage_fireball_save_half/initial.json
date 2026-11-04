@@ -1,0 +1,26 @@
+{
+  "name": "Bola de fogo: uma rolagem para todos na área 3×3; quem passa no d20 sofre metade",
+  "description": "mage.fireball na célula (5,3). Dados forçados: 3d6 = [4,4,4] + 6 = 18 para todos. Testes de resistência (CD 13), na ordem da área: druida aliado (4,2) tira 13 e passa (9), guerreiro no centro tira 12 e falha (18), ladino na diagonal (6,4) tira 20 e passa (9). Os três ficam Queimando; o ladino fora da área (8,3) não é atingido. Sem jogada de ataque.",
+  "map": {
+    "floors": [
+      [
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        "..........",
+        ".........."
+      ]
+    ]
+  },
+  "units": [
+    { "id": "mage-01", "classId": "mage", "team": "A", "pos": { "x": 1, "y": 3 } },
+    { "id": "druid-01", "classId": "druid", "team": "A", "pos": { "x": 4, "y": 2 } },
+    { "id": "warrior-01", "classId": "warrior", "team": "B", "pos": { "x": 5, "y": 3 } },
+    { "id": "rogue-01", "classId": "rogue", "team": "B", "pos": { "x": 6, "y": 4 } },
+    { "id": "rogue-02", "classId": "rogue", "team": "B", "pos": { "x": 8, "y": 3 } }
+  ],
+  "order": ["mage-01", "warrior-01", "druid-01", "rogue-01", "rogue-02"]
+}

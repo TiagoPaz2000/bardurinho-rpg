@@ -31,6 +31,7 @@ export function validateCatalog(catalog: Catalog): ValidationIssue[] {
       if (op.op === 'createSurface' && !catalog.surfaces[op.surface]) {
         issue(ownerId, `efeito #${i}: superfície inexistente '${op.surface}'`);
       }
+      if (op.op === 'damage' && op.save && (op.save.dc < 2 || op.save.dc > 20)) issue(ownerId, `efeito #${i}: CD do teste precisa estar entre 2 e 20`);
       if ('amount' in op && (typeof op.amount === 'number' ? op.amount < 0 : !isValidDice(op.amount))) {
         issue(ownerId, `efeito #${i}: valor ou fórmula de dados inválida (${String(op.amount)})`);
       }

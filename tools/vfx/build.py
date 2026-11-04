@@ -172,4 +172,7 @@ scene.render.image_settings.file_format = 'PNG'
 scene.render.filepath = str(SOURCE/'preview.png')
 bpy.ops.wm.save_as_mainfile(filepath=str(SOURCE/'combat-vfx.blend'))
 bpy.ops.render.render(write_still=True)
+# Keep entries exported by other scripts (e.g. export_fireball_glb.py -> projectile.fireball).
+previous = json.loads((OUT/'manifest.json').read_text()) if (OUT/'manifest.json').exists() else {}
+manifest.update({k: v for k, v in previous.items() if k not in manifest})
 (OUT/'manifest.json').write_text(json.dumps(manifest, indent=2)+'\n')

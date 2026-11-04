@@ -8,14 +8,14 @@ import type { Coord } from '../core/types.js';
 import { grantShield, healUnit } from '../combat/damage.js';
 import { rollAmount, rollAttack } from '../combat/rolls.js';
 import { getCell } from '../map/grid.js';
-import { hasLineOfSight } from '../map/lineOfSight.js';
+import { blastArea, hasLineOfSight } from '../map/lineOfSight.js';
 import { findPath } from '../map/pathfinding.js';
 import type { Catalog, ConsumableDefinition, Cost, EffectOp, TargetingRule } from '../rules/definitions.js';
 import { createContext, emit, withCause, type ResolutionContext } from '../state/context.js';
 import type { GameEvent } from '../state/events.js';
 import { getEntity, hasStatusFlag, unitAt } from '../state/queries.js';
 import type { Entity, GameState, MapObject, Unit } from '../state/types.js';
-import { createScope, executeEffects, restoreResource, type EffectTarget } from '../effects/ops.js';
+import { createScope, executeEffects, restoreResource, usesBlastArea, type EffectTarget } from '../effects/ops.js';
 import { walkPath } from '../effects/movement.js';
 import { emitStimulus } from '../effects/reactions.js';
 import { setSurfaceDirect } from '../effects/surfaces.js';
@@ -177,7 +177,14 @@ function handle(ctx: ResolutionContext, command: Command, options: ExecutionOpti
           availableFromOwnTurn: actor.availableFromOwnTurn[ability.id],
         });
       }
-      emit(ctx, 'ABILITY_USED', { actorId: actor.id, abilityId: ability.id, version: ability.version, target: target.cell });
+      emit(ctx, 'ABILITY_USED', {
+        actorId: actor.id,
+        abilityId: ability.id,
+        version: ability.version,
+        target: target.cell,
+        // Área da explosão (Bola de fogo) para a apresentação, calculada antes dos efeitos.
+        ...(usesBlastArea(ability.effects) ? { area: blastArea(ctx.state, ctx.catalog, target.cell) } : {}),
+      });
       if (ability.attackRoll || ability.effects.some((e) => e.op === 'damage')) executeAttack(ctx, actor, ability.effects, target, ability.id, !!ability.attackRoll);
       else executeEffects(ctx, ability.effects, createScope(actor, target, ability.id));
       return;

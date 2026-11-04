@@ -1,0 +1,30 @@
+{
+  "errors": 0,
+  "units": {
+    "mage-01": { "ap": 1, "focus": 6, "hp": 86 },
+    "druid-01": { "hp": 86, "statuses": ["burning"] },
+    "warrior-01": { "hp": 92, "statuses": ["burning"] },
+    "rogue-01": { "hp": 81, "statuses": ["burning"] },
+    "rogue-02": { "hp": 90, "statuses": [] }
+  },
+  "damage": [
+    { "targetId": "druid-01", "raw": 9, "damageType": "fire" },
+    { "targetId": "warrior-01", "raw": 18, "damageType": "fire" },
+    { "targetId": "rogue-01", "raw": 9, "damageType": "fire" }
+  ],
+  "events": [
+    "ABILITY_USED",
+    "DICE_ROLLED",
+    "SAVE_ROLLED",
+    "DAMAGE_APPLIED",
+    "SAVE_ROLLED",
+    "DAMAGE_APPLIED",
+    "SAVE_ROLLED",
+    "DAMAGE_APPLIED",
+    "STATUS_APPLIED",
+    "STATUS_APPLIED",
+    "STATUS_APPLIED",
+    "STIMULUS_EMITTED"
+  ],
+  "forbiddenEvents": ["ATTACK_ROLLED"]
+}

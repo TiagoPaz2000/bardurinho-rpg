@@ -99,10 +99,25 @@ sequência. Para capturas, `window.__pace.speed = 0.25` desacelera 4×.
 - Medição no Chrome headless com SwiftShader (CPU): ~13–16 fps antes e depois de uma
   explosão com 3 células em chamas; numa GPU comum a cena fica no limite de quadros.
 
+### Bola de fogo (`projectile.fireball`)
+
+O projétil vem da arte editável `art/vfx/fireball/fireball-stylized.blend`. O script
+`tools/vfx/export_fireball_glb.py` pega o núcleo, as chamas, as bordas e as faíscas no quadro 1,
+deixando a fumaça de fora porque o jogo pinta cada GLB com uma cor só. Ele aponta a cabeça para +Z,
+reduz o modelo a 1 400 triângulos (orçamento de efeito) e acrescenta a entrada ao manifesto sem
+reconstruir os outros efeitos. No jogo, a bola sobe em arco e cai no centro da área, maior que os
+outros projéteis. Ao tocar o chão, toca `explosion(center, area)`: clarão, onda de choque até a
+borda e as 3×3 células acendendo. A área chega em `ABILITY_USED.payload.area`. Cada teste de
+resistência (`SAVE_ROLLED`) mostra um selo sobre o personagem: "Resistência 14 vs CD 13 — PASSOU,
+metade do dano" ou "FALHOU". A animação de impacto no chão (`art/vfx/fireball-impact/`) continua
+como referência em .blend/MP4: o fogo que fica é o estado Queimando e as reações de calor, que já
+têm efeitos próprios.
+
 ## Reprodução e verificação
 
 ```powershell
 & 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background --python tools/vfx/build.py
+& 'C:/Program Files/Blender Foundation/Blender 5.2/blender.exe' --background art/vfx/fireball/fireball-stylized.blend --disable-autoexec --python tools/vfx/export_fireball_glb.py
 npx.cmd tsx tools/vfx/verify.ts
 npm.cmd run typecheck
 npm.cmd test

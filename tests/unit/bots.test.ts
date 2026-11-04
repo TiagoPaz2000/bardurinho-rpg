@@ -58,11 +58,17 @@ describe('bots: decisão', () => {
     for (const difficulty of ['normal', 'hard'] as BotDifficulty[]) {
       const bot = new BotBrain(catalog, 'A', { difficulty, seed: 1 });
       const d = bot.decide(projectStateForClient(state, catalog, 'A').state);
-      // Varinha (sem Foco) ou Chama no barril: a explosão (20 de fogo) atinge o Guerreiro sem jogada de ataque.
+      // Varinha (sem Foco), Chama no barril ou Bola de fogo com o barril na área: a explosão (20 de fogo) atinge o Guerreiro sem jogada de ataque.
       // Fase 6: o normal pode "deslizar" para a 2ª opção (DIFFICULTY.secondBest), então a conferência é na
       // melhor opção avaliada; o difícil planeja o turno inteiro (valor esperado) e pode atacar o
       // inimigo antes — o barril tem de aparecer entre as ações do turno.
-      const onBarrel = (c: GameplayCommand) => ['BASIC_ATTACK', 'USE_ABILITY'].includes(c.type) && (c as { target?: { x?: number; y?: number } }).target?.x === 5 && (c as { target?: { y?: number } }).target?.y === 5;
+      const onBarrel = (c: GameplayCommand) => {
+        if (!['BASIC_ATTACK', 'USE_ABILITY'].includes(c.type)) return false;
+        const t = (c as { target?: { x?: number; y?: number } }).target;
+        if (t?.x === undefined || t.y === undefined) return false;
+        if (c.type === 'USE_ABILITY' && c.abilityId === 'mage.fireball') return Math.max(Math.abs(t.x - 5), Math.abs(t.y - 5)) <= 1;
+        return t.x === 5 && t.y === 5;
+      };
       if (difficulty === 'normal') expect(onBarrel(d.considered[0]!.command)).toBe(true);
       else {
         let s = state;

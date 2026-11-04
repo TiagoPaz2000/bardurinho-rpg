@@ -7,6 +7,9 @@
 import { crossArea, distance } from '../core/coords.js';
 import type { Coord, EntityId } from '../core/types.js';
 import { allCoords, getCell } from '../map/grid.js';
+import { blastArea } from '../map/lineOfSight.js';
+import { usesBlastArea } from '../effects/ops.js';
+import { saveSuccessChance } from '../combat/rolls.js';
 import { reachableCells } from '../map/pathfinding.js';
 import type { Catalog, Cost, EffectOp, TargetingRule } from '../rules/definitions.js';
 import { entitiesAt, unitAt } from '../state/queries.js';
@@ -302,15 +305,17 @@ export function listValidTargets(
 }
 
 /**
- * Células afetadas se a ação mirar `targetCell`: a cruz (centro + 4 vizinhas) quando algum
- * efeito usa os seletores `crossArea`/`crossAreaOccupants` (Espinhos, Frasco de óleo), senão
- * só a célula alvo. Vem dos seletores da definição — o mesmo dado que o executor usa.
+ * Células afetadas se a ação mirar `targetCell`: o quadrado 3×3 da explosão (Bola de fogo,
+ * seletores `blastArea*`, sem células atrás de paredes), a cruz (centro + 4 vizinhas) quando
+ * algum efeito usa `crossArea`/`crossAreaOccupants` (Espinhos, Frasco de óleo), senão só a
+ * célula alvo. Vem dos seletores da definição — o mesmo dado que o executor usa.
  */
 export function previewArea(state: GameState, catalog: Catalog, _actorId: EntityId, action: TargetedAction, targetCell: Coord): Coord[] {
   const def = targetedDefinition(catalog, action);
   if (!def) return [];
   const cross = def.effects.some((e) => 'selector' in e && (e.selector === 'crossArea' || e.selector === 'crossAreaOccupants'));
-  return (cross ? crossArea(targetCell) : [targetCell]).filter((c) => getCell(state.map, c)?.terrain === 'ground');
+  const cells = usesBlastArea(def.effects) ? blastArea(state, catalog, targetCell) : cross ? crossArea(targetCell) : [targetCell];
+  return cells.filter((c) => getCell(state.map, c)?.terrain === 'ground');
 }
 
 /** Probabilidade (0–1) de acertar: d20 + bônus ≥ Defesa; 1 natural erra, 20 natural acerta. */
@@ -329,18 +334,22 @@ export interface TargetPreview {
   hitChance: number;
   defense: number | null;
   attackBonus: number;
+  /** Teste de resistência (Bola de fogo): CD e chance (0–1) de o personagem passar e sofrer metade. */
+  save?: { dc: number; successChance: number };
 }
 
 /**
  * Entidades na área da ação mirando `targetCell` e a chance de acerto de cada uma. Só o
  * personagem na célula alvo sofre jogada de ataque (como em `executeAttack`); objetos e os
- * demais ocupantes da área são atingidos automaticamente.
+ * demais ocupantes da área são atingidos automaticamente. Com teste de resistência, cada
+ * personagem também traz a chance de passar (e sofrer metade).
  */
 export function previewTargets(state: GameState, catalog: Catalog, actorId: EntityId, action: TargetedAction, targetCell: Coord): TargetPreview[] {
   const actor = state.units[actorId];
   const def = targetedDefinition(catalog, action);
   if (!actor || !def) return [];
   const victim = unitAt(state, targetCell);
+  const save = def.effects.flatMap((e) => (e.op === 'damage' && e.save ? [e.save] : []))[0];
   return previewArea(state, catalog, actorId, action, targetCell).flatMap((c) =>
     entitiesAt(state, c)
       .filter((e) => e.id !== actor.id && (e.entity !== 'object' || e.state !== 'destroyed'))
@@ -353,6 +362,7 @@ export function previewTargets(state: GameState, catalog: Catalog, actorId: Enti
           hitChance: rolls ? attackHitChance(actor.attackBonus, (e as Unit).defense) : 1,
           defense: e.entity === 'unit' ? e.defense : null,
           attackBonus: actor.attackBonus,
+          ...(save && e.entity === 'unit' ? { save: { dc: save.dc, successChance: saveSuccessChance(save.dc) } } : {}),
         };
       }),
   );

@@ -153,12 +153,13 @@ describe('portão e alavanca (seção 6.1)', () => {
 });
 
 describe('dados do catálogo conferem com o plano (seções 3 e 4)', () => {
-  it('custos e recargas das 10 habilidades', () => {
+  it('custos e recargas das 11 habilidades', () => {
     const table = Object.fromEntries(
       Object.values(catalog.abilities).map((a) => [a.id, [a.cost.ap, a.cost.focus ?? 0, a.blockedOwnTurnsAfterUse, a.maxUsesPerTurn]]),
     );
     expect(table).toEqual({
       'mage.flame': [1, 2, 0, 1],
+      'mage.fireball': [1, 4, 2, 1],
       'mage.frost_ray': [1, 2, 1, 1],
       'mage.arcane_barrier': [1, 3, 2, 1],
       'rogue.precise_shot': [1, 3, 1, 1],
@@ -184,6 +185,7 @@ describe('dados do catálogo conferem com o plano (seções 3 e 4)', () => {
     const abilities = Object.fromEntries(Object.values(catalog.abilities).filter((a) => a.target.kind !== 'self').map((a) => [a.id, range(a.target)]));
     expect(abilities).toEqual({
       'mage.flame': [0, 6],
+      'mage.fireball': [3, 6],
       'mage.frost_ray': [0, 6],
       'rogue.precise_shot': [2, 7],
       'warrior.charge': [0, 5],

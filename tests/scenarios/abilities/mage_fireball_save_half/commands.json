@@ -1,0 +1,4 @@
+[
+  { "type": "DEBUG_SET_RNG", "forced": [4, 4, 4, 13, 12, 20] },
+  { "type": "USE_ABILITY", "actorId": "mage-01", "abilityId": "mage.fireball", "target": { "kind": "cell", "x": 5, "y": 3, "floor": 0 } }
+]

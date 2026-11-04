@@ -11,7 +11,7 @@ Todos os caminhos ficam em `packages/assets-manifest/src/index.ts` (`icons`), re
 
 | Categoria | Ids | Pasta |
 |---|---|---|
-| Habilidades (10) | `icon.flame`, `icon.frost_ray`, `icon.arcane_barrier`, `icon.precise_shot`, `icon.hide`, `icon.charge`, `icon.push`, `icon.thorns`, `icon.natural_heal`, `icon.root` (= `presentation.iconId` do conteúdo) | `icons/abilities/<nome>.svg` |
+| Habilidades (11) | `icon.flame`, `icon.fireball`, `icon.frost_ray`, `icon.arcane_barrier`, `icon.precise_shot`, `icon.hide`, `icon.charge`, `icon.push`, `icon.thorns`, `icon.natural_heal`, `icon.root` (= `presentation.iconId` do conteúdo) | `icons/abilities/<nome>.svg` |
 | Itens (14) | `icon.weapon.*` (PNG) e `icon.item.<itemId>` para armaduras, acessórios e consumíveis | `icons/items/<itemId>.{png,svg}` |
 | Estados (5) | `icon.status.burning`, `.slowed`, `.rooted`, `.hidden`, `.barrier` | `icons/statuses/<id>.svg` |
 | Classes (4) | `icon.class.mage`, `.rogue`, `.warrior`, `.druid` | `icons/classes/<id>.svg` |

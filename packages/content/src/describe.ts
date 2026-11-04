@@ -38,10 +38,11 @@ const who = (selector: string): string =>
     self: 'em si mesmo',
     targetCellOccupants: 'no alvo',
     crossAreaOccupants: 'em todos na área em cruz',
+    blastAreaOccupants: 'em todos na área 3×3 (aliados também)',
     survivingUnitsHit: 'nos atingidos que sobreviverem',
   })[selector] ?? '';
 const where = (selector: string): string =>
-  ({ targetCell: 'na célula alvo', crossArea: 'em cruz (5 células)', selfCell: 'na própria célula' })[selector] ?? '';
+  ({ targetCell: 'na célula alvo', crossArea: 'em cruz (5 células)', blastArea: 'em toda a área 3×3', selfCell: 'na própria célula' })[selector] ?? '';
 
 export function formatCost(cost: Cost): string {
   return `${cost.ap} PA${cost.focus ? ` + ${cost.focus} Foco` : ''}`;
@@ -58,7 +59,9 @@ export function describeTarget(t: TargetingRule): string {
 export function describeEffect(catalog: Catalog, op: EffectOp): string {
   switch (op.op) {
     case 'damage':
-      return `Causa ${formatAmount(op.amount)} de dano ${DAMAGE_NAMES[op.damageType]} ${who(op.selector)}${op.ignoreArmor ? ' (ignora armadura)' : ''}`;
+      return `Causa ${formatAmount(op.amount)} de dano ${DAMAGE_NAMES[op.damageType]} ${who(op.selector)}${op.ignoreArmor ? ' (ignora armadura)' : ''}`
+        + (op.sharedRoll ? ' — uma rolagem, o mesmo dano para todos' : '')
+        + (op.save ? `; teste de resistência d20 CD ${op.save.dc}: quem passar sofre metade (1 falha sempre, 20 passa sempre)` : '');
     case 'heal':
       return `Recupera ${formatAmount(op.amount)} PV ${who(op.selector)}`;
     case 'applyStatus': {
